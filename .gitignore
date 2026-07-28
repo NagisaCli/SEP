@@ -1,0 +1,15 @@
+# Build artifacts
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Runtime caches
+e3d_paths.json
+e3d_projects.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
