@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEP — E3D 项目管理系统</title>
+<style>
+:root{
+  --bg:#0a0d13;
+  --bg-soft:#0d1119;
+  --card:rgba(20,25,38,.78);
+  --card-2:#0e131d;
+  --border:#20283a;
+  --border-soft:rgba(32,40,58,.55);
+  --text:#e9edf5;
+  --muted:#8b95ab;
+  --muted-2:#5d6880;
+  --blue:#5b93ff;
+  --blue-soft:rgba(91,147,255,.13);
+  --green:#35d9ab;
+  --green-soft:rgba(53,217,171,.13);
+  --red:#ff6272;
+  --red-soft:rgba(255,98,114,.13);
+  --amber:#f6bd6a;
+  --amber-soft:rgba(246,189,106,.13);
+  --purple:#b98aff;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 16px 44px rgba(0,0,0,.42);
+  --shadow-sm:0 6px 18px rgba(0,0,0,.28);
+  --sidebar-w:236px;
+  --ease:cubic-bezier(.22,.8,.32,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  background:
+    radial-gradient(1100px 520px at 88% -12%, rgba(91,147,255,.12), transparent 62%),
+    radial-gradient(900px 460px at -8% 112%, rgba(53,217,171,.09), transparent 60%),
+    radial-gradient(700px 380px at 52% 118%, rgba(185,138,255,.07), transparent 62%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#2a3348;border-radius:8px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#3a4560;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* 顶栏 */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:14px clamp(14px,2.5vw,30px);
+  border-bottom:1px solid var(--border-soft);
+  background:rgba(10,13,19,.7);
+  backdrop-filter:blur(14px) saturate(1.4);
+  position:sticky;top:0;z-index:30;
+  animation:fadeDown .45s var(--ease);
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{
+  width:40px;height:40px;border-radius:13px;flex:0 0 auto;
+  display:grid;place-items:center;font-size:20px;
+  background:linear-gradient(135deg,#5b93ff,#35d9ab);
+  box-shadow:0 8px 22px rgba(91,147,255,.38);
+  transition:transform .35s var(--ease);
+}
+.brand:hover .logo{transform:rotate(-8deg) scale(1.06)}
+.brand h1{font-size:17px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.brand p{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.e3d-chip{
+  font-size:12px;padding:6px 13px;border-radius:20px;white-space:nowrap;
+  background:var(--red-soft);color:var(--red);border:1px solid rgba(255,98,114,.32);
+  transition:all .25s;
+}
+.e3d-chip.ok{background:var(--green-soft);color:#86e7c9;border-color:rgba(53,217,171,.32)}
+
+/* 布局 */
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{
+  width:var(--sidebar-w);flex:0 0 var(--sidebar-w);
+  border-right:1px solid var(--border-soft);
+  padding:18px 12px 14px;
+  display:flex;flex-direction:column;gap:4px;
+  background:rgba(12,16,24,.42);
+  backdrop-filter:blur(8px);
+  animation:fadeIn .4s var(--ease);
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sidebar .nav-label{font-size:10.5px;color:var(--muted-2);letter-spacing:1.4px;padding:2px 10px 8px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:10px 12px;border-radius:12px;font-size:13.5px;cursor:pointer;font-weight:500;
+  transition:all .2s var(--ease);text-align:left;position:relative;
+}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.035);transform:translateX(2px)}
+.nav-item.active{
+  color:#fff;background:linear-gradient(120deg,rgba(91,147,255,.18),rgba(53,217,171,.1));
+  border-color:rgba(91,147,255,.3);
+  box-shadow:inset 0 0 0 1px rgba(91,147,255,.07),var(--shadow-sm);
+}
+.nav-item .nav-ico{font-size:15px;width:20px;text-align:center;transition:transform .25s var(--ease)}
+.nav-item.active .nav-ico{transform:scale(1.15)}
+.nav-item .count{
+  margin-left:auto;font-size:11px;padding:1px 8px;border-radius:12px;
+  background:rgba(139,149,171,.12);color:var(--muted);transition:all .2s;
+}
+.nav-item.active .count{background:rgba(91,147,255,.22);color:#b9d2ff}
+.side-foot{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side-stat{
+  background:var(--card);border:1px solid var(--border-soft);border-radius:12px;
+  padding:10px;text-align:center;backdrop-filter:blur(6px);
+  transition:transform .2s var(--ease);
+}
+.side-stat:hover{transform:translateY(-2px)}
+.side-stat span{display:block;font-size:10.5px;color:var(--muted-2)}
+.side-stat b{font-size:18px;color:var(--text)}
+
+.content{flex:1;min-width:0;padding:24px clamp(14px,2.5vw,34px) 44px;overflow:auto}
+.view{display:none;max-width:1260px;margin:0 auto}
+.view.active{display:block;animation:fadeUp .32s var(--ease)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view-title{font-size:20px;font-weight:700;margin-bottom:18px}
+.view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.view-head h2{font-size:18px;font-weight:700}
+.btn-group{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* 按钮 */
+.btn{
+  border:1px solid var(--border);background:var(--card);color:var(--text);
+  padding:7px 13px;border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer;
+  transition:all .18s var(--ease);white-space:nowrap;font-weight:500;
+  backdrop-filter:blur(6px);
+}
+.btn:hover{border-color:var(--blue);color:#fff;transform:translateY(-1px);box-shadow:0 5px 14px rgba(91,147,255,.18)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary{background:linear-gradient(120deg,#5b93ff,#4a7de8);border-color:transparent;color:#fff}
+.btn-primary:hover{filter:brightness(1.1);box-shadow:0 6px 18px rgba(91,147,255,.32)}
+.btn-green{background:linear-gradient(120deg,#35d9ab,#2abf97);border-color:transparent;color:#06231b}
+.btn-green:hover{filter:brightness(1.08);box-shadow:0 6px 18px rgba(53,217,171,.3)}
+.btn-danger{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-danger:hover{background:var(--red-soft);border-color:var(--red);color:var(--red);box-shadow:none}
+.btn-sm{padding:4px 10px;font-size:11.5px;border-radius:8px}
+
+/* 卡片 */
+.card{
+  background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;
+  backdrop-filter:blur(10px);
+  transition:border-color .25s,box-shadow .25s;
+}
+.card:hover{border-color:rgba(91,147,255,.22)}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:15px 18px 12px;border-bottom:1px solid var(--border-soft);
+}
+.card-head h3{font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:8px}
+.card-head h3 .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue)}
+.card-body{padding:14px 18px 18px}
+
+/* 统计卡 */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius);
+  padding:17px;cursor:pointer;backdrop-filter:blur(8px);
+  transition:transform .22s var(--ease),border-color .22s,box-shadow .22s;
+  position:relative;overflow:hidden;
+}
+.stat-card::after{
+  content:'';position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,rgba(91,147,255,.16),transparent 70%);
+  transition:transform .35s var(--ease);
+}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(91,147,255,.35);box-shadow:var(--shadow)}
+.stat-card:hover::after{transform:scale(1.5)}
+.stat-card .k{font-size:11px;color:var(--muted-2);letter-spacing:.7px}
+.stat-card .v{display:block;font-size:27px;font-weight:750;margin-top:7px;line-height:1;letter-spacing:.3px}
+.stat-card .v small{font-size:12px;color:var(--muted);font-weight:500;margin-left:3px}
+.stat-card .sub{font-size:11px;color:var(--muted);margin-top:9px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
+@media (max-width:640px){.stat-grid{grid-template-columns:1fr 1fr}.stat-card .v{font-size:21px}}
+
+/* 分布条 */
+.dist-row{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:10px;margin-bottom:11px;font-size:12px;animation:fadeUp .3s var(--ease)}
+.dist-row .name{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dist-row .track{height:8px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.dist-row .fill{height:100%;border-radius:6px;transition:width .6s var(--ease)}
+.dist-row .num{color:var(--muted-2);text-align:right}
+
+/* 筛选栏与批量栏 */
+.filter-bar,.batch-bar{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius);
+  padding:11px 13px;margin-bottom:14px;backdrop-filter:blur(8px);
+}
+.filter-bar input[type="text"],.filter-bar select{
+  background:var(--card-2);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius-sm);padding:8px 11px;font-size:12.5px;outline:none;min-width:0;
+  transition:border-color .18s,box-shadow .18s;
+}
+.filter-bar input[type="text"]{flex:1;min-width:160px}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,147,255,.13)}
+.filter-bar label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.filter-bar label input{accent-color:var(--blue)}
+.batch-bar{background:linear-gradient(120deg,rgba(91,147,255,.1),rgba(53,217,171,.07));border-color:rgba(91,147,255,.28);animation:pop .22s var(--ease)}
+.batch-count{font-size:12.5px;color:#b9d2ff;font-weight:600}
+
+/* 项目表格 */
+.proj-table{min-width:840px}
+.proj-head,.proj-row{
+  display:grid;grid-template-columns:34px minmax(230px,1.5fr) minmax(100px,.65fr) minmax(130px,1fr) 88px auto;
+  gap:12px;align-items:center;padding:12px 14px;
+}
+.proj-table:not(.batch-active) .check-col{display:none}
+.proj-table:not(.batch-active) .proj-head,.proj-table:not(.batch-active) .proj-row{
+  grid-template-columns:minmax(230px,1.5fr) minmax(100px,.65fr) minmax(130px,1fr) 88px auto;
+}
+.proj-head{font-size:11px;color:var(--muted-2);letter-spacing:.6px;border-bottom:1px solid var(--border-soft)}
+.proj-row{border-bottom:1px solid var(--border-soft);transition:background .16s var(--ease);font-size:12.5px;animation:fadeUp .25s var(--ease)}
+.proj-row:last-child{border-bottom:none}
+.proj-row:hover{background:rgba(91,147,255,.045)}
+.proj-main{min-width:0}
+.proj-name{font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.proj-path{font-size:11px;color:var(--muted);margin-top:3px;word-break:break-all}
+.proj-sub{font-size:10.5px;color:var(--muted-2);margin-top:3px;word-break:break-all}
+.proj-cat{min-width:0}
+.proj-tags{display:flex;flex-wrap:wrap;gap:4px}
+.proj-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.check-col{display:flex;align-items:center}
+.row-check{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.scroll-x{overflow-x:auto}
+.empty{
+  color:var(--muted-2);text-align:center;font-size:13px;padding:32px 12px;line-height:1.7;
+  border:1px dashed var(--border);border-radius:12px;
+}
+
+/* 徽章与标签 */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 9px;border-radius:20px;
+  background:var(--blue-soft);color:#a9c8ff;border:1px solid rgba(91,147,255,.26);font-weight:500;white-space:nowrap;
+  transition:all .2s;
+}
+.badge.green{background:var(--green-soft);color:#86e7c9;border-color:rgba(53,217,171,.26)}
+.badge.amber{background:var(--amber-soft);color:#f9d9a8;border-color:rgba(246,189,106,.26)}
+.badge.red{background:var(--red-soft);color:#ffa3ae;border-color:rgba(255,98,114,.26)}
+.badge.gray{background:rgba(139,149,171,.1);color:var(--muted);border-color:rgba(139,149,171,.18)}
+.badge.purple{background:rgba(185,138,255,.12);color:#d3b6ff;border-color:rgba(185,138,255,.3)}
+.tag-chip{
+  display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 8px;border-radius:6px;
+  background:rgba(91,147,255,.09);color:#a5bfea;border:1px solid rgba(91,147,255,.2);white-space:nowrap;
+  animation:pop .2s var(--ease);
+}
+.tag-chip .x{cursor:pointer;color:var(--muted-2);font-weight:700}
+.tag-chip .x:hover{color:var(--red)}
+
+/* 路径库 */
+.lib{
+  border:1px solid var(--border-soft);border-radius:14px;margin-bottom:12px;overflow:hidden;background:var(--card);
+  backdrop-filter:blur(8px);transition:border-color .22s,box-shadow .22s;
+  animation:fadeUp .28s var(--ease);
+}
+.lib:hover{border-color:rgba(91,147,255,.24)}
+.lib-head{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;background:rgba(255,255,255,.014);
+}
+.lib-toggle{
+  flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(255,255,255,.035);border:1px solid var(--border);color:var(--muted);cursor:pointer;
+  transition:all .2s var(--ease);
+}
+.lib-toggle:hover{color:#fff;border-color:var(--blue)}
+.lib-toggle .chev{transition:transform .28s var(--ease);font-size:10px}
+.lib.open .lib-toggle .chev{transform:rotate(90deg)}
+.lib-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;flex:1}
+.lib-title .name{font-size:13.5px;font-weight:650}
+.lib-title .path{font-size:11px;color:var(--muted-2);word-break:break-all;margin-top:2px}
+.lib-actions{display:flex;gap:6px;flex-wrap:wrap}
+.lib-meta{padding:0 14px 10px 52px;font-size:11px;color:var(--muted-2);word-break:break-all}
+.lib-err{background:var(--red-soft);color:#ffa3ae;font-size:12px;padding:8px 14px;border-bottom:1px solid var(--border-soft)}
+.lib-body{max-height:0;overflow:hidden;transition:max-height .32s var(--ease)}
+.lib-body.open{max-height:2400px}
+.lib-projects{padding:8px 12px 12px}
+.lib-batch-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 12px 4px;padding:8px 11px;
+  background:linear-gradient(120deg,rgba(91,147,255,.1),rgba(53,217,171,.07));
+  border:1px solid rgba(91,147,255,.28);border-radius:10px;animation:pop .22s var(--ease);
+}
+.lib-add{display:flex;gap:8px;margin-bottom:8px}
+.lib-add input{
+  flex:1;min-width:0;background:var(--card-2);border:1px solid var(--border);
+  color:var(--text);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;outline:none;
+  transition:border-color .18s,box-shadow .18s;
+}
+.lib-add input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,147,255,.13)}
+.lib-add input::placeholder{color:var(--muted-2)}
+.hint{font-size:11.5px;color:var(--muted-2);line-height:1.65}
+
+/* 行（迷你） */
+.mini-row{
+  display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--border-soft);font-size:12.5px;
+  transition:background .15s;
+}
+.mini-row:last-child{border-bottom:none}
+.mini-row:hover{background:rgba(91,147,255,.04)}
+.mini-row .mini-name{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini-row .mini-path{color:var(--muted-2);font-size:11px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.mini-row .mini-actions{display:flex;gap:5px;flex:0 0 auto;flex-wrap:wrap}
+
+/* 表单 */
+.form-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;margin-bottom:12px}
+.form-row label{font-size:12.5px;color:var(--muted);text-align:right}
+.form-row input[type="text"],.form-row input[type="color"],.form-row select,.form-row textarea{
+  background:var(--card-2);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius-sm);padding:8px 11px;font-size:12.5px;outline:none;width:100%;font-family:inherit;
+  transition:border-color .18s,box-shadow .18s;
+}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,147,255,.13)}
+.form-row textarea{min-height:70px;resize:vertical;line-height:1.5}
+.form-row input[type="color"]{padding:3px;width:44px;height:34px;cursor:pointer}
+.form-row .mono{font-size:11.5px;color:var(--muted);word-break:break-all;font-family:Consolas,monospace}
+.form-note{font-size:11px;color:var(--muted-2);margin:-6px 0 12px 160px;line-height:1.5}
+@media (max-width:720px){.form-row{grid-template-columns:1fr}.form-row label{text-align:left}.form-note{margin-left:0}}
+
+/* 弹窗 */
+.modal-mask{
+  position:fixed;inset:0;z-index:60;background:rgba(4,7,13,.72);backdrop-filter:blur(6px);
+  display:grid;place-items:center;padding:18px;
+  animation:fadeIn .22s var(--ease);
+}
+.modal-mask[hidden]{display:none}
+.modal{
+  width:min(620px,96vw);max-height:90vh;overflow:auto;
+  background:linear-gradient(160deg,rgba(22,28,43,.98),rgba(15,20,31,.98));
+  border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);
+  padding:22px 24px;
+  animation:pop .28s var(--ease);
+}
+.modal-wide{width:min(760px,96vw)}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{
+  background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:2px 7px;border-radius:8px;
+  transition:all .18s;
+}
+.modal-close:hover{color:#fff;background:rgba(255,255,255,.07)}
+.modal .path-box{
+  background:var(--card-2);border:1px solid var(--border-soft);border-radius:10px;padding:9px 12px;
+  font-size:11.5px;color:var(--muted);word-break:break-all;line-height:1.65;margin-bottom:16px;
+}
+.modal .path-box b{color:var(--text);font-weight:600}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.cat-row{display:grid;grid-template-columns:1fr 46px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.cat-add{display:grid;grid-template-columns:1fr 46px auto;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-soft)}
+.cat-row input,.cat-add input{background:var(--card-2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:7px 10px;font-size:12.5px;outline:none;width:100%}
+.cat-row input:focus,.cat-add input:focus{border-color:var(--blue)}
+.cat-row input[type="color"],.cat-add input[type="color"]{padding:2px;height:32px;width:44px;cursor:pointer}
+.cat-row .count{font-size:11px;color:var(--muted-2);text-align:center}
+
+/* 诊断 */
+.diag-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.diag-path{font-size:12px;color:var(--muted);word-break:break-all;font-family:Consolas,monospace}
+.diag-lib{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-soft)}
+.diag-lib:last-child{border-bottom:none}
+.diag-lib h4{font-size:13px;margin-bottom:8px;color:#b9d2ff}
+.diag-row{display:flex;gap:11px;padding:10px 2px;border-bottom:1px solid var(--border-soft);font-size:12.5px;animation:fadeUp .25s var(--ease)}
+.diag-row:last-child{border-bottom:none}
+.diag-icon{
+  flex:0 0 24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;
+  margin-top:1px;
+}
+.diag-row.ok .diag-icon{background:var(--green-soft);color:var(--green)}
+.diag-row.warn .diag-icon{background:var(--amber-soft);color:var(--amber)}
+.diag-row.fail .diag-icon{background:var(--red-soft);color:var(--red)}
+.diag-row.skip .diag-icon{background:rgba(139,149,171,.12);color:var(--muted)}
+.diag-name{font-weight:650}
+.diag-detail{color:var(--muted);margin-top:2px;line-height:1.55;word-break:break-all}
+.fix-box{
+  margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(246,189,106,.06);
+  border:1px solid rgba(246,189,106,.22);
+}
+.fix-title{font-size:12px;font-weight:650;color:#f9d9a8;margin-bottom:6px}
+.fix-box ol{margin:0 0 8px 18px;font-size:11.5px;color:var(--muted);line-height:1.65}
+.cmd-line{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.cmd-line code{
+  flex:1;background:#0a0d13;border:1px solid var(--border);border-radius:8px;padding:7px 10px;
+  font-size:11px;color:#a5bfea;word-break:break-all;font-family:Consolas,monospace;line-height:1.5;
+}
+
+/* Toast */
+.toast{
+  position:fixed;right:18px;bottom:18px;z-index:99;max-width:430px;
+  padding:13px 18px;border-radius:12px;font-size:13px;line-height:1.55;
+  background:rgba(20,25,38,.95);border:1px solid var(--border);box-shadow:var(--shadow);
+  transform:translateX(430px);opacity:0;transition:all .3s var(--ease);word-break:break-all;
+  backdrop-filter:blur(10px);
+}
+.toast.show{transform:translateX(0);opacity:1}
+.toast.ok{border-color:rgba(53,217,171,.42)}
+.toast.err{border-color:rgba(255,98,114,.46)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;flex:none;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border-soft);padding:10px}
+  .sidebar .nav-label,.side-foot{display:none}
+  .nav-item{flex:0 0 auto}
+  .brand p{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>SEP 项目管理系统</h1>
+      <p>AVEVA Everything3D</p>
+    </div>
+  </div>
+  <div class="head-actions">
+    <span class="e3d-chip" id="head-e3d">E3D 检测中…</span>
+    <button class="btn" onclick="detect()">⟳ 重新检测</button>
+    <button class="btn btn-danger" onclick="quit()">退出</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav-label">导航</div>
+    <button class="nav-item active" data-view="overview"><span class="nav-ico">◈</span>概览</button>
+    <button class="nav-item" data-view="projects"><span class="nav-ico">▤</span>项目管理<span class="count" id="nav-projects">0</span></button>
+    <button class="nav-item" data-view="myprojects"><span class="nav-ico">★</span>我的项目<span class="count" id="nav-my">0</span></button>
+    <button class="nav-item" data-view="libraries"><span class="nav-ico">◫</span>路径库<span class="count" id="nav-libs">0</span></button>
+    <button class="nav-item" data-view="settings"><span class="nav-ico">⚙</span>设置</button>
+    <div class="side-foot">
+      <div class="side-stat"><span>我的项目</span><b id="side-my">0</b></div>
+      <div class="side-stat"><span>项目总数</span><b id="side-total">0</b></div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- 概览 -->
+    <section id="view-overview" class="view active">
+      <h2 class="view-title">概览</h2>
+      <div class="stat-grid">
+        <div class="stat-card" data-goto="projects">
+          <span class="k">项目总数</span><span class="v" id="ov-total">0</span>
+          <span class="sub">已扫描路径库中的全部项目</span>
+        </div>
+        <div class="stat-card" data-goto="myprojects">
+          <span class="k">我的项目</span><span class="v" id="ov-my">0</span>
+          <span class="sub">快捷启动列表（本地 custom_evars）</span>
+        </div>
+        <div class="stat-card" data-goto="libraries">
+          <span class="k">路径库</span><span class="v" id="ov-libs">0</span>
+          <span class="sub">项目文件夹来源</span>
+        </div>
+        <div class="stat-card" data-goto="projects">
+          <span class="k">分类</span><span class="v" id="ov-cats">0</span>
+          <span class="sub">项目归类维度</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3><span class="dot"></span>分类分布</h3></div>
+          <div class="card-body" id="ov-cat-dist"><div class="empty">暂无项目</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3><span class="dot" style="background:var(--green);box-shadow:0 0 10px var(--green)"></span>项目状态</h3></div>
+          <div class="card-body" id="ov-status-dist"><div class="empty">暂无项目</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>最近项目</h3><button class="btn btn-sm" data-goto="projects">查看全部</button></div>
+        <div class="card-body" id="ov-recent"><div class="empty">暂无项目</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3><span class="dot" style="background:var(--amber);box-shadow:0 0 10px var(--amber)"></span>我的项目</h3>
+          <div class="btn-group">
+            <button class="btn btn-green btn-sm" onclick="launchAll()">▶ 全部载入并启动</button>
+            <button class="btn btn-sm" data-goto="myprojects">管理我的项目</button>
+          </div>
+        </div>
+        <div class="card-body" id="ov-my-list"><div class="empty">暂无项目，在「我的项目」中查看</div></div>
+      </div>
+    </section>
+
+    <!-- 项目管理 -->
+    <section id="view-projects" class="view">
+      <div class="view-head">
+        <h2>项目管理</h2>
+        <div class="btn-group">
+          <button class="btn btn-sm" onclick="openCategoryManager()">◫ 管理分类</button>
+          <button class="btn btn-sm" onclick="rescanAll()">⟳ 全部重扫</button>
+          <button class="btn btn-sm" onclick="toggleBatch('projects')">批量操作</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="f-q" placeholder="搜索名称 / 路径 / 负责人 / 标签…" oninput="renderProjects()">
+        <select id="f-cat" onchange="renderProjects()"><option value="">全部分类</option></select>
+        <select id="f-status" onchange="renderProjects()"><option value="">全部状态</option></select>
+        <select id="f-tag" onchange="renderProjects()"><option value="">全部标签</option></select>
+        <label><input type="checkbox" id="f-my" onchange="renderProjects()"> 仅我的</label>
+        <button class="btn btn-sm" onclick="clearFilters()">清除筛选</button>
+      </div>
+      <div class="batch-bar" id="batch-bar" hidden>
+        <span class="batch-count" id="batch-count">已选 0 项</span>
+        <button class="btn btn-sm" onclick="toggleSelectAll('projects')">全选</button>
+        <button class="btn btn-sm btn-primary" onclick="openBatchEdit()">批量编辑</button>
+        <button class="btn btn-sm" onclick="batchAddMy()">添加到我的</button>
+        <button class="btn btn-sm" onclick="batchRemoveMy()">移出我的</button>
+        <button class="btn btn-danger btn-sm" onclick="exitBatch('projects')">退出批量</button>
+      </div>
+      <div class="card">
+        <div class="scroll-x">
+          <div class="proj-table" id="proj-table">
+            <div class="proj-head">
+              <span class="check-col"></span><span>项目</span><span>分类</span><span>标签</span><span>状态</span><span style="text-align:right">操作</span>
+            </div>
+            <div id="proj-list"><div class="empty">加载中…</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的项目 -->
+    <section id="view-myprojects" class="view">
+      <div class="view-head">
+        <h2>我的项目</h2>
+        <div class="btn-group">
+          <button class="btn btn-green" onclick="launchAll()">▶ 全部载入并启动（本地 custom_evars）</button>
+          <button class="btn btn-sm" onclick="toggleBatch('my')">批量操作</button>
+          <button class="btn btn-sm" onclick="clearMy()">清空</button>
+        </div>
+      </div>
+      <div class="batch-bar" id="my-batch-bar" hidden>
+        <span class="batch-count" id="my-batch-count">已选 0 项</span>
+        <button class="btn btn-sm" onclick="toggleSelectAll('my')">全选</button>
+        <button class="btn btn-sm btn-primary" onclick="openBatchEdit()">批量编辑</button>
+        <button class="btn btn-sm" onclick="batchRemoveMy()">批量移除</button>
+        <button class="btn btn-danger btn-sm" onclick="exitBatch('my')">退出批量</button>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="hint" style="margin-bottom:10px">「全部载入」会把我的项目逐条写入本地 <b>custom_evars.bat</b> 托管区（call 方式），然后启动 E3D。</div>
+          <div id="my-list"><div class="empty">加载中…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 路径库 -->
+    <section id="view-libraries" class="view">
+      <div class="view-head">
+        <h2>路径库</h2>
+        <div class="btn-group">
+          <button class="btn btn-sm" onclick="openDiagAll()">🩺 全部诊断</button>
+          <button class="btn btn-sm" onclick="expandAllLibs()">全部展开</button>
+          <button class="btn btn-sm" onclick="collapseAllLibs()">全部收起</button>
+          <button class="btn btn-sm" onclick="rescanAll()">⟳ 全部重扫</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="lib-add">
+            <input id="lib-path" placeholder="项目库根目录 / 项目文件夹 / evarsXXX.bat 文件路径，支持 \\\\服务器\\共享 与 smb://" spellcheck="false">
+            <button class="btn btn-primary" onclick="addLibrary()">识别并添加</button>
+          </div>
+          <div class="hint">识别规则：项目库下一层的每个子文件夹中，存在 <b>evars项目名.bat</b> 即视为一个项目；没有该文件的文件夹不算项目文件夹。也可以直接添加项目文件夹或 evarsXXX.bat 文件本身。</div>
+        </div>
+      </div>
+      <div id="lib-list"><div class="empty">加载中…</div></div>
+    </section>
+
+    <!-- 设置 -->
+    <section id="view-settings" class="view">
+      <div class="view-head"><h2>设置</h2></div>
+      <div class="card">
+        <div class="card-head"><h3>E3D 环境</h3><button class="btn btn-sm" onclick="detect()">⟳ 重新检测</button></div>
+        <div class="card-body">
+          <div class="form-row"><label>检测状态</label><span id="set-e3d">检测中…</span></div>
+          <div class="form-row"><label>当前项目库</label><span class="mono" id="set-current">—</span></div>
+          <div class="form-row"><label>启动快捷方式</label><input type="text" id="set-lnk" placeholder="留空则自动查找" spellcheck="false"></div>
+          <div class="form-row"><label>本地项目库目录</label><input type="text" id="set-local" placeholder="写入托管项目配置的目录" spellcheck="false"></div>
+          <div class="form-row"><label>数据文件</label><span class="mono" id="set-data">—</span></div>
+          <div class="form-note">修改后点击保存；数据文件与程序同目录。</div>
+          <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>诊断与修复</h3><button class="btn btn-sm" onclick="openDiagAll()">🩺 诊断全部路径库</button></div>
+        <div class="card-body">
+          <div class="hint">
+            对每个路径库检查：路径可达性、主机解析、SMB 445 端口、共享访问、来宾登录策略、SMB 客户端服务、项目文件发现。<br>
+            常见问题：<b>本机不支持 Guest 访问</b>导致无法连接远程库。修复方案：启用 <code>AllowInsecureGuestAuth</code>（需要管理员权限），或在路径库卡片中点击「诊断」查看完整报告。
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>启动方式说明</h3></div>
+        <div class="card-body">
+          <div class="hint">
+            <b>单项目启动</b>：写入本地 custom_evars.bat 托管区（call 该项目 bat），projects_dir 指向本地项目库。<br>
+            <b>全部载入并启动</b>：写入我的项目全部项目（本地 custom 操作）。<br>
+            <b>整库载入</b>：projects_dir 直接指向路径库，E3D 面板显示整个库的项目。<br>
+            <b>临时载入</b>：加载单个项目但不加入我的项目。<br>
+            启动通过开始菜单快捷方式，程序为无控制台模式，静默启动、静默关闭。
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 项目编辑弹窗 -->
+<div class="modal-mask" id="proj-modal" hidden>
+  <div class="modal">
+    <div class="modal-head"><h3 id="pm-title">编辑项目</h3><button class="modal-close" onclick="closeModal('proj-modal')">×</button></div>
+    <div class="path-box" id="pm-path-box"></div>
+    <div class="form-row"><label>显示名称</label><input type="text" id="pm-name" maxlength="60" placeholder="默认取 evarsXXX.bat 的 XXX"></div>
+    <div class="form-row"><label>分类</label><select id="pm-category"></select></div>
+    <div class="form-row"><label>状态</label><select id="pm-status"></select></div>
+    <div class="form-row"><label>负责人</label><input type="text" id="pm-owner" maxlength="100" placeholder="可选"></div>
+    <div class="form-row"><label>标签</label>
+      <div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="pm-tag-input" list="tag-suggest" placeholder="输入后回车添加">
+          <datalist id="tag-suggest"></datalist>
+          <button class="btn btn-sm" onclick="addTagFromInput('pm')">添加</button>
+        </div>
+        <div id="pm-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="form-row"><label>描述</label><textarea id="pm-description" placeholder="项目用途、范围等"></textarea></div>
+    <div class="form-row"><label>备注</label><textarea id="pm-notes" placeholder="内部备注，例如设计进度、注意事项"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('proj-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveProject()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量编辑弹窗 -->
+<div class="modal-mask" id="batch-modal" hidden>
+  <div class="modal">
+    <div class="modal-head"><h3>批量编辑 <span id="bm-count">0</span> 个项目</h3><button class="modal-close" onclick="closeModal('batch-modal')">×</button></div>
+    <div class="form-row"><label>分类</label><select id="bm-category"></select></div>
+    <div class="form-row"><label>状态</label><select id="bm-status"></select></div>
+    <div class="form-row"><label>负责人</label><input type="text" id="bm-owner" maxlength="100" placeholder="留空保持不变"></div>
+    <div class="form-row"><label>标签</label>
+      <div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="bm-tag-input" list="tag-suggest" placeholder="输入后回车添加（替换现有标签）">
+          <button class="btn btn-sm" onclick="addTagFromInput('bm')">添加</button>
+        </div>
+        <div id="bm-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px"></div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" id="bm-clear-tags" style="accent-color:var(--blue)"> 清空现有标签（不添加新标签时生效）
+        </label>
+      </div>
+    </div>
+    <div class="form-row"><label>描述</label><textarea id="bm-description" placeholder="留空保持不变"></textarea></div>
+    <div class="form-row"><label>备注</label><textarea id="bm-notes" placeholder="留空保持不变"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('batch-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveBatchEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分类管理弹窗 -->
+<div class="modal-mask" id="cat-modal" hidden>
+  <div class="modal">
+    <div class="modal-head"><h3>管理分类</h3><button class="modal-close" onclick="closeModal('cat-modal')">×</button></div>
+    <div id="cat-list"></div>
+    <div class="cat-add">
+      <input type="text" id="cat-add-name" placeholder="新分类名称" maxlength="30">
+      <input type="color" id="cat-add-color" value="#5b93ff">
+      <button class="btn btn-primary" onclick="addCategory()">添加</button>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal('cat-modal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 诊断弹窗 -->
+<div class="modal-mask" id="diag-modal" hidden>
+  <div class="modal modal-wide">
+    <div class="modal-head"><h3>🩺 诊断报告</h3><button class="modal-close" onclick="closeModal('diag-modal')">×</button></div>
+    <div id="diag-body"><div class="empty"><span class="spin"></span>正在诊断…</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = null;
+let busy = false;
+let pmTags = [];
+let bmTags = [];
+let currentEditId = '';
+
+let batch = {mode:false, ids:new Set()};
+let myBatch = {mode:false, ids:new Set()};
+let libBatch = {mode:false, libId:'', ids:new Set()};
+let libCollapsed = {};
+try{ libCollapsed = JSON.parse(localStorage.getItem('sep.libCollapsed.v1')||'{}')||{}; }catch(e){ libCollapsed = {}; }
+function persistLibState(){ try{ localStorage.setItem('sep.libCollapsed.v1', JSON.stringify(libCollapsed)); }catch(e){} }
+
+async function api(path, body){
+  try{
+    const opt = body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {};
+    const r = await fetch(path, opt);
+    return await r.json();
+  }catch(e){ return {error:String(e)}; }
+}
+
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let toastTimer = null;
+function toast(msg, ok){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (ok ? 'ok' : 'err');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3400);
+}
+
+function catColor(c, alpha=''){ return (c && c.color) ? c.color + alpha : '#5b93ff' + alpha; }
+
+function catBadge(catId){
+  const c = (state && state.categories || []).find(x => x.id === catId);
+  if(!c) return '<span class="badge gray">未分类</span>';
+  return `<span class="badge" style="background:${catColor(c,'1c')};color:${c.color};border-color:${catColor(c,'55')}">${esc(c.name)}</span>`;
+}
+
+function statusBadge(st){
+  if(!st) return '<span class="badge gray">—</span>';
+  const cls = st==='进行中' ? 'green' : (st==='已完成' ? '' : (st==='暂停' ? 'amber' : 'gray'));
+  return `<span class="badge ${cls}">${esc(st)}</span>`;
+}
+
+function tagChips(tags){
+  if(!tags || !tags.length) return '<span class="hint" style="font-size:10.5px">—</span>';
+  return tags.map(t => `<span class="tag-chip">${esc(t)}</span>`).join('');
+}
+
+function switchView(v){
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
+  if(v==='projects') renderProjects();
+  if(v==='myprojects') renderMyProjects();
+  if(v==='libraries') renderLibraries();
+}
+
+async function load(){
+  const d = await api('/api/status');
+  if(d.error){ toast(d.error, false); return; }
+  state = d;
+  renderHeader();
+  renderOverview();
+  renderProjects();
+  renderMyProjects();
+  renderLibraries();
+  renderSettings();
+}
+
+function renderHeader(){
+  const e3d = state.e3d || {};
+  const chip = document.getElementById('head-e3d');
+  if(e3d.detected){
+    chip.textContent = 'E3D 已就绪';
+    chip.className = 'e3d-chip ok';
+    chip.title = e3d.install_dir || '';
+  }else{
+    chip.textContent = 'E3D 未检测到';
+    chip.className = 'e3d-chip';
+  }
+  const total = (state.all_projects||[]).length;
+  const my = (state.my_projects||[]).length;
+  document.getElementById('nav-projects').textContent = total;
+  document.getElementById('nav-my').textContent = my;
+  document.getElementById('nav-libs').textContent = (state.libraries||[]).length;
+  document.getElementById('side-my').textContent = my;
+  document.getElementById('side-total').textContent = total;
+}
+
+function renderOverview(){
+  const all = state.all_projects || [];
+  const my = state.my_projects || [];
+  const cats = state.categories || [];
+  document.getElementById('ov-total').textContent = all.length;
+  document.getElementById('ov-my').textContent = my.length;
+  document.getElementById('ov-libs').textContent = (state.libraries||[]).length;
+  document.getElementById('ov-cats').textContent = cats.length;
+
+  const catCount = {};
+  cats.forEach(c => catCount[c.id] = 0);
+  let uncat = 0;
+  all.forEach(p => { if(p.category_id && catCount[p.category_id]!=null) catCount[p.category_id]++; else uncat++; });
+  const catDist = Object.entries(catCount).map(([id,n]) => ({id, n, cat: cats.find(c=>c.id===id)}));
+  if(uncat) catDist.push({id:'', n:uncat, cat:null});
+  catDist.sort((a,b)=>b.n-a.n);
+  const maxCat = Math.max(1, ...catDist.map(x=>x.n));
+  document.getElementById('ov-cat-dist').innerHTML = catDist.length
+    ? catDist.map(x => `
+      <div class="dist-row">
+        <span class="name">${x.cat ? esc(x.cat.name) : '未分类'}</span>
+        <div class="track"><div class="fill" style="width:${Math.round(x.n/maxCat*100)}%;background:${x.cat ? x.cat.color : '#5d6880'}"></div></div>
+        <span class="num">${x.n}</span>
+      </div>`).join('')
+    : '<div class="empty">暂无项目</div>';
+
+  const stCount = {};
+  all.forEach(p => { const k = p.status || '未设置'; stCount[k] = (stCount[k]||0)+1; });
+  const stArr = Object.entries(stCount).sort((a,b)=>b[1]-a[1]);
+  const maxSt = Math.max(1, ...stArr.map(x=>x[1]));
+  const stColors = {'进行中':'var(--green)','已完成':'var(--blue)','暂停':'var(--amber)','归档':'#5d6880','未设置':'#39445c'};
+  document.getElementById('ov-status-dist').innerHTML = stArr.length
+    ? stArr.map(([k,n]) => `
+      <div class="dist-row">
+        <span class="name">${esc(k)}</span>
+        <div class="track"><div class="fill" style="width:${Math.round(n/maxSt*100)}%;background:${stColors[k]||'var(--blue)'}"></div></div>
+        <span class="num">${n}</span>
+      </div>`).join('')
+    : '<div class="empty">暂无项目</div>';
+
+  const recent = [...all].sort((a,b) => {
+    const ta = a.meta_updated_at || a.discovered_at || '';
+    const tb = b.meta_updated_at || b.discovered_at || '';
+    return tb.localeCompare(ta);
+  }).slice(0, 6);
+  document.getElementById('ov-recent').innerHTML = recent.length
+    ? recent.map(p => miniRow(p, true)).join('')
+    : '<div class="empty">暂无项目，请先在「路径库」中添加</div>';
+
+  document.getElementById('ov-my-list').innerHTML = my.length
+    ? my.map(p => miniRow(p, false)).join('')
+    : '<div class="empty">暂无项目，在「我的项目」中查看</div>';
+}
+
+function miniRow(p, isAll){
+  const myKeys = new Set((state.my_projects||[]).map(x=>x.id));
+  const isMy = myKeys.has(p.id);
+  const actions = isAll
+    ? (isMy
+        ? `<button class="btn btn-green btn-sm" data-act="launch" data-id="${esc(p.id)}">启动</button><button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>`
+        : `<button class="btn btn-sm" data-act="add-my" data-id="${esc(p.id)}">添加到我的</button><button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时载入</button><button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>`)
+    : `<button class="btn btn-green btn-sm" data-act="launch" data-id="${esc(p.id)}">启动</button><button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button><button class="btn btn-danger btn-sm" data-act="rm-my" data-id="${esc(p.id)}">移除</button>`;
+  return `
+    <div class="mini-row">
+      ${catBadge(p.category_id)}
+      <span class="mini-name" title="${esc(p.name)}">${esc(p.name)}</span>
+      <span class="mini-path" title="${esc(p.bat_path)}">${esc(p.bat_path)}</span>
+      <span class="mini-actions">${actions}</span>
+    </div>`;
+}
+
+function fillSelect(id, options, current, placeholder){
+  const sel = document.getElementById(id);
+  const keep = current !== undefined ? current : sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + options.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+  if(keep !== undefined && keep !== '') sel.value = keep;
+}
+
+function clearFilters(){
+  document.getElementById('f-q').value = '';
+  document.getElementById('f-cat').value = '';
+  document.getElementById('f-status').value = '';
+  document.getElementById('f-tag').value = '';
+  document.getElementById('f-my').checked = false;
+  renderProjects();
+}
+
+function renderProjects(){
+  if(!state) return;
+  const q = (document.getElementById('f-q').value || '').trim().toLowerCase();
+  const fCat = document.getElementById('f-cat').value;
+  const fStatus = document.getElementById('f-status').value;
+  const fTag = document.getElementById('f-tag').value;
+  const onlyMy = document.getElementById('f-my').checked;
+
+  fillSelect('f-cat', (state.categories||[]).map(c => ({value:c.id,label:c.name})), fCat, '全部分类');
+  fillSelect('f-status', (state.status_options||[]).map(s => ({value:s,label:s})), fStatus, '全部状态');
+  fillSelect('f-tag', (state.all_tags||[]).map(t => ({value:t,label:t})), fTag, '全部标签');
+
+  const mySet = new Set((state.my_projects||[]).map(p=>p.id));
+  let list = (state.all_projects||[]).filter(p => {
+    if(onlyMy && !mySet.has(p.id)) return false;
+    if(fCat && p.category_id !== fCat) return false;
+    if(fStatus && p.status !== fStatus) return false;
+    if(fTag && !(p.tags||[]).includes(fTag)) return false;
+    if(q){
+      const hay = (p.name+' '+(p.bat_path||'')+' '+(p.project_dir||'')+' '+(p.owner||'')+' '+(p.description||'')+' '+(p.tags||[]).join(' ')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('proj-table').classList.toggle('batch-active', batch.mode);
+  document.getElementById('batch-bar').hidden = !batch.mode;
+  document.getElementById('batch-count').textContent = `已选 ${batch.ids.size} 项`;
+  const box = document.getElementById('proj-list');
+  if(!list.length){
+    box.innerHTML = '<div class="empty">没有符合条件的项目</div>';
+    return;
+  }
+  list = list.sort((a,b)=>String(a.name).localeCompare(String(b.name),'zh'));
+  box.innerHTML = list.map(p => {
+    const isMy = mySet.has(p.id);
+    const check = batch.mode
+      ? `<input type="checkbox" class="row-check" data-scope="projects" data-check="${esc(p.id)}" ${batch.ids.has(p.id)?'checked':''}>`
+      : '';
+    const actions = batch.mode ? '' : (isMy
+      ? `<button class="btn btn-green btn-sm" data-act="launch" data-id="${esc(p.id)}">启动</button>
+         <button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时</button>
+         <button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>
+         <button class="btn btn-danger btn-sm" data-act="rm-my" data-id="${esc(p.id)}" title="从我的项目移除">移除</button>`
+      : `<button class="btn btn-sm" data-act="add-my" data-id="${esc(p.id)}">添加到我的</button>
+         <button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时载入</button>
+         <button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>`);
+    const sub = [p.project_dir, p.owner ? '负责人：' + p.owner : '', p.meta_updated_at ? '更新：' + p.meta_updated_at.replace('T',' ') : ''].filter(Boolean).join(' · ');
+    return `
+      <div class="proj-row">
+        <div class="check-col">${check}</div>
+        <div class="proj-main">
+          <div class="proj-name">${esc(p.name)} ${isMy ? '<span class="badge green">我的</span>' : ''}</div>
+          <div class="proj-path">${esc(p.bat_path)}</div>
+          ${sub ? `<div class="proj-sub">${esc(sub)}</div>` : ''}
+        </div>
+        <div class="proj-cat">${catBadge(p.category_id)}</div>
+        <div class="proj-tags">${tagChips(p.tags)}</div>
+        <div class="proj-status">${statusBadge(p.status)}</div>
+        <div class="proj-actions">${actions}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderMyProjects(){
+  if(!state) return;
+  const my = state.my_projects || [];
+  document.getElementById('my-batch-bar').hidden = !myBatch.mode;
+  document.getElementById('my-batch-count').textContent = `已选 ${myBatch.ids.size} 项`;
+  const box = document.getElementById('my-list');
+  if(!my.length){
+    box.innerHTML = '<div class="empty">暂无项目<br>到「项目管理」中把项目「添加到我的」</div>';
+    return;
+  }
+  box.innerHTML = my.map(p => {
+    const check = myBatch.mode
+      ? `<input type="checkbox" class="row-check" data-scope="my" data-check="${esc(p.id)}" ${myBatch.ids.has(p.id)?'checked':''}>`
+      : '';
+    const actions = myBatch.mode ? '' : `
+      <button class="btn btn-green btn-sm" data-act="launch" data-id="${esc(p.id)}">启动</button>
+      <button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>
+      <button class="btn btn-danger btn-sm" data-act="rm-my" data-id="${esc(p.id)}">移除</button>`;
+    return `
+      <div class="mini-row">
+        ${check}
+        ${catBadge(p.category_id)}
+        <span class="mini-name" title="${esc(p.name)}">${esc(p.name)}</span>
+        <span class="mini-path" title="${esc(p.bat_path)}">${esc(p.bat_path)}</span>
+        <span class="mini-actions">${actions}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderLibraries(){
+  if(!state) return;
+  const box = document.getElementById('lib-list');
+  const libs = state.libraries || [];
+  const all = state.all_projects || [];
+  const mySet = new Set((state.my_projects||[]).map(p=>p.id));
+  if(!libs.length){
+    box.innerHTML = '<div class="empty">尚未添加路径库<br>在上方输入项目库根目录或项目文件路径</div>';
+    return;
+  }
+  box.innerHTML = libs.map(lib => {
+    const items = all.filter(p => p.lib_id === lib.id);
+    const open = libCollapsed[lib.id] === false;
+    const lbActive = libBatch.mode && libBatch.libId === lib.id;
+    const typeTxt = lib.type === 'project' ? '项目文件夹' : '项目库';
+    const protoTxt = lib.protocol === 'unc' ? '网络 SMB' : (lib.protocol === 'url' ? 'URL' : '本地');
+    const errHtml = lib.last_error ? `<div class="lib-err">⚠ ${esc(lib.last_error)}</div>` : '';
+    const rows = items.length ? items.map(p => {
+      const isMy = mySet.has(p.id);
+      const check = lbActive
+        ? `<input type="checkbox" class="row-check" data-scope="lib" data-lib="${esc(lib.id)}" data-check="${esc(p.id)}" ${libBatch.ids.has(p.id)?'checked':''}>`
+        : '';
+      const actions = lbActive ? '' : (isMy
+        ? `<span class="badge green">已添加</span><button class="btn btn-green btn-sm" data-act="launch" data-id="${esc(p.id)}">启动</button>`
+        : `<button class="btn btn-sm" data-act="add-my" data-id="${esc(p.id)}">添加到我的</button>`);
+      return `
+      <div class="mini-row">
+        ${check}
+        ${catBadge(p.category_id)}
+        <span class="mini-name" title="${esc(p.name)}">${esc(p.name)}</span>
+        <span class="mini-path" title="${esc(p.bat_path)}">${esc(p.project_dir || p.bat_path)}</span>
+        <span class="mini-actions">${actions}${lbActive?'':`<button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时载入</button><button class="btn btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>`}</span>
+      </div>`;
+    }).join('') : '<div class="empty" style="padding:14px">未扫描到项目</div>';
+    const batchBar = lbActive ? `
+      <div class="lib-batch-bar">
+        <span class="batch-count" id="lib-batch-count">已选 ${libBatch.ids.size} 项</span>
+        <button class="btn btn-sm" onclick="toggleSelectAll('lib','${esc(lib.id)}')">全选</button>
+        <button class="btn btn-sm btn-primary" onclick="openBatchEdit()">批量编辑</button>
+        <button class="btn btn-sm" onclick="exitBatch('lib')">退出批量</button>
+      </div>` : '';
+    return `
+    <div class="lib ${open ? 'open' : ''}">
+      <div class="lib-head">
+        <button class="lib-toggle" data-act="toggle-lib" data-id="${esc(lib.id)}" title="展开 / 收起"><span class="chev">▶</span></button>
+        <div class="lib-title">
+          <span class="name">${esc(lib.name)}</span>
+          <span class="badge">${typeTxt}</span>
+          <span class="badge ${lib.protocol==='unc'?'amber':'gray'}">${protoTxt}</span>
+          <span class="badge gray">${items.length} 个项目</span>
+          ${lib.last_scan ? `<span class="badge gray">${esc(lib.last_scan.replace('T',' '))}</span>` : ''}
+        </div>
+        <div class="lib-actions">
+          <button class="btn btn-sm" data-act="diag" data-id="${esc(lib.id)}" title="诊断连接与项目文件">🩺 诊断</button>
+          <button class="btn btn-sm" data-act="lib-batch" data-id="${esc(lib.id)}">批量编辑</button>
+          <button class="btn btn-green btn-sm" data-act="launch-lib" data-id="${esc(lib.id)}">整库载入</button>
+          <button class="btn btn-sm" data-act="rescan" data-id="${esc(lib.id)}">重扫</button>
+          <button class="btn btn-danger btn-sm" data-act="rm-lib" data-id="${esc(lib.id)}">删除</button>
+        </div>
+      </div>
+      <div class="lib-meta">${esc(lib.path)}</div>
+      ${errHtml}
+      <div class="lib-body ${open ? 'open' : ''}">
+        ${batchBar}
+        <div class="lib-projects">${rows}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSettings(){
+  if(!state) return;
+  const e3d = state.e3d || {};
+  const el = document.getElementById('set-e3d');
+  el.innerHTML = e3d.detected
+    ? `<span class="badge green">已检测</span> <span class="mono">${esc(e3d.install_dir||'')}</span>`
+    : '<span class="badge red">未检测到</span>';
+  document.getElementById('set-current').textContent = e3d.current_projects_dir || '(未设置)';
+  document.getElementById('set-lnk').value = state.settings.e3d_lnk || '';
+  document.getElementById('set-local').value = state.local_projects_dir || state.settings.local_projects_dir || '';
+  document.getElementById('set-data').textContent = 'e3d_projects.json（与程序同目录）';
+}
+
+// ---------- 批量操作 ----------
+
+function toggleBatch(kind){
+  if(kind==='projects'){
+    batch.mode = !batch.mode;
+    if(!batch.mode) batch.ids.clear();
+    myBatch = {mode:false, ids:new Set()};
+    libBatch = {mode:false, libId:'', ids:new Set()};
+    renderProjects();
+  }else if(kind==='my'){
+    myBatch.mode = !myBatch.mode;
+    if(!myBatch.mode) myBatch.ids.clear();
+    batch = {mode:false, ids:new Set()};
+    libBatch = {mode:false, libId:'', ids:new Set()};
+    renderMyProjects();
+  }
+}
+
+function exitBatch(kind){
+  if(kind==='projects'){ batch = {mode:false, ids:new Set()}; renderProjects(); }
+  else if(kind==='my'){ myBatch = {mode:false, ids:new Set()}; renderMyProjects(); }
+  else if(kind==='lib'){ libBatch = {mode:false, libId:'', ids:new Set()}; renderLibraries(); }
+}
+
+function toggleSelectAll(scope, libId){
+  let set, list;
+  if(scope==='projects'){ set = batch.ids; list = (state.all_projects||[]).map(p=>p.id); }
+  else if(scope==='my'){ set = myBatch.ids; list = (state.my_projects||[]).map(p=>p.id); }
+  else if(scope==='lib'){ set = libBatch.ids; list = (state.all_projects||[]).filter(p=>p.lib_id===libId).map(p=>p.id); }
+  const all = list.length && list.every(id=>set.has(id));
+  if(all) list.forEach(id=>set.delete(id)); else list.forEach(id=>set.add(id));
+  renderProjects();
+  renderMyProjects();
+  renderLibraries();
+  updateBatchCounts();
+}
+
+function updateBatchCounts(){
+  const bc = document.getElementById('batch-count');
+  if(bc) bc.textContent = `已选 ${batch.ids.size} 项`;
+  const mb = document.getElementById('my-batch-count');
+  if(mb) mb.textContent = `已选 ${myBatch.ids.size} 项`;
+  const lb = document.getElementById('lib-batch-count');
+  if(lb) lb.textContent = `已选 ${libBatch.ids.size} 项`;
+}
+
+function currentBatchIds(){
+  if(batch.mode) return [...batch.ids];
+  if(myBatch.mode) return [...myBatch.ids];
+  if(libBatch.mode) return [...libBatch.ids];
+  return [];
+}
+
+function openBatchEdit(){
+  const ids = currentBatchIds();
+  if(!ids.length){ toast('请先选择要编辑的项目', false); return; }
+  bmTags = [];
+  renderBmTags();
+  fillSelect('bm-category', (state.categories||[]).map(c=>({value:c.id,label:c.name})), '', '保持不变');
+  fillSelect('bm-status', (state.status_options||[]).map(s=>({value:s,label:s})), '', '保持不变');
+  document.getElementById('bm-owner').value = '';
+  document.getElementById('bm-description').value = '';
+  document.getElementById('bm-notes').value = '';
+  document.getElementById('bm-clear-tags').checked = false;
+  document.getElementById('bm-count').textContent = ids.length;
+  document.getElementById('batch-modal').hidden = false;
+}
+
+async function saveBatchEdit(){
+  const ids = currentBatchIds();
+  if(!ids.length){ toast('没有选中的项目', false); return; }
+  const body = {project_ids: ids};
+  const cat = document.getElementById('bm-category').value;
+  const st = document.getElementById('bm-status').value;
+  const owner = document.getElementById('bm-owner').value.trim();
+  const desc = document.getElementById('bm-description').value.trim();
+  const notes = document.getElementById('bm-notes').value.trim();
+  if(cat) body.category_id = cat;
+  if(st) body.status = st;
+  if(owner) body.owner = owner;
+  if(desc) body.description = desc;
+  if(notes) body.notes = notes;
+  if(document.getElementById('bm-clear-tags').checked) body.tags = [];
+  else if(bmTags.length) body.tags = bmTags;
+  const r = await api('/api/projects/batch-update', body);
+  if(r.error){ toast(r.error, false); return; }
+  toast(`✓ 已批量更新 ${r.updated.length} 个项目`, true);
+  closeModal('batch-modal');
+  if(batch.mode) exitBatch('projects');
+  if(myBatch.mode) exitBatch('my');
+  if(libBatch.mode) exitBatch('lib');
+  load();
+}
+
+async function batchAddMy(){
+  const ids = currentBatchIds();
+  if(!ids.length){ toast('请先选择项目', false); return; }
+  const r = await api('/api/my/batch-add', {project_ids: ids});
+  if(r.error){ toast(r.error, false); return; }
+  toast(`✓ 已添加 ${r.added.length} 个项目到我的项目`, true);
+  exitBatch('projects');
+  load();
+}
+
+async function batchRemoveMy(){
+  const ids = currentBatchIds();
+  if(!ids.length){ toast('请先选择项目', false); return; }
+  if(!confirm(`从「我的项目」中移除选中的 ${ids.length} 项？`)) return;
+  const r = await api('/api/my/batch-remove', {project_ids: ids});
+  if(r.error){ toast(r.error, false); return; }
+  toast(`✓ 已移除 ${r.removed} 项`, true);
+  if(batch.mode) exitBatch('projects');
+  if(myBatch.mode) exitBatch('my');
+  load();
+}
+
+function addTagFromInput(kind){
+  const inp = document.getElementById(kind === 'pm' ? 'pm-tag-input' : 'bm-tag-input');
+  const v = inp.value.trim();
+  if(!v) return;
+  const arr = kind === 'pm' ? pmTags : bmTags;
+  if(arr.length >= 20){ toast('标签最多 20 个', false); return; }
+  if(!arr.some(t=>t.toLowerCase()===v.toLowerCase())) arr.push(v);
+  inp.value = '';
+  if(kind === 'pm') renderPmTags(); else renderBmTags();
+}
+
+function removeTag(kind, i){
+  const arr = kind === 'pm' ? pmTags : bmTags;
+  arr.splice(i,1);
+  if(kind === 'pm') renderPmTags(); else renderBmTags();
+}
+
+function renderPmTags(){
+  document.getElementById('pm-tags').innerHTML = pmTags.map((t,i) =>
+    `<span class="tag-chip">${esc(t)}<span class="x" onclick="removeTag('pm',${i})">×</span></span>`).join('')
+    || '<span class="hint">暂无标签</span>';
+}
+
+function renderBmTags(){
+  document.getElementById('bm-tags').innerHTML = bmTags.map((t,i) =>
+    `<span class="tag-chip">${esc(t)}<span class="x" onclick="removeTag('bm',${i})">×</span></span>`).join('')
+    || '<span class="hint">未添加标签（保持原样）</span>';
+}
+
+// ---------- 项目编辑 ----------
+
+function findProject(id){
+  return (state.all_projects||[]).find(p=>p.id===id) || (state.my_projects||[]).find(p=>p.id===id) || null;
+}
+
+function openProjectModal(id){
+  const p = findProject(id);
+  if(!p){ toast('未找到该项目', false); return; }
+  currentEditId = id;
+  pmTags = [...(p.tags||[])];
+  document.getElementById('pm-title').textContent = '编辑项目 — ' + p.name;
+  document.getElementById('pm-path-box').innerHTML =
+    `<b>项目 ID：</b>${esc(p.id)}<br><b>配置文件：</b>${esc(p.bat_path)}<br><b>项目文件夹：</b>${esc(p.project_dir || '—')}`;
+  document.getElementById('pm-name').value = (p.display_name && p.display_name !== p.bat_path.split('\\').pop()) ? p.display_name : '';
+  fillSelect('pm-category', (state.categories||[]).map(c=>({value:c.id,label:c.name})), p.category_id||'', '未分类');
+  fillSelect('pm-status', (state.status_options||[]).map(s=>({value:s,label:s})), p.status||'', '未设置');
+  document.getElementById('pm-owner').value = p.owner||'';
+  document.getElementById('pm-description').value = p.description||'';
+  document.getElementById('pm-notes').value = p.notes||'';
+  const dl = document.getElementById('tag-suggest');
+  dl.innerHTML = (state.all_tags||[]).map(t=>`<option value="${esc(t)}">`).join('');
+  renderPmTags();
+  document.getElementById('proj-modal').hidden = false;
+  document.getElementById('pm-name').focus();
+}
+
+async function saveProject(){
+  const body = {
+    project_id: currentEditId,
+    name: document.getElementById('pm-name').value.trim(),
+    category_id: document.getElementById('pm-category').value,
+    status: document.getElementById('pm-status').value,
+    owner: document.getElementById('pm-owner').value.trim(),
+    tags: pmTags,
+    description: document.getElementById('pm-description').value.trim(),
+    notes: document.getElementById('pm-notes').value.trim(),
+  };
+  const r = await api('/api/project/update', body);
+  if(r.error){ toast(r.error, false); return; }
+  toast('✓ 项目信息已保存', true);
+  closeModal('proj-modal');
+  load();
+}
+
+// ---------- 分类管理 ----------
+
+function openCategoryManager(){
+  renderCatManager();
+  document.getElementById('cat-modal').hidden = false;
+}
+
+function renderCatManager(){
+  const cats = state.categories || [];
+  const counts = {};
+  (state.all_projects||[]).forEach(p => { counts[p.category_id] = (counts[p.category_id]||0)+1; });
+  document.getElementById('cat-list').innerHTML = cats.length
+    ? cats.map(c => `
+      <div class="cat-row" data-id="${esc(c.id)}">
+        <input type="text" value="${esc(c.name)}" maxlength="30">
+        <input type="color" value="${esc(c.color)}">
+        <span class="count">${counts[c.id]||0} 项</span>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" onclick="saveCategory(this)">保存</button>
+          <button class="btn btn-danger btn-sm" onclick="removeCategory(this)">删除</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty" style="padding:16px">还没有分类</div>';
+}
+
+async function saveCategory(btn){
+  const row = btn.closest('.cat-row');
+  const id = row.dataset.id;
+  const name = row.querySelector('input[type="text"]').value.trim();
+  const color = row.querySelector('input[type="color"]').value;
+  if(!name){ toast('分类名称不能为空', false); return; }
+  const r = await api('/api/category/update', {id, name, color});
+  if(r.error){ toast(r.error, false); return; }
+  toast('✓ 分类已更新', true);
+  await load();
+  renderCatManager();
+}
+
+async function removeCategory(btn){
+  const row = btn.closest('.cat-row');
+  const name = row.querySelector('input[type="text"]').value;
+  if(!confirm(`删除分类「${name}」？相关项目会变为未分类。`)) return;
+  const r = await api('/api/category/remove', {id: row.dataset.id});
+  if(r.error){ toast(r.error, false); return; }
+  toast('✓ 分类已删除', true);
+  await load();
+  renderCatManager();
+}
+
+async function addCategory(){
+  const name = document.getElementById('cat-add-name').value.trim();
+  const color = document.getElementById('cat-add-color').value;
+  if(!name){ toast('请输入分类名称', false); return; }
+  const r = await api('/api/category/add', {name, color});
+  if(r.error){ toast(r.error, false); return; }
+  document.getElementById('cat-add-name').value = '';
+  toast('✓ 分类已添加', true);
+  await load();
+  renderCatManager();
+}
+
+// ---------- 路径库折叠 ----------
+
+function toggleLib(id){
+  libCollapsed[id] = libCollapsed[id] === false;
+  persistLibState();
+  renderLibraries();
+}
+
+function expandAllLibs(){
+  (state.libraries||[]).forEach(l => libCollapsed[l.id] = false);
+  persistLibState();
+  renderLibraries();
+}
+
+function collapseAllLibs(){
+  (state.libraries||[]).forEach(l => libCollapsed[l.id] = true);
+  persistLibState();
+  renderLibraries();
+}
+
+function toggleLibBatch(id){
+  if(libBatch.mode && libBatch.libId === id){
+    exitBatch('lib');
+  }else{
+    libBatch = {mode:true, libId:id, ids:new Set()};
+    batch = {mode:false, ids:new Set()};
+    myBatch = {mode:false, ids:new Set()};
+    renderLibraries();
+  }
+}
+
+// ---------- 诊断 ----------
+
+function openDiagModal(){
+  document.getElementById('diag-modal').hidden = false;
+  document.getElementById('diag-body').innerHTML = '<div class="empty"><span class="spin"></span>正在诊断…</div>';
+}
+
+async function openDiag(id, path){
+  openDiagModal();
+  const r = await api('/api/diagnose/library', {id, path});
+  if(r.error){
+    document.getElementById('diag-body').innerHTML = `<div class="empty">${esc(r.error)}</div>`;
+    return;
+  }
+  renderDiag(r.report);
+}
+
+async function openDiagAll(){
+  openDiagModal();
+  const r = await api('/api/diagnose/all', {});
+  if(r.error){
+    document.getElementById('diag-body').innerHTML = `<div class="empty">${esc(r.error)}</div>`;
+    return;
+  }
+  document.getElementById('diag-body').innerHTML = r.results.map(res =>
+    `<div class="diag-lib"><h4>${esc(res.library.name)}</h4>${renderDiagInner(res.report)}</div>`
+  ).join('') || '<div class="empty">还没有路径库</div>';
+}
+
+function renderDiag(report){
+  document.getElementById('diag-body').innerHTML =
+    `<div class="diag-head"><span class="diag-path">${esc(report.path)}</span>${report.ok ? '<span class="badge green">正常</span>' : '<span class="badge red">存在问题</span>'}</div>`
+    + renderDiagInner(report);
+}
+
+function renderDiagInner(report){
+  const iconMap = {ok:'✓', warn:'!', skip:'–', fail:'✗'};
+  return report.checks.map(c => {
+    const icon = iconMap[c.status] || '?';
+    let fixHtml = '';
+    if(c.fix){
+      const steps = (c.fix.steps||[]).map(s => `<li>${esc(s)}</li>`).join('');
+      const cmds = (c.fix.commands||[]).map(cmd => `
+        <div class="cmd-line">
+          <code>${esc(cmd)}</code>
+          <button class="btn btn-sm" data-act="copy-cmd" data-cmd="${esc(cmd)}">复制</button>
+        </div>`).join('');
+      const canApply = c.fix.id === 'guest_auth' || c.fix.id === 'smb_reconnect';
+      const apply = canApply
+        ? `<button class="btn btn-sm btn-primary" data-act="apply-fix" data-fix="${esc(c.fix.id)}" data-path="${esc(report.path)}">尝试修复</button>`
+        : '';
+      fixHtml = `
+        <div class="fix-box">
+          <div class="fix-title">修复建议：${esc(c.fix.title)}</div>
+          ${steps ? `<ol>${steps}</ol>` : ''}
+          ${cmds}
+          ${c.fix.requires_admin ? '<div class="hint">需要管理员权限</div>' : ''}
+          ${apply ? `<div style="margin-top:8px">${apply}</div>` : ''}
+        </div>`;
+    }
+    return `
+      <div class="diag-row ${esc(c.status)}">
+        <span class="diag-icon">${icon}</span>
+        <div style="flex:1;min-width:0">
+          <div class="diag-name">${esc(c.name)}</div>
+          <div class="diag-detail">${esc(c.detail)}</div>
+          ${fixHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function applyFix(btn){
+  const fixId = btn.dataset.fix;
+  const path = btn.dataset.path;
+  const label = fixId === 'guest_auth' ? '启用 AllowInsecureGuestAuth（修改注册表，需管理员权限）' : '断开并重建 SMB 连接';
+  if(!confirm(`将执行修复：${label}\n\n继续？`)) return;
+  btn.disabled = true;
+  btn.textContent = '执行中…';
+  const r = await api('/api/diagnose/fix', {fix_id: fixId, path});
+  btn.disabled = false;
+  btn.textContent = '尝试修复';
+  if(r.error){ toast(r.error, false); }
+  else if(r.result.needs_admin){
+    toast('没有管理员权限，请以管理员身份运行命令', false);
+  }else{
+    toast(r.result.message || '修复完成', true);
+  }
+  const rr = await api('/api/diagnose/library', {path});
+  if(!rr.error) renderDiag(rr.report);
+}
+
+// ---------- 通用操作 ----------
+
+function closeModal(id){
+  document.getElementById(id).hidden = true;
+}
+
+document.addEventListener('click', async e => {
+  const nav = e.target.closest('.nav-item');
+  if(nav){ switchView(nav.dataset.view); return; }
+  const goto = e.target.closest('[data-goto]');
+  if(goto){ switchView(goto.dataset.goto); return; }
+  if(e.target.classList.contains('modal-mask')){
+    closeModal(e.target.id); return;
+  }
+
+  const copyBtn = e.target.closest('[data-act="copy-cmd"]');
+  if(copyBtn){
+    const cmd = copyBtn.dataset.cmd || '';
+    try{
+      await navigator.clipboard.writeText(cmd);
+      toast('✓ 修复命令已复制', true);
+    }catch(err){
+      toast('复制失败：' + err, false);
+    }
+    return;
+  }
+
+  const fixBtn = e.target.closest('[data-act="apply-fix"]');
+  if(fixBtn){ applyFix(fixBtn); return; }
+
+  const btn = e.target.closest('[data-act]');
+  if(!btn || busy) return;
+  const act = btn.dataset.act, id = btn.dataset.id;
+  busy = true;
+  try{
+    if(act === 'launch') await doLaunch('single', {project_id:id});
+    else if(act === 'temp') await doLaunch('temp', {project_id:id});
+    else if(act === 'launch-lib') await doLaunch('library', {library_id:id});
+    else if(act === 'add-my') await addMy(id);
+    else if(act === 'rm-my') await removeMy(id);
+    else if(act === 'edit') openProjectModal(id);
+    else if(act === 'rm-lib') await removeLib(id);
+    else if(act === 'rescan') await rescanLib(id);
+    else if(act === 'diag') await openDiag(id, '');
+    else if(act === 'toggle-lib') toggleLib(id);
+    else if(act === 'lib-batch') toggleLibBatch(id);
+  }finally{ busy = false; }
+});
+
+document.addEventListener('change', e => {
+  const cb = e.target.closest('.row-check');
+  if(!cb) return;
+  const id = cb.dataset.check;
+  let set;
+  if(cb.dataset.scope === 'my') set = myBatch.ids;
+  else if(cb.dataset.scope === 'lib') set = libBatch.ids;
+  else set = batch.ids;
+  if(cb.checked) set.add(id); else set.delete(id);
+  updateBatchCounts();
+});
+
+async function doLaunch(mode, extra){
+  if(mode==='library' && !confirm('整库载入：将 projects_dir 切换为该路径库，E3D 启动面板会显示该库全部项目。继续？')) return;
+  const r = await api('/api/launch', Object.assign({mode}, extra));
+  if(r.error){ toast(r.error, false); }
+  else{
+    const n = (r.summary && r.summary.managed_paths) ? r.summary.managed_paths.length : 0;
+    toast('✓ 已启动 E3D' + (n ? `（托管 ${n} 个项目）` : '（整库模式）'), true);
+  }
+  load();
+}
+
+async function launchAll(){
+  if(!(state.my_projects||[]).length){ toast('我的项目为空', false); return; }
+  const r = await api('/api/launch', {mode:'all'});
+  if(r.error) toast(r.error, false); else toast('✓ 已写入本地 custom_evars 并启动 E3D', true);
+  load();
+}
+
+async function addMy(id){
+  const r = await api('/api/my/add', {project_id:id});
+  if(r.error) toast(r.error, false); else toast('✓ 已添加到我的项目', true);
+  load();
+}
+
+async function removeMy(id){
+  if(!confirm('从「我的项目」中移除？')) return;
+  const r = await api('/api/my/remove', {id});
+  if(r.error) toast(r.error, false); else toast('✓ 已移除', true);
+  load();
+}
+
+async function clearMy(){
+  if(!confirm('清空「我的项目」列表？')) return;
+  const r = await api('/api/my/clear', {});
+  if(r.error) toast(r.error, false); else toast('✓ 已清空', true);
+  load();
+}
+
+async function addLibrary(){
+  const path = document.getElementById('lib-path').value.trim();
+  if(!path){ toast('请输入路径', false); return; }
+  const r = await api('/api/library/add', {path});
+  if(r.error){ toast(r.error, false); }
+  else{
+    toast(`✓ 已添加路径库「${r.library.name}」，识别到 ${r.projects.length} 个项目`, true);
+    document.getElementById('lib-path').value = '';
+    if(!(r.library.id in libCollapsed)) libCollapsed[r.library.id] = true;
+    persistLibState();
+  }
+  load();
+}
+
+async function removeLib(id){
+  if(!confirm('删除该路径库？已添加到我的项目的项目会保留。')) return;
+  const r = await api('/api/library/remove', {id});
+  if(r.error) toast(r.error, false); else toast('✓ 已删除路径库', true);
+  load();
+}
+
+async function rescanLib(id){
+  const r = await api('/api/library/rescan', {id});
+  if(r.error) toast(r.error, false); else toast(`✓ 重新扫描完成，识别到 ${r.projects.length} 个项目`, true);
+  load();
+}
+
+async function rescanAll(){
+  const r = await api('/api/library/rescan-all', {});
+  if(r.error) toast(r.error, false); else toast('✓ 全部路径库已重新扫描', true);
+  load();
+}
+
+async function detect(){
+  const r = await api('/api/detect', {});
+  if(r.error) toast(r.error, false); else toast('✓ E3D 路径检测完成', true);
+  load();
+}
+
+async function saveSettings(){
+  const body = {
+    e3d_lnk: document.getElementById('set-lnk').value.trim(),
+    local_projects_dir: document.getElementById('set-local').value.trim(),
+  };
+  const r = await api('/api/settings/update', body);
+  if(r.error){ toast(r.error, false); return; }
+  toast('✓ 设置已保存', true);
+  load();
+}
+
+async function quit(){
+  if(!confirm('退出 SEP 管理面板？')) return;
+  await api('/api/quit', {});
+}
+
+document.getElementById('pm-tag-input').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); addTagFromInput('pm'); }
+});
+document.getElementById('bm-tag-input').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); addTagFromInput('bm'); }
+});
+
+load();
+</script>
+</body>
+</html>

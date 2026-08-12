@@ -1,13 +1,14 @@
 @echo off
-chcp 65001 >nul
+chcp 936 >nul
 cd /d "%~dp0"
 
-if exist switch_e3d_project.exe (
-    switch_e3d_project.exe %*
+if exist SEP.exe (
+    powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%~dp0SEP.exe'"
+    exit /b
 ) else (
     python -c "exit(0)" >nul 2>&1
     if %errorlevel% neq 0 (
-        echo [é”™è¯¯] æœªæ‰¾åˆ° Pythonï¼Œè¯·å®‰è£… Python 3.x
+        echo [´íÎó] Î´ÕÒµ½ Python£¬Çë°²×° Python 3.x
         pause
         exit /b 1
     )

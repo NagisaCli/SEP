@@ -1,75 +1,85 @@
 @echo off
-chcp 65001 >nul
+chcp 936 >nul
 cd /d "%~dp0"
 
 echo ============================================================
-echo   E3D é¡¹ç›®åˆ‡æ¢å·¥å…· - æ‰“åŒ…æ„å»º
+echo   E3D ÏîÄ¿ÇĞ»»¹¤¾ß - ´ò°ü¹¹½¨
 echo ============================================================
 echo.
 
-:: æ£€æŸ¥ Python
+:: ¼ì²é Python
 python -c "exit(0)" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [é”™è¯¯] éœ€è¦ Python ç¯å¢ƒ
+    echo [´íÎó] ĞèÒª Python »·¾³
     pause
     exit /b 1
 )
 
-:: å®‰è£… PyInstaller
-echo [1/3] æ£€æŸ¥ PyInstaller...
+:: °²×° PyInstaller
+echo [1/3] ¼ì²é PyInstaller...
 pip show pyinstaller >nul 2>&1
 if %errorlevel% neq 0 (
-    echo   æ­£åœ¨å®‰è£… PyInstaller...
+    echo   ÕıÔÚ°²×° PyInstaller...
     pip install pyinstaller
     if %errorlevel% neq 0 (
-        echo [é”™è¯¯] PyInstaller å®‰è£…å¤±è´¥
+        echo [´íÎó] PyInstaller °²×°Ê§°Ü
         pause
         exit /b 1
     )
 )
-echo   âœ“ PyInstaller å·²å°±ç»ª
+echo   ? PyInstaller ÒÑ¾ÍĞ÷
 
-:: æ¸…ç†æ—§æ„å»º
+:: ÇåÀí¾É¹¹½¨
 echo.
-echo [2/3] æ¸…ç†æ—§æ„å»º...
+echo [2/3] ÇåÀí¾É¹¹½¨...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
 if exist switch_e3d_project.spec del /f switch_e3d_project.spec
-echo   âœ“ æ¸…ç†å®Œæˆ
+echo   ? ÇåÀíÍê³É
 
-:: æ„å»º
+:: ¹¹½¨
 echo.
-echo [3/3] å¼€å§‹æ‰“åŒ…...
-echo   (å¯èƒ½éœ€è¦ 1-3 åˆ†é’Ÿ)
+echo [3/3] ¿ªÊ¼´ò°ü...
+echo   (¿ÉÄÜĞèÒª 1-3 ·ÖÖÓ)
 echo.
 
-pyinstaller --onefile --console ^
-    --name "switch_e3d_project" ^
+pyinstaller --onefile --windowed ^
+    --name "SEP" ^
+    --icon "SEP.ico" ^
     --add-data "e3d_config.py;." ^
+    --add-data "web_ui.html;." ^
     --hidden-import winreg ^
+    --hidden-import e3d_util ^
+    --hidden-import e3d_store ^
+    --hidden-import e3d_scanner ^
+    --hidden-import e3d_launcher ^
+    --hidden-import e3d_web ^
+    --hidden-import e3d_diag ^
     switch_e3d_project.py
 
 if %errorlevel% neq 0 (
     echo.
-    echo [é”™è¯¯] æ‰“åŒ…å¤±è´¥
+    echo [´íÎó] ´ò°üÊ§°Ü
     pause
     exit /b 1
 )
 
 echo.
 echo ============================================================
-echo   âœ“ æ‰“åŒ…å®Œæˆ!
+echo   ? ´ò°üÍê³É!
 echo ============================================================
 echo.
-echo   è¾“å‡ºæ–‡ä»¶: dist\switch_e3d_project.exe
+echo   Êä³öÎÄ¼ş: dist\SEP.exe
 echo.
-echo   è·¨ç¯å¢ƒåˆ†å‘åŒ…åº”åŒ…å«:
-echo     â€¢ switch_e3d_project.exe   ^(ä¸»ç¨‹åº^)
-echo     â€¢ åˆ‡æ¢E3Dé¡¹ç›®æ–‡ä»¶å¤¹.bat    ^(å¯åŠ¨å™¨^)
-echo     â€¢ e3d_projects.json        ^(è‡ªåŠ¨ç”Ÿæˆ^)
-echo     â€¢ e3d_paths.json           ^(è‡ªåŠ¨ç”Ÿæˆ^)
+echo   ¿ç»·¾³·Ö·¢°üÓ¦°üº¬:
+echo     ? SEP.exe                 ^(Ö÷³ÌĞò^)
+echo     ? ÇĞ»»E3DÏîÄ¿ÎÄ¼ş¼Ğ.bat    ^(Æô¶¯Æ÷^)
+echo     ? e3d_projects.json        ^(×Ô¶¯Éú³É^)
+echo     ? e3d_paths.json           ^(×Ô¶¯Éú³É^)
 echo.
-echo   å°†ä»¥ä¸Šæ–‡ä»¶å¤åˆ¶åˆ°ç›®æ ‡ç”µè„‘ä»»ä¸€æ–‡ä»¶å¤¹å³å¯ä½¿ç”¨ã€‚
-echo   .exe æ–‡ä»¶å¯ç‹¬ç«‹è¿è¡Œï¼Œæ— éœ€å®‰è£… Pythonã€‚
+echo   ½«ÒÔÉÏÎÄ¼ş¸´ÖÆµ½Ä¿±êµçÄÔÈÎÒ»ÎÄ¼ş¼Ğ¼´¿ÉÊ¹ÓÃ¡£
+echo   .exe ÎÄ¼ş¿É¶ÀÁ¢ÔËĞĞ£¬ÎŞĞè°²×° Python¡£
+echo.
+echo   ÔËĞĞµ¥Ôª²âÊÔ: python -m unittest discover tests -v
 echo ============================================================
 pause
