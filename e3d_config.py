@@ -27,13 +27,17 @@ import subprocess
 import ctypes
 from pathlib import Path
 
-# 缓存文件与 .exe/脚本同目录（PyInstaller 兼容）
-if getattr(sys, 'frozen', False):
-    # 打包后的 .exe — 使用 .exe 所在目录
-    SCRIPT_DIR = os.path.dirname(sys.executable)
-else:
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_FILE = os.path.join(SCRIPT_DIR, "e3d_paths.json")
+# 缓存文件定位（支持全局 AppData 与便携模式）
+try:
+    import e3d_util as util
+    CACHE_FILE = util.get_paths_cache_path()
+except Exception:
+    appdata = os.environ.get('APPDATA')
+    if appdata:
+        CACHE_FILE = os.path.join(appdata, "SEP", "e3d_paths.json")
+    else:
+        CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "e3d_paths.json")
+
 
 # ── 工具函数 ──────────────────────────────────────────────
 

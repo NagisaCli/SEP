@@ -28,7 +28,7 @@ MANAGED_END = ':: <<< SEP MANAGED PROJECTS <<<'
 MANAGED_BLOCK_RE = re.compile(
     r'(?ms)^[ \t]*' + re.escape(MANAGED_START) + r'.*?' + re.escape(MANAGED_END) + r'[ \t]*\r?\n?'
 )
-SET_PROJECTS_RE = re.compile(rb'(set\s+projects_dir=)[^\r\n]*', re.IGNORECASE)
+SET_PROJECTS_RE = re.compile(rb'(?m)^(\s*(?:set\s+)?projects_dir=)[^\r\n]*', re.IGNORECASE)
 
 EVARS_BAT = None
 EVARS_INIT = None
@@ -65,28 +65,43 @@ def get_evars_files():
 
 
 def read_projects_dir(filepath):
-    """读取 evars.bat / evars.init 中的 projects_dir 值。"""
+    """读取 evars.bat / evars.init 中的 projects_dir 值（兼容 set 与非 set 写法）。"""
     if not filepath or not os.path.exists(filepath):
         return None
     enc = util.detect_encoding(filepath)
     try:
         with open(filepath, 'r', encoding=enc, errors='replace') as f:
             for line in f:
-                m = re.match(r'^set\s+projects_dir=(.*)$', line.strip(), re.IGNORECASE)
+                m = re.match(r'^(?:set\s+)?projects_dir=(.*)$', line.strip(), re.IGNORECASE)
                 if m:
-                    return m.group(1).strip()
+                    val = m.group(1).strip()
+                    return val.strip('"').strip("'")
     except OSError:
         return None
     return None
 
 
 def get_local_projects_dir(data=None):
-    """本地项目库路径：优先配置，其次 E3D 检测缓存，最后默认路径。"""
+    """本地项目库路径：优先已配置且存在的路径，其次动态探测或默认路径。"""
     data = data or store.load_data()
     d = (data.get('settings') or {}).get('local_projects_dir') or ''
-    if not d:
-        d = store.read_paths_cache().get('projects_dir') or r'D:\AVEVA\Projects\E3D3.1'
-    d = util.normalize_path(d)
+    if d and os.path.isdir(d):
+        return util.normalize_path(d)
+
+    # 尝试检测缓存
+    cache = store.read_paths_cache()
+    pd = cache.get('projects_dir')
+    if pd and os.path.isdir(pd):
+        return util.normalize_path(pd)
+
+    # 尝试重新检测 E3D
+    if resolve_e3d(force=False, verbose=False):
+        cache = store.read_paths_cache()
+        pd = cache.get('projects_dir')
+        if pd and os.path.isdir(pd):
+            return util.normalize_path(pd)
+
+    d = util.normalize_path(d or r'D:\AVEVA\Projects\E3D3.1')
     if d and not os.path.isdir(d):
         try:
             os.makedirs(d, exist_ok=True)
@@ -111,7 +126,8 @@ def custom_file_path(local_dir):
 def managed_block(paths):
     lines = [MANAGED_START]
     for p in paths:
-        lines.append(f'call "{util.normalize_path(p)}"')
+        safe_p = util.validate_safe_bat_path(p)
+        lines.append(f'call "{safe_p}"')
     lines.append(MANAGED_END)
     return '\r\n'.join(lines)
 
@@ -147,25 +163,36 @@ def write_managed(local_dir, paths):
         raise LauncherError('本地项目库路径为空')
     try:
         os.makedirs(local_dir, exist_ok=True)
+    except PermissionError:
+        raise LauncherError(f'无法创建或访问本地项目库目录 {local_dir}：权限不足。')
     except OSError as e:
         raise LauncherError(f'无法创建本地项目库目录 {local_dir}: {e}')
 
     path = custom_file_path(local_dir)
     existed = os.path.exists(path)
-    if existed:
-        text, enc = util.read_text_smart(path)
-    else:
-        text, enc = '', util.default_bat_encoding()
+    try:
+        if existed:
+            text, enc = util.read_text_smart(path)
+        else:
+            text, enc = '', util.default_bat_encoding()
+    except PermissionError:
+        raise LauncherError(f'无法读取 {path}：权限不足。')
 
     text = MANAGED_BLOCK_RE.sub('', text)
-    block = managed_block(paths) + '\r\n'
+    try:
+        block = managed_block(paths) + '\r\n'
+    except ValueError as e:
+        raise LauncherError(str(e))
 
     if text.strip():
         text = text.rstrip('\r\n') + '\r\n\r\n' + block
     else:
         text = '@echo off\r\n\r\n' + block
 
-    util.write_text_preserve(path, text, enc)
+    try:
+        util.write_text_preserve(path, text, enc)
+    except PermissionError:
+        raise LauncherError(f'无法写入 {path}：权限不足，请以管理员身份运行。')
     return path
 
 
@@ -182,27 +209,37 @@ def ensure_trailing_slash(p):
 
 def set_projects_dir(filepath, new_path):
     """
-    二进制安全替换 set projects_dir= 后的路径。
+    二进制安全替换 projects_dir= 后的路径。
     编码按原文件检测（UTF-8 / GBK），中文路径不乱码。
     返回备份路径（不存在则 None）。
     """
     if not os.path.exists(filepath):
         raise LauncherError(f'文件不存在: {filepath}')
-    with open(filepath, 'rb') as f:
-        data = f.read()
+    try:
+        new_path_safe = util.validate_safe_bat_path(new_path)
+    except ValueError as e:
+        raise LauncherError(str(e))
+    try:
+        with open(filepath, 'rb') as f:
+            data = f.read()
+    except PermissionError:
+        raise LauncherError(f'无法读取 {filepath}：权限不足，请尝试以管理员身份运行 SEP。')
     if not SET_PROJECTS_RE.search(data):
-        raise LauncherError(f'{filepath} 中未找到 set projects_dir= 行')
+        raise LauncherError(f'{filepath} 中未找到 projects_dir= 行')
 
     enc = _bytes_encoding(data)
     if enc == 'utf-8-sig':
         enc = 'utf-8'  # BOM 保留在文件头，替换段不能再带 BOM
-    new_value = ensure_trailing_slash(new_path).encode(enc)
+    new_value = ensure_trailing_slash(new_path_safe).encode(enc)
     new_data = SET_PROJECTS_RE.sub(lambda m: m.group(1) + new_value, data)
 
     backup = filepath + '.sep.bak'
-    shutil.copy2(filepath, backup)
-    with open(filepath, 'wb') as f:
-        f.write(new_data)
+    try:
+        shutil.copy2(filepath, backup)
+        with open(filepath, 'wb') as f:
+            f.write(new_data)
+    except PermissionError:
+        raise LauncherError(f'无法写入 {filepath}：权限不足，请尝试以管理员身份运行 SEP。')
     return backup
 
 
@@ -250,12 +287,7 @@ def _verify(expected_dir, expected_paths, local_dir):
         if util.normalize_path(cur or '').lower() != util.normalize_path(expected_dir).lower():
             raise LauncherError(f'验证失败: {os.path.basename(f)} 中项目库路径与预期不一致')
 
-    managed = read_managed(local_dir)
-    expected = [util.normalize_path(p) for p in expected_paths]
-    if managed != expected:
-        raise LauncherError('验证失败: custom_evars.bat 托管区与预期不一致')
-
-    for p in expected:
+    for p in expected_paths:
         if not util.path_exists(p, timeout=6):
             raise LauncherError(f'项目文件不可访问: {p}')
 
@@ -263,9 +295,9 @@ def _verify(expected_dir, expected_paths, local_dir):
 def write_mode(mode, payload):
     """
     按模式写入配置：
-      single / temp : 托管区只写一个项目，projects_dir 指向本地库
-      all           : 托管区写入我的全部项目，projects_dir 指向本地库
-      library       : 清空托管区，projects_dir 指向整个路径库（方式 A）
+      single / temp : 将目标项目 bat 写入本地 custom_evars.bat 托管区，projects_dir 指向本地项目库
+      all           : 将我的全部项目 bat 写入本地 custom_evars.bat 托管区，projects_dir 指向本地项目库
+      library       : projects_dir 直接指向目标路径库根目录（方式 A 整库载入）
     返回摘要 dict。
     """
     data = store.load_data()
@@ -307,7 +339,8 @@ def write_mode(mode, payload):
         _backup(f)
 
     try:
-        write_managed(local_dir, paths)
+        if mode in ('single', 'temp', 'all'):
+            write_managed(local_dir, paths)
         for f in (EVARS_BAT, EVARS_INIT):
             set_projects_dir(f, projects_dir_target)
         _verify(projects_dir_target, paths, local_dir)
@@ -330,6 +363,7 @@ def write_mode(mode, payload):
         'managed_paths': paths,
         'custom_evars': custom,
     }
+
 
 
 # ============================================================

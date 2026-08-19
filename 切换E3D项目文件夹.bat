@@ -1,5 +1,5 @@
-@echo off
-chcp 936 >nul
+ï»¿@echo off
+chcp 65001 >nul
 cd /d "%~dp0"
 
 if exist SEP.exe (
@@ -8,7 +8,7 @@ if exist SEP.exe (
 ) else (
     python -c "exit(0)" >nul 2>&1
     if %errorlevel% neq 0 (
-        echo [´íÎó] Î´ÕÒµ½ Python£¬Çë°²×° Python 3.x
+        echo [é”™è¯¯] æœªæ‰¾åˆ° Pythonï¼Œè¯·å®‰è£… Python 3.x æˆ–ä½¿ç”¨ SEP.exe
         pause
         exit /b 1
     )

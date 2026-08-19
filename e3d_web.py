@@ -9,7 +9,9 @@ SEP Web 启动面板
 import http.server
 import json
 import os
+import secrets
 import socket
+import socketserver
 import threading
 import time
 import webbrowser
@@ -20,6 +22,9 @@ import e3d_scanner as scanner
 import e3d_store as store
 import e3d_util as util
 
+
+API_TOKEN = secrets.token_hex(16)
+RUNTIME_FILE = os.path.join(util.get_user_data_dir(), ".sep_runtime.json")
 
 FALLBACK_HTML = """<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>SEP</title></head>
 <body style="font-family:sans-serif;background:#0b0e14;color:#e8ecf4;display:grid;place-items:center;height:100vh">
@@ -32,13 +37,22 @@ _LOCK = threading.Lock()
 def _load_html():
     try:
         with open(util.resource_path('web_ui.html'), 'r', encoding='utf-8') as f:
-            return f.read()
+            html = f.read()
+        token_script = f'<script>window.__SEP_TOKEN__="{API_TOKEN}";</script>'
+        if '<head>' in html:
+            return html.replace('<head>', f'<head>\n  {token_script}')
+        return token_script + html
     except OSError:
         return FALLBACK_HTML
 
 
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
+
 class _WebHandler(http.server.BaseHTTPRequestHandler):
-    server_version = 'SEP/2.0'
+    server_version = 'SEP/2.1'
 
     def log_message(self, fmt, *args):
         pass
@@ -61,15 +75,39 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         except Exception:
             return {}
 
+    def _is_authorized(self):
+        """校验 Host、Origin 及安全 Token，防御 CSRF 与外部跨域访问。"""
+        # 1. 验证 Host 是否为本地回环
+        host = self.headers.get('Host', '').split(':')[0].strip().lower()
+        if host not in ('127.0.0.1', 'localhost', ''):
+            return False
+
+        # 2. 验证 Origin（若存在，不能来自外部网站）
+        origin = self.headers.get('Origin', '').strip().lower()
+        if origin:
+            if not (origin.startswith('http://127.0.0.1') or origin.startswith('http://localhost') or origin.startswith('null')):
+                return False
+
+        # 3. 验证安全 Token
+        req_token = self.headers.get('X-SEP-Token', '').strip()
+        if req_token and secrets.compare_digest(req_token, API_TOKEN):
+            return True
+        return False
+
     def do_GET(self):
         if self.path in ('/', '/index.html'):
             body = _load_html().encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Content-Length', str(len(body)))
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
             self.end_headers()
             self.wfile.write(body)
         elif self.path == '/api/status':
+            if not self._is_authorized():
+                return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
             self._handle_status()
         elif self.path == '/favicon.ico':
             self.send_response(204)
@@ -78,6 +116,9 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'error': 'not found'}, 404)
 
     def do_POST(self):
+        if not self._is_authorized():
+            return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
+
         routes = {
             '/api/library/add': self._handle_library_add,
             '/api/library/remove': self._handle_library_remove,
@@ -98,6 +139,7 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/diagnose/all': self._handle_diagnose_all,
             '/api/diagnose/fix': self._handle_diagnose_fix,
             '/api/settings/update': self._handle_settings_update,
+            '/api/settings/open-config-dir': self._handle_open_config_dir,
             '/api/launch': self._handle_launch,
             '/api/detect': self._handle_detect,
             '/api/quit': self._handle_quit,
@@ -113,6 +155,7 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_status(self, body=None):
         launcher.resolve_e3d(force=False, verbose=False)
+
         data = store.load_data()
 
         current = None
@@ -120,6 +163,19 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             current = launcher.read_projects_dir(launcher.EVARS_BAT)
 
         local_dir = launcher.get_local_projects_dir(data)
+        # 仅在未执行过初次扫描且库为空时，自动扫描并注册本地项目库
+        if not (data.get('settings') or {}).get('auto_scanned'):
+            data.setdefault('settings', {})['auto_scanned'] = True
+            if local_dir and os.path.isdir(local_dir) and not store.find_library(data, path=local_dir):
+                try:
+                    lib, info, projects = scanner.add_library(local_dir, timeout=8)
+                    if lib and projects:
+                        data['libraries'].append(lib)
+                        _replace_cache(data, lib['id'], projects)
+                except Exception:
+                    pass
+            store.save_data(data)
+
         managed = launcher.read_managed(local_dir)
 
         lnk = util.find_e3d_lnk((data.get('settings') or {}).get('e3d_lnk', ''))
@@ -168,7 +224,11 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             'all_tags': store.all_tags(data),
             'status_options': store.STATUS_OPTIONS,
             'settings': data['settings'],
+            'config_path': util.get_config_file_path(),
+            'data_dir': util.get_user_data_dir(),
+            'is_portable': (util.get_user_data_dir() == util.SCRIPT_DIR),
         })
+
 
     # ---------- 路径库 ----------
 
@@ -335,11 +395,11 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             if mode in ('single', 'temp'):
                 pid = body.get('project_id', '')
                 if mode == 'single':
-                    proj = store.find_my_project(data, project_id=pid)
+                    proj = store.find_my_project(data, project_id=pid) or store.find_cached_project(data, project_id=pid)
                     if not proj:
-                        return self._send_json({'error': '未在“我的项目”中找到该项目'}, 404)
+                        return self._send_json({'error': '未找到该项目'}, 404)
                 else:
-                    proj = store.find_cached_project(data, project_id=pid)
+                    proj = store.find_cached_project(data, project_id=pid) or store.find_my_project(data, project_id=pid)
                     if not proj:
                         return self._send_json({'error': '未找到该项目，请先扫描路径库'}, 404)
                 meta = store.get_project_meta(data, proj['id'])
@@ -469,13 +529,32 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         data = store.load_data()
         s = data['settings']
         if 'local_projects_dir' in body and body.get('local_projects_dir') is not None:
-            s['local_projects_dir'] = util.normalize_path(body['local_projects_dir'])
+            raw_dir = str(body['local_projects_dir']).strip()
+            if raw_dir:
+                try:
+                    norm = util.validate_safe_bat_path(raw_dir)
+                    s['local_projects_dir'] = norm
+                except ValueError as e:
+                    return self._send_json({'error': str(e)}, 400)
+            else:
+                s['local_projects_dir'] = ''
         if 'e3d_lnk' in body and body.get('e3d_lnk') is not None:
             s['e3d_lnk'] = (body['e3d_lnk'] or '').strip()
         store.save_data(data)
         self._send_json({'ok': True, 'settings': s})
 
+    def _handle_open_config_dir(self, body=None):
+        d = util.get_user_data_dir()
+        if sys.platform == 'win32' and os.path.exists(d):
+            try:
+                os.startfile(d)
+                return self._send_json({'ok': True, 'path': d})
+            except Exception as e:
+                return self._send_json({'error': f'无法打开目录: {e}'}, 500)
+        self._send_json({'ok': True, 'path': d})
+
     # ---------- 诊断与修复 ----------
+
 
     def _handle_diagnose_library(self, body):
         data = store.load_data()
@@ -529,7 +608,24 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_quit(self, body):
         self._send_json({'ok': True})
+        _clean_runtime_info()
         threading.Timer(0.4, os._exit, (0,)).start()
+
+
+def _save_runtime_info(port, token):
+    try:
+        with open(RUNTIME_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'port': port, 'token': token, 'pid': os.getpid(), 'url': f'http://127.0.0.1:{port}'}, f)
+    except Exception:
+        pass
+
+
+def _clean_runtime_info():
+    try:
+        if os.path.exists(RUNTIME_FILE):
+            os.remove(RUNTIME_FILE)
+    except Exception:
+        pass
 
 
 def _replace_cache(data, lib_id, projects):
@@ -554,11 +650,13 @@ def _get_free_port(start=8800):
 
 
 def start_web_ui():
-    """启动本地 Web 服务并打开浏览器。"""
+    """启动本地 Web 服务并打开浏览器（多线程防阻塞）。"""
     launcher.resolve_e3d(force=False, verbose=False)
     port = _get_free_port()
-    server = http.server.HTTPServer(('127.0.0.1', port), _WebHandler)
+    server = ThreadedHTTPServer(('127.0.0.1', port), _WebHandler)
     url = f'http://127.0.0.1:{port}'
+
+    _save_runtime_info(port, API_TOKEN)
 
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -576,4 +674,6 @@ def start_web_ui():
     except KeyboardInterrupt:
         pass
     finally:
+        _clean_runtime_info()
         server.shutdown()
+

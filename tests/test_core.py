@@ -15,6 +15,7 @@ import e3d_launcher as launcher
 import e3d_scanner as scanner
 import e3d_store as store
 import e3d_util as util
+import e3d_web
 
 
 class TestNormalize(unittest.TestCase):
@@ -73,11 +74,12 @@ class TestScanner(unittest.TestCase):
         self.assertEqual(info['kind'], 'project')
         self.assertEqual(len(info.get('direct', [])), 2)
 
-    def test_classify_custom_evars_alone_invalid(self):
-        # 只有 custom_evars.bat 不再视为项目库（项目发现改为下一层文件夹）
+    def test_classify_custom_evars_alone(self):
+        # 包含 custom_evars.bat 识别为项目库，并解析项目
         self._write('custom_evars.bat', 'call "D:\\Projects\\evarsAAA.bat"\r\n')
         info = scanner.classify(self.tmp.name)
-        self.assertEqual(info['kind'], 'invalid')
+        self.assertEqual(info['kind'], 'collection')
+        self.assertEqual(len(info.get('custom_projects', [])), 1)
 
     def test_classify_invalid(self):
         d = os.path.join(self.tmp.name, 'nope')
@@ -116,11 +118,11 @@ class TestScanner(unittest.TestCase):
         self.assertEqual(pa['project_dir'], os.path.join(self.tmp.name, 'ProjA'))
         self.assertFalse(any(p['name'] == 'CC' for p in projects))
 
-    def test_scan_skips_custom_evars_only(self):
-        self._write('custom_evars.bat', 'call "D:\\Projects\\evarsAAA.bat"\r\n')
+    def test_scan_custom_evars(self):
+        self._write('custom_evars.bat', 'if exist "%projects_dir%ProjA\\evarsAAA.bat" call "%projects_dir%ProjA\\evarsAAA.bat"\r\ncall "D:\\Projects\\ProjB\\evarsBB.bat"\r\n')
         projects, info = scanner.scan_library(self.tmp.name)
-        self.assertEqual(info['kind'], 'invalid')
-        self.assertEqual(projects, [])
+        self.assertEqual(info['kind'], 'collection')
+        self.assertEqual(sorted(p['name'] for p in projects), ['AAA', 'BB'])
 
     def test_project_name(self):
         self.assertEqual(scanner.project_name('evarsDPH.bat'), 'DPH')
@@ -188,6 +190,27 @@ class TestLauncher(unittest.TestCase):
         block = launcher.managed_block([r'C:\x\evarsA.bat'])
         self.assertIn('call "C:\\x\\evarsA.bat"', block)
         self.assertIn(launcher.MANAGED_START, block)
+
+    def test_write_managed_multiple(self):
+        p = launcher.write_managed(self.local, [r'C:\x\evarsA.bat', r'C:\y\evarsB.bat'])
+        self.assertTrue(os.path.exists(p))
+        text, _ = util.read_text_smart(p)
+        self.assertIn('call "C:\\x\\evarsA.bat"', text)
+        self.assertIn('call "C:\\y\\evarsB.bat"', text)
+        self.assertIn(launcher.MANAGED_START, text)
+        self.assertIn(launcher.MANAGED_END, text)
+
+    def test_read_projects_dir_variants(self):
+        f1 = os.path.join(self.local, 'evars1.bat')
+        with open(f1, 'w', encoding='utf-8') as fh:
+            fh.write('projects_dir=D:\\test\\\r\n')
+        self.assertEqual(launcher.read_projects_dir(f1), 'D:\\test\\')
+
+        f2 = os.path.join(self.local, 'evars2.bat')
+        with open(f2, 'w', encoding='utf-8') as fh:
+            fh.write('set projects_dir="D:\\test2\\"\r\n')
+        self.assertEqual(launcher.read_projects_dir(f2), 'D:\\test2\\')
+
 
 
 class TestStore(unittest.TestCase):
@@ -335,5 +358,132 @@ class TestDiagnostics(unittest.TestCase):
         self.assertIn('未知修复项', result['message'])
 
 
+class TestSecurity(unittest.TestCase):
+    def test_validate_safe_bat_path_valid(self):
+        self.assertEqual(util.validate_safe_bat_path(r'C:\Program Files\AVEVA\evarsDPH.bat'), r'C:\Program Files\AVEVA\evarsDPH.bat')
+        self.assertEqual(util.validate_safe_bat_path(r'D:\项目\evarsAAA.bat'), r'D:\项目\evarsAAA.bat')
+        self.assertEqual(util.validate_safe_bat_path(''), '')
+
+    def test_validate_safe_bat_path_dangerous(self):
+        dangerous = [
+            r'C:\x\evars.bat" & calc.exe & "',
+            'C:\\x\\evars.bat\r\ncalc.exe',
+            'C:\\x\\evars.bat\ncalc.exe',
+            'C:\\x\\evars.bat | whoami',
+            'C:\\x\\evars.bat < in.txt',
+            'C:\\x\\evars.bat > out.txt',
+            'C:\\x\\evars.bat ^& echo 1',
+        ]
+        for p in dangerous:
+            with self.assertRaises(ValueError):
+                util.validate_safe_bat_path(p)
+
+    def test_managed_block_injection_blocked(self):
+        with self.assertRaises(ValueError):
+            launcher.managed_block([r'C:\x\test.bat" & notepad.exe & "'])
+
+    def test_set_projects_dir_injection_blocked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            f = os.path.join(tmp, 'evars.bat')
+            with open(f, 'w', encoding='utf-8') as fh:
+                fh.write('@echo off\r\nset projects_dir=D:\\old\\\r\n')
+            with self.assertRaises(launcher.LauncherError):
+                launcher.set_projects_dir(f, r'D:\old\" & calc.exe & "')
+
+
+class TestWebSecurity(unittest.TestCase):
+    def test_token_injected_in_html(self):
+        html = e3d_web._load_html()
+        self.assertIn(e3d_web.API_TOKEN, html)
+        self.assertIn('window.__SEP_TOKEN__', html)
+
+
+class TestLaunchModes(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.local = os.path.join(self.tmp.name, 'LocalProjects')
+        os.makedirs(self.local, exist_ok=True)
+        self.e3d_dir = os.path.join(self.tmp.name, 'E3D')
+        os.makedirs(self.e3d_dir, exist_ok=True)
+
+        self.evars_bat = os.path.join(self.e3d_dir, 'evars.bat')
+        with open(self.evars_bat, 'w', encoding='utf-8') as f:
+            f.write('@echo off\r\nset projects_dir=D:\\dummy\\\r\nfor %%x in ("%projects_dir%\\") do set projects_dir=%%~dpx\r\n')
+        self.evars_init = os.path.join(self.e3d_dir, 'evars.init')
+        with open(self.evars_init, 'w', encoding='utf-8') as f:
+            f.write('set projects_dir=D:\\dummy\\\r\n')
+
+        launcher.EVARS_BAT = self.evars_bat
+        launcher.EVARS_INIT = self.evars_init
+
+        self.cfg_file = os.path.join(self.tmp.name, 'e3d_projects.json')
+        self.proj_a = os.path.join(self.local, 'evarsA.bat')
+        with open(self.proj_a, 'w', encoding='utf-8') as f:
+            f.write('@echo off\r\n')
+
+        data = {
+            'version': 3,
+            'settings': {'local_projects_dir': self.local, 'e3d_lnk': ''},
+            'categories': [],
+            'project_meta': {},
+            'libraries': [],
+            'my_projects': [{'id': 'proj_a', 'name': 'A', 'bat_path': self.proj_a, 'lib_id': None, 'source': 'user', 'added_at': ''}],
+            'all_projects_cache': [{'id': 'proj_a', 'name': 'A', 'bat_path': self.proj_a, 'lib_id': None, 'discovered_at': ''}],
+        }
+        store.save_data(data, self.cfg_file)
+
+    def test_write_mode_single(self):
+        # 覆写 store.get_config_path
+        orig_fn = util.get_config_file_path
+        util.get_config_file_path = lambda: self.cfg_file
+        try:
+            summary = launcher.write_mode('single', {'bat_path': self.proj_a, 'name': 'A'})
+            self.assertEqual(summary['projects_dir'], self.local)
+            self.assertEqual(launcher.read_projects_dir(self.evars_bat), self.local + '\\')
+            self.assertEqual(launcher.read_projects_dir(self.evars_init), self.local + '\\')
+            managed = launcher.read_managed(self.local)
+            self.assertEqual(managed, [self.proj_a])
+        finally:
+            util.get_config_file_path = orig_fn
+
+    def test_write_mode_library(self):
+        orig_fn = util.get_config_file_path
+        util.get_config_file_path = lambda: self.cfg_file
+        lib_dir = os.path.join(self.tmp.name, 'RemoteLib')
+        os.makedirs(lib_dir, exist_ok=True)
+        try:
+            summary = launcher.write_mode('library', {'path': lib_dir, 'name': 'Remote'})
+            self.assertEqual(summary['projects_dir'], lib_dir)
+            self.assertEqual(launcher.read_projects_dir(self.evars_bat), lib_dir + '\\')
+            self.assertEqual(launcher.read_projects_dir(self.evars_init), lib_dir + '\\')
+        finally:
+            util.get_config_file_path = orig_fn
+
+
+class TestGlobalStorage(unittest.TestCase):
+    def test_get_user_data_dir_default(self):
+        d = util.get_user_data_dir()
+        self.assertTrue(bool(d))
+        self.assertTrue(os.path.isabs(d))
+
+    def test_get_config_file_path(self):
+        p = util.get_config_file_path()
+        self.assertTrue(p.endswith('e3d_projects.json'))
+
+    def test_portable_mode(self):
+        old_env = os.environ.get('SEP_PORTABLE')
+        try:
+            os.environ['SEP_PORTABLE'] = '1'
+            self.assertEqual(util.get_user_data_dir(), util.SCRIPT_DIR)
+        finally:
+            if old_env is None:
+                os.environ.pop('SEP_PORTABLE', None)
+            else:
+                os.environ['SEP_PORTABLE'] = old_env
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+

@@ -30,6 +30,59 @@ import e3d_util as util
 import e3d_web
 
 
+_MUTEX_HANDLE = None
+
+
+def _ensure_single_instance():
+    """
+    检查是否已有 SEP 实例正在运行（基于 Windows 命名 Mutex）。
+    若已在运行，唤起已运行实例的 Web 页面并退出当前进程。
+    """
+    global _MUTEX_HANDLE
+    if sys.platform != 'win32':
+        return True
+    try:
+        mutex_name = "Local\\SEP_SmartE3DProject_SingleInstance"
+        mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+        last_error = ctypes.windll.kernel32.GetLastError()
+        if last_error == 183:  # ERROR_ALREADY_EXISTS
+            runtime_file = os.path.join(util.get_user_data_dir(), ".sep_runtime.json")
+            url = "http://127.0.0.1:8800"
+            if os.path.exists(runtime_file):
+                try:
+                    import json
+                    with open(runtime_file, 'r', encoding='utf-8') as f:
+                        info = json.load(f)
+                    url = info.get('url', url)
+                except Exception:
+                    pass
+            import webbrowser
+            try:
+                webbrowser.open(url)
+            except Exception:
+                pass
+            return False
+        _MUTEX_HANDLE = mutex
+        return True
+    except Exception:
+        return True
+
+
+def _fatal_alert(msg):
+    """记录崩溃日志并在 GUI 模式下弹出 Windows 错误对话框。"""
+    crash_log = os.path.join(util.SCRIPT_DIR, "sep_crash.log")
+    try:
+        with open(crash_log, "a", encoding="utf-8") as f:
+            f.write(f"[{util.now_iso()}] {msg}\n")
+    except Exception:
+        pass
+    if sys.platform == 'win32':
+        try:
+            ctypes.windll.user32.MessageBoxW(0, f"SEP 发生错误：\n\n{msg}", "SEP 错误", 0x10)
+        except Exception:
+            pass
+
+
 def _hide_console():
     """GUI 模式下隐藏控制台窗口（打包后双击不弹黑窗）。"""
     if not getattr(sys, 'frozen', False) or sys.platform != 'win32':
@@ -40,6 +93,7 @@ def _hide_console():
             ctypes.windll.user32.ShowWindow(hwnd, 0)
     except Exception:
         pass
+
 
 
 def _print_status():
@@ -430,6 +484,8 @@ def main():
 
     # 默认 / --web：启动 Web 面板（GUI 模式隐藏控制台）
     if not args.cli:
+        if not _ensure_single_instance():
+            return 0
         _hide_console()
     e3d_web.start_web_ui()
     return 0
@@ -442,10 +498,17 @@ if __name__ == '__main__':
         print('\n  已退出。')
         sys.exit(0)
     except launcher.LauncherError as e:
-        print(f'\n  ✗ {e}')
+        msg = f"{e}"
+        print(f'\n  ✗ {msg}')
+        if getattr(sys, 'frozen', False):
+            _fatal_alert(msg)
         sys.exit(1)
     except Exception as e:
-        print(f'\n  ✗ 意外错误: {e}')
         import traceback
+        err_detail = traceback.format_exc()
+        print(f'\n  ✗ 意外错误: {e}')
         traceback.print_exc()
+        if getattr(sys, 'frozen', False):
+            _fatal_alert(f"{e}\n\n{err_detail}")
         sys.exit(1)
+

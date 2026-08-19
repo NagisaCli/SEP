@@ -43,7 +43,7 @@ import re
 import e3d_util as util
 
 
-CONFIG_FILE = os.path.join(util.SCRIPT_DIR, "e3d_projects.json")
+CONFIG_FILE = util.get_config_file_path()
 
 CATEGORY_COLORS = [
     '#4f8cff', '#2dd4a7', '#f5b85c', '#ff5d6c', '#b07bff',
@@ -51,6 +51,10 @@ CATEGORY_COLORS = [
 ]
 
 STATUS_OPTIONS = ['进行中', '已完成', '暂停', '归档']
+
+
+def get_config_path():
+    return util.get_config_file_path()
 
 
 def default_data():
@@ -72,7 +76,7 @@ def default_data():
 
 def load_data(config_file=None):
     """加载配置；不存在或损坏时返回默认值；旧 schema 自动迁移。"""
-    path = config_file or CONFIG_FILE
+    path = config_file or util.get_config_file_path()
     data = default_data()
     if os.path.exists(path):
         try:
@@ -86,8 +90,14 @@ def load_data(config_file=None):
 
 
 def save_data(data, config_file=None):
-    """原子写入配置。"""
-    path = config_file or CONFIG_FILE
+    """原子写入配置。自动确保父目录存在。"""
+    path = config_file or util.get_config_file_path()
+    parent = os.path.dirname(path)
+    if parent:
+        try:
+            os.makedirs(parent, exist_ok=True)
+        except OSError:
+            pass
     tmp = path + '.tmp'
     with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -96,12 +106,13 @@ def save_data(data, config_file=None):
 
 def read_paths_cache():
     """读取 e3d_paths.json（E3D 路径检测缓存）。"""
-    p = os.path.join(util.SCRIPT_DIR, "e3d_paths.json")
+    p = util.get_paths_cache_path()
     try:
         with open(p, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception:
         return {}
+
 
 
 def _migrate(raw):

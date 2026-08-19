@@ -8,6 +8,7 @@ __pycache__/
 # Runtime caches
 e3d_paths.json
 e3d_projects.json
+.sep_runtime.json
 
 # IDE
 .vscode/
