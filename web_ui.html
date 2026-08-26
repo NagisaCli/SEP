@@ -641,6 +641,13 @@ input:checked + .slider:before {
           <div class="tile-sub">色彩标识与自定义标签</div>
         </div>
       </div>
+      <div class="bento-tile" onclick="openModal('modal-session-detail')">
+        <div class="tile-header"><span class="tile-title">全局在线人数</span><span class="tile-badge">👥</span></div>
+        <div>
+          <div class="tile-value" id="ov-online">—<small>人</small></div>
+          <div class="tile-sub" id="ov-online-sub">跨路径库实时在线连接数</div>
+        </div>
+      </div>
     </div>
 
     <div class="grid-2col">
@@ -1305,6 +1312,7 @@ function renderOverview(){
   document.getElementById('ov-my').innerHTML = `${my.length}<small>项</small>`;
   document.getElementById('ov-libs').innerHTML = `${libs.length}<small>库</small>`;
   document.getElementById('ov-cats').innerHTML = `${cats.length}<small>组</small>`;
+  updateGlobalOnlineTile();
 
   // 分类分布
   const catCount = {};
@@ -1540,13 +1548,22 @@ function renderLibraries(){
       `;
     }).join('') : '<div class="empty-state" style="padding:16px">该路径库中暂无识别到的项目</div>';
 
+    // 聚合该路径库下所有项目的在线会话总数
+    const libTotalOnline = projs.reduce((sum, p) => sum + ((sessionCache[p.id]||{}).online_count||0), 0);
+    const libHasLock    = projs.some(p => (sessionCache[p.id]||{}).has_locks);
+    const libConnHtml = libTotalOnline > 0
+      ? `<span class="conn-badge conn-online" style="margin-left:8px;font-size:12px" title="该路径库共 ${libTotalOnline} 个在线连接">👥 ${libTotalOnline} 在线</span>`
+      : libHasLock
+        ? `<span class="conn-badge conn-locked" style="margin-left:8px;font-size:12px" title="该路径库存在数据库锁文件">🔒 有锁</span>`
+        : `<span class="conn-badge conn-idle" style="margin-left:8px;font-size:12px;opacity:.55" title="当前无活跃连接">👥 空闲</span>`;
+
     return `
       <div class="lib-card ${isOpen?'open':''}" id="lib-${esc(lib.id)}">
         <div class="lib-header" onclick="toggleLibCard('${esc(lib.id)}', event)">
           <div class="lib-summary">
             <div class="lib-chevron">▶</div>
             <div>
-              <div style="font-size:14.5px;font-weight:700;color:var(--text-pure)">${esc(lib.name)} <span class="badge">${projs.length} 个项目</span> <span class="tag-pill" style="margin-left:4px">${esc(lib.protocol || 'local').toUpperCase()}</span></div>
+              <div style="font-size:14.5px;font-weight:700;color:var(--text-pure);display:flex;align-items:center;flex-wrap:wrap;gap:4px">${esc(lib.name)} <span class="badge">${projs.length} 个项目</span> <span class="tag-pill" style="margin-left:4px">${esc(lib.protocol || 'local').toUpperCase()}</span>${libConnHtml}</div>
               <div class="mini-path">${esc(lib.path)}</div>
               ${errHtml}
             </div>
@@ -2859,6 +2876,27 @@ function buildConnBadgeInline(ses, pid, bat){
   return buildConnBadge({...ses, _pid: pid});
 }
 
+function updateGlobalOnlineTile(){
+  const el = document.getElementById('ov-online');
+  const sub = document.getElementById('ov-online-sub');
+  if(!el) return;
+  const total = Object.values(sessionCache).reduce((s, v) => s + (v.online_count || 0), 0);
+  const hasLock = Object.values(sessionCache).some(v => v.has_locks);
+  if(total > 0){
+    el.innerHTML = `${total}<small>人</small>`;
+    el.style.color = '#34d399';
+    if(sub) sub.textContent = `当前共 ${total} 个活跃在线连接`;
+  } else if(hasLock){
+    el.innerHTML = `<span style="font-size:22px">🔒</span>`;
+    el.style.color = '#f59e0b';
+    if(sub) sub.textContent = '存在数据库锁文件，可能有残留会话';
+  } else {
+    el.innerHTML = `0<small>人</small>`;
+    el.style.color = '';
+    if(sub) sub.textContent = '当前无活跃在线连接';
+  }
+}
+
 async function pollSessions(){
   if(!state) return;
   try {
@@ -2870,6 +2908,7 @@ async function pollSessions(){
         newCache[pid] = {...data, _pid: pid};
       }
       sessionCache = newCache;
+      updateGlobalOnlineTile();
       // Patch-update only the badge spans rather than re-rendering full cards
       document.querySelectorAll('.conn-badge[data-pid]').forEach(el => {
         const pid = el.getAttribute('data-pid');
