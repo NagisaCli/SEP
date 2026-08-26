@@ -147,6 +147,8 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/settings/import': self._handle_settings_import,
             '/api/settings/device-paths': self._handle_settings_device_paths,
             '/api/settings/open-config-dir': self._handle_open_config_dir,
+            '/api/sessions/project': self._handle_sessions_project,
+            '/api/sessions/all': self._handle_sessions_all,
             '/api/launch': self._handle_launch,
             '/api/detect': self._handle_detect,
             '/api/quit': self._handle_quit,
@@ -886,6 +888,36 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             })
         except Exception as e:
             self._send_json({'error': f'获取设备路径失败: {e}'}, 500)
+
+    def _handle_sessions_project(self, body):
+        """查询指定项目的实时在线连接数与会话列表。"""
+        bat_path = (body.get('bat_path') or '').strip()
+        if not bat_path:
+            return self._send_json({'error': '缺少 bat_path'}, 400)
+        try:
+            import e3d_session
+            res = e3d_session.inspect_project_connections(bat_path)
+            self._send_json({'ok': True, **res})
+        except Exception as e:
+            self._send_json({'error': f'查询会话失败: {e}'}, 500)
+
+    def _handle_sessions_all(self, body):
+        """批量查询一批项目的实时在线连接情况。"""
+        try:
+            import e3d_session
+            import e3d_store as store
+            data = store.load_data()
+            projects = data.get('all_projects') or []
+            # 也包括 my_projects（自定义星标项目）
+            my = data.get('my_projects') or []
+            seen_ids = {p['id'] for p in projects}
+            for p in my:
+                if p.get('id') not in seen_ids:
+                    projects.append(p)
+            res = e3d_session.batch_inspect_sessions(projects)
+            self._send_json({'ok': True, 'sessions': res})
+        except Exception as e:
+            self._send_json({'error': f'批量查询会话失败: {e}'}, 500)
 
     def _handle_quit(self, body):
         self._send_json({'ok': True})

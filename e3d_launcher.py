@@ -470,6 +470,16 @@ def write_mode(mode, payload):
     data['settings']['last_launched'] = payload.get('name') or ''
     store.save_data(data)
 
+    try:
+        import e3d_session
+        target_name = payload.get('name') or ''
+        target_bat = paths[0] if paths else ''
+        if target_bat:
+            pid = payload.get('id') or util.gen_id('prj', target_bat)
+            e3d_session.register_project_session(pid, target_name, target_bat)
+    except Exception:
+        pass
+
     return {
         'mode': mode,
         'projects_dir': projects_dir_target,

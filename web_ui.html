@@ -375,6 +375,12 @@ body {
 }
 .badge-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 .badge-favorite { background: var(--emerald-surface); color: #34d399; border-color: rgba(16, 185, 129, 0.3); font-weight: 650; }
+.conn-badge { display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:opacity .15s;user-select:none; }
+.conn-badge:hover { opacity:.8; }
+.conn-online  { background:rgba(52,211,153,0.15); color:#34d399; border-color:rgba(52,211,153,0.35); }
+.conn-idle    { background:rgba(100,116,139,0.12); color:#64748b; border-color:rgba(100,116,139,0.25); }
+.conn-locked  { background:rgba(245,158,11,0.15);  color:#f59e0b; border-color:rgba(245,158,11,0.35); }
+.conn-unknown { background:rgba(100,116,139,0.07); color:#64748b; border-color:rgba(100,116,139,0.18); cursor:default; }
 .tag-pill {
   font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 1px solid var(--border-subtle);
@@ -1045,6 +1051,26 @@ input:checked + .slider:before {
   </div>
 </div>
 
+<!-- 实时连接数详情弹窗 -->
+<div class="modal-backdrop" id="modal-session-detail" hidden>
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">👥</span>
+        <h3>项目实时在线连接情况</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-session-detail')">×</button>
+    </div>
+    <div id="sess-modal-body" style="min-height:80px;padding:4px 0">
+      <div class="empty-state">加载中…</div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="pollSessions()">🔄 立即刷新</button>
+      <button class="btn btn-primary btn-sm" onclick="closeModal('modal-session-detail')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- 插件文件源码与符号详情弹窗 -->
 <div class="modal-backdrop" id="modal-plugin-file-viewer" hidden>
   <div class="modal-box" style="max-width:850px">
@@ -1410,6 +1436,11 @@ function renderProjects(){
       tagChips(p.tags),
     ].filter(Boolean).join(' ');
 
+    const ses = sessionCache[p.id];
+    const connBadge = ses
+      ? buildConnBadge(ses)
+      : `<span class="conn-badge conn-unknown" data-pid="${esc(p.id)}" data-bat="${esc(p.bat_path)}" title="点击查询实时连接">👥 —</span>`;
+
     return `
       <div class="project-card ${isMy?'is-favorite':''}" style="--card-accent:${pal.color}">
         ${chk}
@@ -1418,6 +1449,7 @@ function renderProjects(){
           <div class="project-title-row">
             <span class="project-name">${esc(p.name)}</span>
             ${isMy ? '<span class="badge badge-favorite">★ 常用项目</span>' : ''}
+            ${connBadge}
           </div>
           <div class="project-path">
             <code>${esc(p.bat_path)}</code>
@@ -1457,12 +1489,15 @@ function renderMy(){
       tagChips(p.tags),
     ].filter(Boolean).join(' ');
 
+    const ses = sessionCache[p.id];
+    const connBadge = ses ? buildConnBadge(ses) : `<span class="conn-badge conn-unknown" data-pid="${esc(p.id)}" data-bat="${esc(p.bat_path)}" title="点击查询实时连接">👥 —</span>`;
+
     return `
       <div class="project-card is-favorite" style="--card-accent:${pal.color}">
         ${chk}
         <div class="project-avatar" style="background:${pal.bg}">${acronym}</div>
         <div class="project-details">
-          <div class="project-title-row"><span class="project-name">${esc(p.name)}</span></div>
+          <div class="project-title-row"><span class="project-name">${esc(p.name)}</span>${connBadge}</div>
           <div class="project-path"><code>${esc(p.bat_path)}</code></div>
           ${meta ? `<div class="project-meta-row">${meta}</div>` : ''}
         </div>
@@ -1499,6 +1534,7 @@ function renderLibraries(){
         <div class="mini-row">
           <span class="mini-name" title="${esc(p.name)}">${esc(p.name)}</span>
           <span class="mini-path" title="${esc(p.bat_path)}">${esc(p.project_dir || p.bat_path)}</span>
+          ${buildConnBadgeInline(sessionCache[p.id], p.id, p.bat_path)}
           <div class="mini-actions">${actions}<button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时</button><button class="btn btn-ghost btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button></div>
         </div>
       `;
@@ -2784,6 +2820,134 @@ document.addEventListener('click', function(ev){
 
 // 启动初始化
 window.addEventListener('DOMContentLoaded', loadStatus);
+
+// ============================================================
+// 实时项目连接数 (SEP Session Tracker)
+// ============================================================
+let sessionCache = {};     // { [project_id]: {online_count, sessions, has_locks, ...} }
+let _sessPollTimer = null;
+
+function buildConnBadge(ses){
+  if(!ses) return '';
+  const n = ses.online_count || 0;
+  const locked = ses.has_locks;
+  const active = ses.is_active_recently;
+  let cls = 'conn-badge ';
+  let icon = '👥';
+  let tip = '';
+
+  if(n === 0){
+    cls += locked ? 'conn-locked' : 'conn-idle';
+    icon = locked ? '🔒' : '👥';
+    tip = locked ? '数据库有文件锁（可能存在未释放会话或崩溃残留锁）' : (active ? `最近活跃 (${ses.last_db_write_time||''})` : '当前无活跃连接');
+  } else {
+    cls += 'conn-online';
+    const self = ses.sessions.filter(s=>s.is_current_device);
+    const others = ses.sessions.filter(s=>!s.is_current_device);
+    tip = `共 ${n} 个在线会话：\n` +
+          (self.length ? `• 本机 (${self.map(s=>s.user_name).join(',')}) ` : '') +
+          (others.length ? `• 远端: ${others.map(s=>s.computer_name+'@'+s.user_name).join(', ')}` : '');
+  }
+  return `<span class="${cls}" title="${esc(tip)}" onclick="showSessionDetail(this.getAttribute('data-pid'))" data-pid="${ses._pid||''}">
+    ${icon} ${n > 0 ? n : (locked ? '🔒' : '空闲')}
+    ${n > 0 && ses.sessions && ses.sessions.some(s=>s.is_current_device) ? '<span style="font-size:9px;color:#34d399">▶本机</span>' : ''}
+  </span>`;
+}
+
+function buildConnBadgeInline(ses, pid, bat){
+  if(!ses) return `<span class="conn-badge conn-unknown" data-pid="${esc(pid)}" data-bat="${esc(bat)}" title="点击查询实时连接">👥 —</span>`;
+  return buildConnBadge({...ses, _pid: pid});
+}
+
+async function pollSessions(){
+  if(!state) return;
+  try {
+    const res = await api('/api/sessions/all', {});
+    if(res.ok && res.sessions){
+      // Merge _pid into each result so the badge can reference project id
+      const newCache = {};
+      for(const [pid, data] of Object.entries(res.sessions)){
+        newCache[pid] = {...data, _pid: pid};
+      }
+      sessionCache = newCache;
+      // Patch-update only the badge spans rather than re-rendering full cards
+      document.querySelectorAll('.conn-badge[data-pid]').forEach(el => {
+        const pid = el.getAttribute('data-pid');
+        if(pid && newCache[pid]){
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = buildConnBadge(newCache[pid]);
+          const newEl = tempDiv.firstElementChild;
+          if(newEl){
+            newEl.setAttribute('data-pid', pid);
+            el.parentNode.replaceChild(newEl, el);
+          }
+        }
+      });
+      // Also update unknown badges that now have data
+      document.querySelectorAll('.conn-unknown[data-bat]').forEach(el => {
+        // These get filled by full re-render next tick — skip live patch
+      });
+    }
+  } catch(e) { /* silent */ }
+}
+
+function showSessionDetail(pid){
+  if(!pid) return;
+  const ses = sessionCache[pid];
+  if(!ses) return;
+  const n = ses.online_count || 0;
+  const rows = (ses.sessions || []).map(s => `
+    <tr>
+      <td style="padding:6px 10px">${esc(s.computer_name)}</td>
+      <td style="padding:6px 10px">${esc(s.user_name)}</td>
+      <td style="padding:6px 10px">${esc(s.project_name||'')}</td>
+      <td style="padding:6px 10px;color:${s.is_current_device?'#34d399':'#94a3b8'}">${s.is_current_device?'本机':'远端'}</td>
+      <td style="padding:6px 10px;font-size:11px;color:var(--text-dim)">${esc(s.last_heartbeat||s.started_at||'')}</td>
+    </tr>
+  `).join('');
+  const lockHtml = ses.lock_files && ses.lock_files.length
+    ? `<div style="margin-top:10px;color:#f59e0b;font-size:12px">🔒 检测到文件锁: ${ses.lock_files.map(f=>`<code>${esc(f)}</code>`).join(' ')}</div>`
+    : '';
+  const dbHtml = ses.last_db_write_time
+    ? `<div style="margin-top:6px;font-size:12px;color:var(--text-dim)">最近数据库写入: ${esc(ses.last_db_write_time)} ${ses.is_active_recently?'<span style="color:#34d399">（近期活跃）</span>':''}</div>`
+    : '';
+
+  document.getElementById('sess-modal-body').innerHTML = `
+    <div style="margin-bottom:12px">
+      <span class="badge" style="font-size:13px;background:${n>0?'rgba(52,211,153,0.15)':'rgba(100,116,139,0.1)'}">
+        👥 在线连接数: <strong>${n}</strong>
+      </span>
+    </div>
+    ${n > 0 ? `
+      <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+            <th style="padding:6px 10px">计算机名</th><th style="padding:6px 10px">用户</th>
+            <th style="padding:6px 10px">项目</th><th style="padding:6px 10px">来源</th>
+            <th style="padding:6px 10px">最近心跳</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    ` : '<div style="color:var(--text-dim);font-size:13px">当前无活跃在线会话</div>'}
+    ${lockHtml}
+    ${dbHtml}
+  `;
+  openModal('modal-session-detail');
+}
+
+function startSessionPolling(){
+  if(_sessPollTimer) return;
+  pollSessions(); // 首次立即拉取
+  _sessPollTimer = setInterval(pollSessions, 30000); // 每 30 秒刷新
+}
+
+// 在 loadStatus 完成后启动轮询
+const _origLoadStatus = loadStatus;
+loadStatus = async function(){
+  await _origLoadStatus.apply(this, arguments);
+  startSessionPolling();
+};
 </script>
 </body>
 </html>
