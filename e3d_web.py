@@ -104,39 +104,9 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             return True
         return False
 
-    def do_GET(self):
-        if self.path in ('/', '/index.html'):
-            body = _load_html().encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-            self.send_header('Pragma', 'no-cache')
-            self.send_header('Expires', '0')
-            self.end_headers()
-            self.wfile.write(body)
-        elif self.path == '/api/status':
-            if not self._is_authorized():
-                return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
-            try:
-                with _LOCK:
-                    self._handle_status()
-            except Exception as e:
-                try:
-                    self._send_json({'error': f'服务器内部错误: {e}'}, 500)
-                except Exception:
-                    pass
-        elif self.path == '/favicon.ico':
-            self.send_response(204)
-            self.end_headers()
-        else:
-            self._send_json({'error': 'not found'}, 404)
-
-    def do_POST(self):
-        if not self._is_authorized():
-            return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
-
-        routes = {
+    def _get_api_routes(self):
+        return {
+            '/api/status': self._handle_status,
             '/api/library/add': self._handle_library_add,
             '/api/library/remove': self._handle_library_remove,
             '/api/library/rescan': self._handle_library_rescan,
@@ -176,11 +146,47 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/detect': self._handle_detect,
             '/api/quit': self._handle_quit,
         }
-        fn = routes.get(self.path)
+
+    def do_GET(self):
+        if self.path in ('/', '/index.html'):
+            body = _load_html().encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path == '/favicon.ico':
+            self.send_response(204)
+            self.end_headers()
+        elif self.path.startswith('/api/'):
+            if not self._is_authorized():
+                return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
+            routes = self._get_api_routes()
+            fn = routes.get(self.path.split('?')[0])
+            if not fn:
+                return self._send_json({'error': 'not found'}, 404)
+            try:
+                with _LOCK:
+                    fn({})
+            except Exception as e:
+                try:
+                    self._send_json({'error': f'服务器内部错误: {e}'}, 500)
+                except Exception:
+                    pass
+        else:
+            self._send_json({'error': 'not found'}, 404)
+
+    def do_POST(self):
+        if not self._is_authorized():
+            return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
+
+        routes = self._get_api_routes()
+        fn = routes.get(self.path.split('?')[0])
         if not fn:
             return self._send_json({'error': 'not found'}, 404)
-        # 兜底：处理器里的任何意外异常都要变成 500 响应，
-        # 否则连接会被直接掐断，前端只看到 "Failed to fetch"，无从排查。
         try:
             with _LOCK:
                 fn(self._read_body())
