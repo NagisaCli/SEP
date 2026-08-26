@@ -90,7 +90,7 @@ def load_data(config_file=None):
 
 
 def save_data(data, config_file=None):
-    """原子写入配置。自动确保父目录存在。"""
+    """原子写入配置并维护多版本滚动备份。自动确保父目录存在。"""
     path = config_file or util.get_config_file_path()
     parent = os.path.dirname(path)
     if parent:
@@ -98,6 +98,8 @@ def save_data(data, config_file=None):
             os.makedirs(parent, exist_ok=True)
         except OSError:
             pass
+    if os.path.isfile(path):
+        util.rotate_file_backups(path)
     tmp = path + '.tmp'
     with open(tmp, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -129,6 +131,7 @@ def _migrate(raw):
         d['libraries'] = list(raw.get('libraries') or [])
         d['my_projects'] = list(raw.get('my_projects') or [])
         d['all_projects_cache'] = list(raw.get('all_projects_cache') or [])
+        d['notifications'] = list(raw.get('notifications') or [])
         return d
 
     if raw.get('version') == 2:
@@ -174,7 +177,7 @@ def _fill_defaults(data):
     settings = data.setdefault('settings', {})
     for k, v in d['settings'].items():
         settings.setdefault(k, v)
-    for k in ('categories', 'project_meta', 'libraries', 'my_projects', 'all_projects_cache'):
+    for k in ('categories', 'project_meta', 'libraries', 'my_projects', 'all_projects_cache', 'notifications'):
         data.setdefault(k, [] if k != 'project_meta' else {})
 
     # 清理非法分类 / 元信息
@@ -421,3 +424,116 @@ def find_cached_project(data, project_id=None, name=None):
         if name and p.get('name', '').lower() == name.lower():
             return p
     return None
+
+
+# ============================================================
+# 跨设备配置导入/导出与自愈通知中心
+# ============================================================
+
+def add_device_notification(level, title, message, action_label=None, action_url=None):
+    """记录一条设备环境/路径自愈相关的提醒通知。"""
+    data = load_data()
+    notifs = data.setdefault('notifications', [])
+    notif_id = util.gen_id('notif', f"{title}_{message}_{util.now_iso()}")
+    
+    # 避免短时间内重复推入相同标题的未读通知
+    for n in notifs:
+        if n.get('title') == title and not n.get('dismissed'):
+            n['message'] = message
+            n['updated_at'] = util.now_iso()
+            save_data(data)
+            return n
+
+    item = {
+        'id': notif_id,
+        'level': level,  # 'info', 'warn', 'success', 'error'
+        'title': title,
+        'message': message,
+        'action_label': action_label,
+        'action_url': action_url,
+        'created_at': util.now_iso(),
+        'dismissed': False,
+    }
+    notifs.append(item)
+    # 最多保留 30 条历史通知
+    if len(notifs) > 30:
+        data['notifications'] = notifs[-30:]
+    save_data(data)
+    return item
+
+
+def get_device_notifications(only_active=True):
+    """获取设备通知列表。"""
+    data = load_data()
+    notifs = data.get('notifications') or []
+    if only_active:
+        return [n for n in notifs if not n.get('dismissed')]
+    return notifs
+
+
+def dismiss_device_notification(notif_id):
+    """关闭/已读单条通知。"""
+    data = load_data()
+    notifs = data.get('notifications') or []
+    for n in notifs:
+        if n.get('id') == notif_id or notif_id == 'all':
+            n['dismissed'] = True
+    save_data(data)
+    return True
+
+
+def export_config_bundle():
+    """导出当前设备的完整项目配置、元数据、分类与设置包。"""
+    data = load_data()
+    return {
+        'sep_bundle_version': 1,
+        'exported_at': util.now_iso(),
+        'source_device': os.environ.get('COMPUTERNAME') or 'Unknown-PC',
+        'data': data,
+    }
+
+
+def import_config_bundle(bundle_json_or_dict, remap_drives=True):
+    """
+    跨设备导入配置包，支持自动重映射不存在的盘符：
+    例如原配置来自 D: 盘，在新设备只有 C: 盘时自动重映射路径。
+    """
+    if isinstance(bundle_json_or_dict, str):
+        bundle = json.loads(bundle_json_or_dict)
+    else:
+        bundle = bundle_json_or_dict
+
+    imported_data = bundle.get('data') or bundle
+    if not isinstance(imported_data, dict):
+        raise ValueError('无效的 SEP 配置文件格式')
+
+    current_drives = util.get_available_drives()
+    notices = []
+
+    # 跨设备路径智能重映射
+    if remap_drives and current_drives:
+        pref_drive = current_drives[0]
+        # 1. 检查 settings
+        settings = imported_data.get('settings') or {}
+        for key in ('local_projects_dir', 'plugins_dir'):
+            val = settings.get(key)
+            if val:
+                m = re.match(r'^([a-zA-Z]:)', val)
+                if m and m.group(1).upper() not in current_drives:
+                    new_val = f"{pref_drive}{val[2:]}"
+                    settings[key] = new_val
+                    notices.append(f"设置项 {key} 已从 {val} 自动重映射到本设备盘符 {new_val}")
+
+    # 合并或覆盖保存
+    save_data(imported_data)
+    
+    if notices:
+        add_device_notification('info', '跨设备配置已导入并完成适配', '；'.join(notices))
+
+    return {
+        'ok': True,
+        'projects_count': len(imported_data.get('my_projects', [])),
+        'libraries_count': len(imported_data.get('libraries', [])),
+        'notices': notices,
+    }
+

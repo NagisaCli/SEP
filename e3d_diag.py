@@ -1024,15 +1024,41 @@ def fix_cad_fonts_tool():
     3. 全面更新 acad.fmp 映射表；
     4. 在 acaddoc.lsp 注入 FONTALT=gbcbig.shx 与 FONTEVAL=0。
     """
-    changes = []
-    font_candidates = [
-        r"D:\AutoCAD 2025\Fonts",
-        os.path.expandvars(r"%ProgramFiles%\Autodesk\AutoCAD 2025\Fonts"),
-        r"D:\Program Files\Autodesk\AutoCAD 2025\Fonts",
-    ]
-    font_dirs = [d for d in font_candidates if os.path.isdir(d)]
-    if font_dirs:
-        cad_fonts = font_dirs[0]
+    # 动态扫描本机所有可用盘符下的 AutoCAD 与 ZWCAD 安装目录
+    drives = util.get_available_drives()
+    font_dirs = []
+    support_dirs = []
+
+    # 1. 扫描盘符下的 AutoCAD / Fonts / Support 目录
+    for d in drives:
+        # 常见直接安装路径
+        for pat in (
+            f"{d}\\AutoCAD*",
+            f"{d}\\Program Files\\Autodesk\\AutoCAD*",
+            f"{d}\\Program Files (x86)\\Autodesk\\AutoCAD*",
+            f"{d}\\ZWSOFT\\ZWCAD*",
+        ):
+            for match in glob.glob(pat):
+                f_dir = os.path.join(match, 'Fonts')
+                if os.path.isdir(f_dir) and f_dir not in font_dirs:
+                    font_dirs.append(f_dir)
+                s_dir = os.path.join(match, 'support')
+                if os.path.isdir(s_dir) and s_dir not in support_dirs:
+                    support_dirs.append(s_dir)
+
+    # 2. 扫描 %APPDATA% 下的用户 Support 目录
+    appdata = os.environ.get('APPDATA', '')
+    if appdata:
+        for pat in (
+            os.path.join(appdata, r"Autodesk\AutoCAD*\*\*\support"),
+            os.path.join(appdata, r"Autodesk\AutoCAD*\*\support"),
+            os.path.join(appdata, r"ZWSOFT\ZWCAD*\*\support"),
+        ):
+            for match in glob.glob(pat):
+                if os.path.isdir(match) and match not in support_dirs:
+                    support_dirs.append(match)
+
+    for cad_fonts in font_dirs:
         gbcbig = os.path.join(cad_fonts, 'gbcbig.shx')
         hztxt = os.path.join(cad_fonts, 'hztxt.shx')
         simplex = os.path.join(cad_fonts, 'simplex.shx')
@@ -1063,18 +1089,9 @@ def fix_cad_fonts_tool():
                 if not os.path.exists(dst):
                     try:
                         shutil.copy2(src, dst)
-                        changes.append(f'CAD Fonts: 创建字体副本 {name}')
+                        changes.append(f"CAD Fonts [{os.path.basename(os.path.dirname(cad_fonts))}]: 创建字体副本 {name}")
                     except Exception:
                         pass
-
-    appdata = os.environ.get('APPDATA', '')
-    support_candidates = [
-        os.path.join(appdata, r"Autodesk\AutoCAD 2025\R25.0\chs\support"),
-        os.path.join(appdata, r"Autodesk\AutoCAD 2024\R24.3\chs\support"),
-        os.path.join(appdata, r"Autodesk\AutoCAD 2023\R24.2\chs\support"),
-        r"D:\AutoCAD 2025\support",
-    ]
-    support_dirs = [d for d in support_candidates if os.path.isdir(d)]
 
     fmp_entries = [
         "hzfs;gbcbig.shx", "hzfs.shx;gbcbig.shx", "hzdx;gbcbig.shx", "hzdx.shx;gbcbig.shx", "HZDX.SHX;gbcbig.shx",

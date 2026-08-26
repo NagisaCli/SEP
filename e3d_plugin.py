@@ -37,13 +37,39 @@ DEFAULT_PLUGINS_DIR = r"D:\AVEVA\Plugins"
 # ============================================================
 
 def get_plugins_dir():
-    """获取当前配置的插件根目录，默认 D:\\AVEVA\\Plugins。"""
+    """获取当前配置的插件根目录，支持跨设备自动探测、盘符重映射与自愈创建。"""
     data = store.load_data()
     settings = data.get('settings') or {}
-    p = settings.get('plugins_dir')
-    if p and os.path.isdir(p):
-        return util.normalize_path(p)
-    return util.normalize_path(DEFAULT_PLUGINS_DIR)
+    configured = settings.get('plugins_dir')
+
+    candidates = [
+        configured,
+        r"D:\AVEVA\Plugins",
+        r"C:\AVEVA\Plugins",
+        r"E:\AVEVA\Plugins",
+    ]
+    # 尝试从检测到的 E3D 安装路径反推
+    cache = store.read_paths_cache()
+    e3d_exe = cache.get('e3d_exe')
+    if e3d_exe:
+        parent = os.path.dirname(os.path.dirname(e3d_exe))
+        candidates.insert(1, os.path.join(parent, 'Plugins'))
+
+    resolved_path, was_created, notice = util.resolve_cross_device_path(
+        candidates, sub_path=r'AVEVA\Plugins', default_drive_pref=('D:', 'C:', 'E:')
+    )
+
+    # 自动就绪提示与持久化
+    if was_created:
+        store.add_device_notification(
+            'info',
+            '插件目录已自动适配就绪',
+            f"在本设备已自动就绪插件目录: {resolved_path}，您可以直接放入插件文件。",
+            action_label='打开插件目录',
+            action_url='/api/plugins/open-dir'
+        )
+
+    return resolved_path
 
 
 def set_plugins_dir(path):

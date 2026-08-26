@@ -83,11 +83,11 @@ def read_projects_dir(filepath):
 
 
 def get_local_projects_dir(data=None):
-    """本地项目库路径：优先已配置且存在的路径，其次动态探测或默认路径。"""
+    """本地项目库路径：支持跨设备自动探测、盘符重映射与自愈创建。"""
     data = data or store.load_data()
-    d = (data.get('settings') or {}).get('local_projects_dir') or ''
-    if d and os.path.isdir(d):
-        return util.normalize_path(d)
+    configured = (data.get('settings') or {}).get('local_projects_dir') or ''
+    if configured and os.path.isdir(configured):
+        return util.normalize_path(configured)
 
     # 尝试检测缓存
     cache = store.read_paths_cache()
@@ -102,13 +102,27 @@ def get_local_projects_dir(data=None):
         if pd and os.path.isdir(pd):
             return util.normalize_path(pd)
 
-    d = util.normalize_path(d or r'D:\AVEVA\Projects\E3D3.1')
-    if d and not os.path.isdir(d):
-        try:
-            os.makedirs(d, exist_ok=True)
-        except OSError:
-            pass
-    return d
+    candidates = [
+        configured,
+        r"D:\AVEVA\Projects\E3D3.1",
+        r"C:\AVEVA\Projects\E3D3.1",
+        r"E:\AVEVA\Projects\E3D3.1",
+        r"D:\AVEVA\Projects\E3D2.1",
+        r"C:\AVEVA\Projects\E3D2.1",
+    ]
+
+    resolved_path, was_created, notice = util.resolve_cross_device_path(
+        candidates, sub_path=r'AVEVA\Projects\E3D3.1', default_drive_pref=('D:', 'C:', 'E:')
+    )
+
+    if was_created:
+        store.add_device_notification(
+            'info',
+            '本地项目库已自动适配就绪',
+            f"在本设备已自动就绪本地项目库目录: {resolved_path}"
+        )
+
+    return resolved_path
 
 
 def custom_file_path(local_dir):

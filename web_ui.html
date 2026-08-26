@@ -595,6 +595,9 @@ input:checked + .slider:before {
   </nav>
 </header>
 
+<!-- 跨设备自愈与环境提醒通知条 -->
+<div id="device-notif-bar" style="max-width:1400px;margin:10px auto 0 auto;padding:0 20px" hidden></div>
+
 <!-- 主容器 -->
 <main class="main-container">
 
@@ -837,39 +840,52 @@ input:checked + .slider:before {
     </div>
   </section>
 
-  <!-- 系统设置视图 (Settings) -->
+  <!-- 设置视图 (Settings) -->
   <section class="view-section" id="view-settings">
+    <!-- 1. 跨设备核心路径与自愈健康看板 -->
     <div class="glass-card">
       <div class="card-head">
-        <h3><span class="head-dot"></span>E3D 运行环境探测</h3>
-        <button class="btn btn-ghost btn-sm" onclick="detect()">重新探测</button>
+        <h3><span class="head-dot" style="background:#10b981;box-shadow:0 0 8px #10b981"></span>跨设备环境与核心路径自愈状态</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="loadDevicePaths()">⟳ 刷新设备探测</button>
+        </div>
       </div>
-      <div class="card-body-content">
-        <div class="field-group"><label>安装状态</label><div id="st-e3d-status">—</div></div>
-        <div class="field-group"><label>E3D 主程序目录</label><div class="project-path" id="st-e3d-install">—</div></div>
-        <div class="field-group"><label>当前加载目标库</label><div class="project-path" id="st-e3d-current">—</div></div>
+      <div class="card-body-content" id="st-device-paths-body">
+        <div class="empty-state"><span class="spinner"></span>正在探测当前设备环境…</div>
       </div>
     </div>
 
-    <div class="glass-card">
+    <!-- 2. 数据持久性与跨设备配置备份/恢复 -->
+    <div class="glass-card" style="margin-top:20px">
       <div class="card-head">
-        <h3><span class="head-dot" style="background:#a855f7;box-shadow:0 0 8px #a855f7"></span>数据持久化与存储位置</h3>
-        <button class="btn btn-ghost btn-sm" onclick="openConfigDir()">📁 打开配置文件夹</button>
+        <h3><span class="head-dot" style="background:#6366f1;box-shadow:0 0 8px #6366f1"></span>数据持久化与跨设备同步迁移</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportConfigBundle()">💾 导出备份包 (.json)</button>
+          <button class="btn btn-primary btn-sm" onclick="openConfigImportModal()">📥 导入配置包恢复</button>
+        </div>
       </div>
       <div class="card-body-content">
-        <div class="field-group"><label>存储模式</label><div id="st-config-mode"><span class="badge" style="background:var(--emerald-surface);color:#34d399">● 全局存储模式</span></div></div>
+        <div class="field-group"><label>存储模式</label><div id="st-config-mode"><span class="badge" style="background:var(--emerald-surface);color:#34d399">● 全局持久存储模式 (多版本防损坏滚动备份)</span></div></div>
         <div class="field-group"><label>配置文件路径</label><div class="project-path" id="st-config-path">—</div></div>
-        <div class="field-note">SEP 已将项目配置、分类、标签与元信息持久化存储在系统级用户数据目录（%APPDATA%\SEP）。无论升级程序、移动安装位置，数据永不丢失。如需绿色便携模式，在 exe 同级目录下创建 <code>.portable</code> 文件即可。</div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="openConfigDir()">📂 打开配置存储目录</button>
+        </div>
+        <div class="field-note" style="margin-top:12px">
+          SEP 会在每次写入数据前自动维护 <code>.bak</code>、<code>.bak.1</code> 滚动备份；更换电脑时，只需点击上方“导出备份包”，在新设备一键导入即可无缝恢复所有项目、分类、常用星标与插件设置，且支持盘符智能自动适配。
+        </div>
       </div>
     </div>
 
-    <div class="glass-card">
+    <!-- 3. 自定义启动与路径覆写 -->
+    <div class="glass-card" style="margin-top:20px">
       <div class="card-head">
-        <h3><span class="head-dot" style="background:#06b6d4;box-shadow:0 0 8px #06b6d4"></span>自定义启动与路径设置</h3>
+        <h3><span class="head-dot" style="background:#06b6d4;box-shadow:0 0 8px #06b6d4"></span>自定义启动与路径覆写</h3>
       </div>
       <div class="card-body-content">
         <div class="field-group"><label>本地项目库根路径</label><input type="text" id="st-local-dir" placeholder="D:\AVEVA\Projects\E3D3.1"></div>
         <div class="field-note">单项目启动与“我的项目”将通过本地项目库下的 custom_evars.bat 托管驱动加载。</div>
+        <div class="field-group"><label>插件管理根目录</label><input type="text" id="st-plugins-dir" placeholder="D:\AVEVA\Plugins"></div>
+        <div class="field-note">PML / C# DLL 插件的物理存储根目录，支持跨设备自动探测与自愈创建。</div>
         <div class="field-group"><label>E3D 启动快捷方式</label><input type="text" id="st-lnk" placeholder="留空则自动搜索 AVEVA Everything3D 3.1.lnk"></div>
         <div class="field-note">用于静默调起 E3D，支持桌面与开始菜单自动识别解析。</div>
         <div class="field-group"><label></label><div><button class="btn btn-primary" onclick="saveSettings()">保存配置修改</button></div></div>
@@ -1031,6 +1047,35 @@ input:checked + .slider:before {
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
       <button class="btn btn-ghost" onclick="closeModal('modal-plugin-import')">取消</button>
       <button class="btn btn-primary" onclick="submitImportPlugin()">立即导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 跨设备配置导入恢复弹窗 -->
+<div class="modal-backdrop" id="modal-config-import" hidden>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📥</span>
+        <h3>跨设备导入配置备份包 (.json)</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-config-import')">×</button>
+    </div>
+    <div class="field-group">
+      <label>选择备份文件 (.json)</label>
+      <input type="file" id="ci-file" accept=".json" onchange="handleConfigImportFile(this)">
+    </div>
+    <div class="field-group">
+      <label>或直接粘贴备份 JSON 数据</label>
+      <textarea id="ci-json" style="height:140px;font-family:var(--font-mono);font-size:11px" placeholder="在此粘贴备份的 JSON 数据..."></textarea>
+    </div>
+    <div class="field-group">
+      <label class="filter-label"><input type="checkbox" id="ci-remap" checked> 自动将不存在的盘符重映射为本机可用驱动器</label>
+    </div>
+    <div class="field-note">导入后将即时恢复所有路径库、我的常用星标、项目分类与插件启用状态。</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-config-import')">取消</button>
+      <button class="btn btn-primary" onclick="submitImportConfig()">立即恢复并生效</button>
     </div>
   </div>
 </div>
@@ -1238,6 +1283,7 @@ async function loadStatus(){
     renderOverview();
   }
   loadPlugins(true);
+  loadNotifications();
 }
 
 function updateHeader(){
@@ -1533,22 +1579,24 @@ function toggleAllLibraries(open){
 
 function renderSettings(){
   if(!state) return;
-  const e3d = state.e3d || {};
   const s = state.settings || {};
 
-  document.getElementById('st-e3d-status').innerHTML = e3d.detected
-    ? '<span class="badge" style="background:var(--emerald-surface);color:#34d399;border-color:rgba(16,185,129,0.3)">● 已成功就绪</span>'
-    : '<span class="badge" style="color:#94a3b8">● 未检测到 E3D</span>';
-  document.getElementById('st-e3d-install').textContent = e3d.install_dir || '(未检测到)';
-  document.getElementById('st-e3d-current').textContent = e3d.current_projects_dir || '(未设置)';
-  document.getElementById('st-local-dir').value = s.local_projects_dir || '';
-  document.getElementById('st-lnk').value = s.e3d_lnk || '';
+  const elLocal = document.getElementById('st-local-dir');
+  if(elLocal) elLocal.value = s.local_projects_dir || '';
+  const elPlg = document.getElementById('st-plugins-dir');
+  if(elPlg) elPlg.value = s.plugins_dir || '';
+  const elLnk = document.getElementById('st-lnk');
+  if(elLnk) elLnk.value = s.e3d_lnk || '';
 
   const cfgPath = state.config_path || '(默认)';
-  document.getElementById('st-config-path').textContent = cfgPath;
-  document.getElementById('st-config-mode').innerHTML = state.is_portable
+  const elCfgPath = document.getElementById('st-config-path');
+  if(elCfgPath) elCfgPath.textContent = cfgPath;
+  const elCfgMode = document.getElementById('st-config-mode');
+  if(elCfgMode) elCfgMode.innerHTML = state.is_portable
     ? '<span class="badge">● 便携模式 (.portable)</span>'
-    : '<span class="badge" style="background:var(--emerald-surface);color:#34d399">● 全局存储模式 (%APPDATA%\\SEP)</span>';
+    : '<span class="badge" style="background:var(--emerald-surface);color:#34d399">● 全局持久存储模式 (%APPDATA%\\SEP)</span>';
+
+  loadDevicePaths();
 }
 
 async function openConfigDir(){
@@ -1711,10 +1759,156 @@ async function detect(){
 
 async function saveSettings(){
   const localDir = document.getElementById('st-local-dir').value.trim();
+  const pluginsDir = document.getElementById('st-plugins-dir') ? document.getElementById('st-plugins-dir').value.trim() : '';
   const lnk = document.getElementById('st-lnk').value.trim();
-  const res = await api('/api/settings/update', {local_projects_dir: localDir, e3d_lnk: lnk});
+  const res = await api('/api/settings/update', {local_projects_dir: localDir, plugins_dir: pluginsDir, e3d_lnk: lnk});
   if(res.error) toast('保存失败: ' + res.error, false);
-  else { toast('✓ 设置已保存', true); loadStatus(); }
+  else { toast('✓ 设置已保存', true); loadStatus(); loadDevicePaths(); }
+}
+
+// ==================== 跨设备通知与路径自愈看板 ====================
+
+async function loadNotifications(){
+  const res = await api('/api/notifications', {});
+  const bar = document.getElementById('device-notif-bar');
+  if(!bar) return;
+  if(res.error || !res.notifications || !res.notifications.length){
+    bar.hidden = true;
+    bar.innerHTML = '';
+    return;
+  }
+  bar.hidden = false;
+  bar.innerHTML = res.notifications.map(n => `
+    <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px">${n.level==='error'?'✕':(n.level==='warn'?'⚠️':'💡')}</span>
+        <div>
+          <strong style="color:#38bdf8;font-size:13px">${esc(n.title)}:</strong>
+          <span style="color:#e2e8f0;margin-left:6px;font-size:12.5px">${esc(n.message)}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${n.action_label ? `<button class="btn btn-primary btn-sm" onclick="handleNotifAction('${esc(n.action_url)}')">${esc(n.action_label)}</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="dismissNotification('${esc(n.id)}')">✕ 已知晓</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function dismissNotification(id){
+  await api('/api/notifications/dismiss', {id});
+  loadNotifications();
+}
+
+async function handleNotifAction(url){
+  if(!url) return;
+  if(url === '/api/plugins/open-dir') openPluginsDir();
+  else if(url === '/api/settings/open-config-dir') openConfigDir();
+  else await api(url, {});
+}
+
+async function loadDevicePaths(){
+  const box = document.getElementById('st-device-paths-body');
+  if(!box) return;
+  const res = await api('/api/settings/device-paths', {});
+  if(res.error){
+    box.innerHTML = `<div class="empty-state">获取设备路径信息失败: ${esc(res.error)}</div>`;
+    return;
+  }
+
+  const drivesPills = (res.available_drives || []).map(d => `<span class="badge" style="font-family:var(--font-mono);background:rgba(255,255,255,0.06);color:#fff">${esc(d)}</span>`).join('');
+
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:10px">
+      <div style="font-size:13px">
+        <span>当前设备: <strong style="color:#58a6ff">${esc(res.computer_name)}</strong></span>
+        <span style="margin-left:14px">可用驱动器: ${drivesPills}</span>
+      </div>
+      <span class="badge" style="background:var(--emerald-surface);color:#34d399">✓ 智能自愈定位中</span>
+    </div>
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+      <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+        <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+          <th style="padding:8px 12px">核心系统目录</th><th style="padding:8px 12px">本设备实际解析路径</th><th style="padding:8px 12px">状态</th>
+        </tr></thead>
+        <tbody>
+          ${(res.paths || []).map(p => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+              <td style="padding:8px 12px;font-weight:600;color:#fff">${esc(p.name)}</td>
+              <td style="padding:8px 12px;font-family:var(--font-mono);color:var(--text-main)"><code style="color:#58a6ff">${esc(p.path||'未定位')}</code></td>
+              <td style="padding:8px 12px">
+                ${p.exists ? `<span class="badge" style="background:var(--emerald-surface);color:#34d399">✓ 正常就绪</span>` : `<span class="badge" style="background:rgba(244,63,94,0.15);color:#f43f5e">⚠ 缺失需创建</span>`}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // 自动填充设置输入框
+  const pPlg = (res.paths || []).find(p => p.id === 'plugins_dir');
+  if(pPlg && pPlg.path && document.getElementById('st-plugins-dir') && !document.getElementById('st-plugins-dir').value){
+    document.getElementById('st-plugins-dir').value = pPlg.path;
+  }
+}
+
+// ==================== 跨设备配置导入与导出 ====================
+
+async function exportConfigBundle(){
+  toast('正在导出全套配置数据包…', true);
+  const res = await api('/api/settings/export', {});
+  if(res.error){ toast('导出失败: ' + res.error, false); return; }
+  const bundleStr = JSON.stringify(res.bundle || {}, null, 2);
+  const blob = new Blob([bundleStr], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `sep_config_backup_${(res.bundle && res.bundle.source_device) || 'PC'}_${dStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ 已生成并下载配置备份文件！可在其他设备一键导入。', true);
+}
+
+function openConfigImportModal(){
+  document.getElementById('ci-json').value = '';
+  document.getElementById('ci-file').value = '';
+  document.getElementById('ci-remap').checked = true;
+  openModal('modal-config-import');
+}
+
+function handleConfigImportFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('ci-json').value = e.target.result;
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+async function submitImportConfig(){
+  const jsonStr = document.getElementById('ci-json').value.trim();
+  if(!jsonStr){ toast('请选择备份文件或粘贴备份 JSON 内容', false); return; }
+  let bundle;
+  try {
+    bundle = JSON.parse(jsonStr);
+  } catch(e){
+    toast('JSON 格式错误: ' + e, false);
+    return;
+  }
+
+  const remap = document.getElementById('ci-remap').checked;
+  toast('正在导入并适配配置…', true);
+  const res = await api('/api/settings/import', {bundle, remap_drives: remap});
+  if(res.error) toast('导入失败: ' + res.error, false);
+  else {
+    toast(`✓ 成功导入 ${res.projects_count||0} 个项目与 ${res.libraries_count||0} 个路径库！`, true);
+    closeModal('modal-config-import');
+    loadStatus();
+    loadDevicePaths();
+  }
 }
 
 async function quit(){

@@ -369,3 +369,89 @@ def sanitize_unc_paths(text, reference_path=None):
 
     return unc_re.sub(repl, text)
 
+
+# ============================================================
+# 跨设备驱动器扫描与智能路径自愈
+# ============================================================
+
+def get_available_drives():
+    """获取本机当前所有可访问的磁盘盘符列表（例如 ['C:', 'D:', 'E:']）。"""
+    drives = []
+    if sys.platform == 'win32':
+        try:
+            import string
+            for letter in string.ascii_uppercase:
+                root = f"{letter}:\\"
+                if os.path.exists(root):
+                    drives.append(f"{letter}:")
+        except Exception:
+            drives = ['C:']
+    else:
+        drives = ['/']
+    return drives or ['C:']
+
+
+def resolve_cross_device_path(candidate_paths, sub_path='', default_drive_pref=('D:', 'C:', 'E:')):
+    """
+    智能跨设备路径解析与自愈：
+    1. 优先按原配置或候选路径匹配已存在的目录；
+    2. 若原盘符不存在（例如原设备有 D: 盘，新设备仅有 C: 盘），自动扫描其他有效盘符；
+    3. 若均不存在，在首选可用盘符上自动安全创建，并返回 (path, was_created, notice)。
+    """
+    # 1. 尝试已有候选路径
+    for cand in candidate_paths:
+        if not cand:
+            continue
+        p = normalize_path(os.path.join(cand, sub_path) if sub_path else cand)
+        if os.path.isdir(p):
+            return p, False, None
+
+    # 2. 尝试在系统已有盘符中寻找同名或标准目录
+    drives = get_available_drives()
+    clean_sub = sub_path.strip('\\/') if sub_path else ''
+    
+    # 检查各盘符下是否存在
+    if clean_sub:
+        for d in drives:
+            test_p = normalize_path(os.path.join(d, clean_sub))
+            if os.path.isdir(test_p):
+                return test_p, False, f"已自动定位至本机可用驱动器: {test_p}"
+
+    # 3. 自动创建首选可用盘符
+    target_drive = None
+    for pref in default_drive_pref:
+        if pref in drives:
+            target_drive = pref
+            break
+    if not target_drive and drives:
+        target_drive = drives[0]
+    if not target_drive:
+        target_drive = 'C:'
+
+    created_path = normalize_path(os.path.join(target_drive, clean_sub))
+    try:
+        os.makedirs(created_path, exist_ok=True)
+        return created_path, True, f"原设备路径不可用，已自动在 {target_drive} 盘创建并初始化: {created_path}"
+    except OSError:
+        # 降级到用户 AppData 目录
+        fallback = normalize_path(os.path.join(get_user_data_dir(), clean_sub))
+        os.makedirs(fallback, exist_ok=True)
+        return fallback, True, f"已在用户数据目录安全创建并初始化: {fallback}"
+
+
+def rotate_file_backups(file_path, max_backups=3):
+    """维护文件的多版本滚动备份 (.bak, .bak.1, .bak.2)。"""
+    if not os.path.isfile(file_path):
+        return
+    import shutil
+    try:
+        for i in range(max_backups - 1, 0, -1):
+            src = f"{file_path}.bak.{i - 1}" if i > 1 else f"{file_path}.bak"
+            dst = f"{file_path}.bak.{i}"
+            if os.path.isfile(src):
+                shutil.copy2(src, dst)
+        shutil.copy2(file_path, f"{file_path}.bak")
+    except Exception:
+        pass
+
+

@@ -140,7 +140,12 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/plugins/open-dir': self._handle_plugins_open_dir,
             '/api/tools/clean-userdata': self._handle_tools_clean_userdata,
             '/api/tools/fix-cad-fonts': self._handle_tools_fix_cad_fonts,
+            '/api/notifications': self._handle_notifications_get,
+            '/api/notifications/dismiss': self._handle_notifications_dismiss,
             '/api/settings/update': self._handle_settings_update,
+            '/api/settings/export': self._handle_settings_export,
+            '/api/settings/import': self._handle_settings_import,
+            '/api/settings/device-paths': self._handle_settings_device_paths,
             '/api/settings/open-config-dir': self._handle_open_config_dir,
             '/api/launch': self._handle_launch,
             '/api/detect': self._handle_detect,
@@ -796,6 +801,91 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(res)
         except Exception as e:
             self._send_json({'error': f'修复 CAD 字体失败: {e}'}, 500)
+
+    # ---------- 跨设备自愈通知与配置导入导出 ----------
+
+    def _handle_notifications_get(self, body):
+        try:
+            notifs = store.get_device_notifications(only_active=True)
+            self._send_json({'ok': True, 'notifications': notifs})
+        except Exception as e:
+            self._send_json({'error': f'获取通知失败: {e}'}, 500)
+
+    def _handle_notifications_dismiss(self, body):
+        notif_id = body.get('id') or 'all'
+        try:
+            store.dismiss_device_notification(notif_id)
+            self._send_json({'ok': True})
+        except Exception as e:
+            self._send_json({'error': f'关闭通知失败: {e}'}, 500)
+
+    def _handle_settings_export(self, body):
+        try:
+            bundle = store.export_config_bundle()
+            self._send_json({'ok': True, 'bundle': bundle})
+        except Exception as e:
+            self._send_json({'error': f'导出配置失败: {e}'}, 500)
+
+    def _handle_settings_import(self, body):
+        bundle = body.get('bundle') or body
+        remap = bool(body.get('remap_drives', True))
+        try:
+            res = store.import_config_bundle(bundle, remap_drives=remap)
+            self._send_json(res)
+        except Exception as e:
+            self._send_json({'error': f'导入配置失败: {e}'}, 400)
+
+    def _handle_settings_device_paths(self, body):
+        try:
+            drives = util.get_available_drives()
+            data = store.load_data()
+            settings = data.get('settings') or {}
+
+            e3d_install = launcher.detect_e3d()
+            local_proj = launcher.get_local_projects_dir(data)
+            plugins_dir = e3d_plugin.get_plugins_dir()
+            userdata_dir = e3d_diag.get_userdata_dir()
+
+            paths = [
+                {
+                    'id': 'e3d_install',
+                    'name': 'E3D 安装主程序目录',
+                    'path': e3d_install,
+                    'exists': bool(e3d_install and os.path.isdir(e3d_install)),
+                    'configured': bool(settings.get('e3d_exe')),
+                },
+                {
+                    'id': 'local_projects',
+                    'name': '本地项目库 (Projects)',
+                    'path': local_proj,
+                    'exists': bool(local_proj and os.path.isdir(local_proj)),
+                    'configured': bool(settings.get('local_projects_dir')),
+                },
+                {
+                    'id': 'plugins_dir',
+                    'name': '插件根目录 (Plugins)',
+                    'path': plugins_dir,
+                    'exists': bool(plugins_dir and os.path.isdir(plugins_dir)),
+                    'configured': bool(settings.get('plugins_dir')),
+                },
+                {
+                    'id': 'userdata_dir',
+                    'name': '用户缓存目录 (USERDATA)',
+                    'path': userdata_dir,
+                    'exists': bool(userdata_dir and os.path.isdir(userdata_dir)),
+                    'configured': True,
+                },
+            ]
+
+            self._send_json({
+                'ok': True,
+                'computer_name': os.environ.get('COMPUTERNAME') or 'Local-PC',
+                'available_drives': drives,
+                'paths': paths,
+                'data_file': util.get_config_file_path(),
+            })
+        except Exception as e:
+            self._send_json({'error': f'获取设备路径失败: {e}'}, 500)
 
     def _handle_quit(self, body):
         self._send_json({'ok': True})
