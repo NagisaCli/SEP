@@ -25,7 +25,6 @@ import json
 import re
 import subprocess
 import ctypes
-from pathlib import Path
 
 # 缓存文件定位（支持全局 AppData 与便携模式）
 try:
@@ -285,10 +284,11 @@ def _find_everything_dll(paths):
 def _find_everything_dll_from_process():
     """从运行的 Everything.exe 进程路径推断 DLL 位置。"""
     try:
-        import subprocess
+        # CREATE_NO_WINDOW：打包为 windowed 模式后，子进程默认会闪出一个控制台窗口。
         result = subprocess.run(
             ['wmic', 'process', 'where', 'name="Everything.exe"', 'get', 'ExecutablePath'],
-            capture_output=True, text=True, timeout=5
+            capture_output=True, text=True, timeout=5,
+            creationflags=0x08000000 if sys.platform == 'win32' else 0,
         )
         for line in result.stdout.splitlines():
             line = line.strip()
@@ -470,7 +470,7 @@ def get_e3d_paths(force=False, verbose=True):
         cached = detect_from_cache()
         if cached:
             if verbose:
-                print(f"  [缓存] 使用已保存的配置")
+                print("  [缓存] 使用已保存的配置")
                 print(f"    路径: {cached['install_dir']}")
             return cached["evars_bat"], cached["evars_init"]
 

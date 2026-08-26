@@ -22,11 +22,28 @@ import e3d_util as util
 
 EVARS_FILE_RE = re.compile(r'^evars(.+)\.bat$', re.IGNORECASE)
 
+# SEP 写入 custom_evars.bat 的托管区标记（与 e3d_launcher 保持一致，
+# 此处独立定义以避免 scanner 与 launcher 之间的循环导入）。
+_MANAGED_START = ':: >>> SEP MANAGED PROJECTS (do not edit) >>>'
+_MANAGED_END = ':: <<< SEP MANAGED PROJECTS <<<'
+MANAGED_BLOCK_RE = re.compile(
+    r'(?ms)^[ \t]*' + re.escape(_MANAGED_START) + r'.*?' + re.escape(_MANAGED_END) + r'[ \t]*\r?\n?'
+)
+
+
+def strip_managed_block(text):
+    """移除 SEP 托管区，只保留用户自己维护的内容。"""
+    return MANAGED_BLOCK_RE.sub('', text or '')
+
 
 def parse_custom_evars(custom_bat_path, base_dir=None):
     """
     解析 custom_evars.bat 文件中的 call 语句，提取所有项目 evars*.bat 路径。
     自动展开 %projects_dir% / %~dp0 等变量。
+
+    注意：SEP 自己写入的托管区（MANAGED 块）会被剔除，不参与项目发现。
+    否则「启动某个远程项目」写入的 call 会在下次扫描本地项目库时被当成
+    该库的项目，产生指向其他路径库的幽灵条目。
     """
     if not os.path.isfile(custom_bat_path):
         return []
@@ -36,6 +53,8 @@ def parse_custom_evars(custom_bat_path, base_dir=None):
         text, _ = util.read_text_smart(custom_bat_path)
     except OSError:
         return []
+
+    text = strip_managed_block(text)
 
     projects = []
     # 匹配 call 语句，如 call "..." 或 if exist ... call ...
@@ -47,19 +66,23 @@ def parse_custom_evars(custom_bat_path, base_dir=None):
         target = (m.group(1) or m.group(2) or '').strip()
         if not target:
             continue
-        base = os.path.basename(target.replace('/', '\\')).lower()
-        if base in ('projects.bat', 'custom_evars.bat', 'custom_evar.bat', 'evars.bat'):
-            continue
-        if not (base.startswith('evars') and base.endswith('.bat')) and not base.endswith('.bat'):
-            continue
-
         resolved = target
         resolved = re.sub(r'%projects_dir%\\?', lambda m: base_dir_norm + '\\', resolved, flags=re.IGNORECASE)
         resolved = re.sub(r'%~dp0\\?', lambda m: base_dir_norm + '\\', resolved, flags=re.IGNORECASE)
+        resolved = util.sanitize_unc_paths(resolved, base_dir_norm)
         resolved = util.normalize_path(resolved)
 
+        # 排除判断必须在变量展开之后：形如 %projects_dir%projects.bat 的目标
+        # 若直接取 basename 会得到整串，projects.bat 之类的基础设施文件便漏了过去，
+        # 被当成名为 “projects” 的项目。
+        base = os.path.basename(resolved.replace('/', '\\')).lower()
+        if base in ('projects.bat', 'custom_evars.bat', 'custom_evar.bat', 'evars.bat'):
+            continue
+        if not base.endswith('.bat'):
+            continue
+
         proj_name = project_name(resolved)
-        if proj_name and base != 'evars.bat':
+        if proj_name:
             projects.append({
                 'id': util.gen_id('proj', resolved),
                 'name': proj_name,
@@ -133,14 +156,23 @@ def _classify_impl(norm):
     direct = _find_direct_evars(norm)
 
     if custom_file or project_dirs:
-        count = len(custom_projs) + len(project_dirs)
+        # 同一个项目可能既在子文件夹里、又被 custom_evars.bat 显式 call，
+        # 按 bat 路径去重后再报数，避免与实际扫描结果对不上。
+        seen = {util.normalize_path(p['bat_path']).lower() for p in custom_projs}
+        subfolder_evars = {}
+        for d in project_dirs:
+            evs = _find_direct_evars(d)
+            subfolder_evars[d] = evs
+            seen.update(util.normalize_path(p).lower() for p in evs)
+        seen.update(util.normalize_path(p).lower() for p in direct)
         return {
             'kind': 'collection',
-            'reason': f'项目库（包含 custom_evars.bat 或子项目文件夹，共识别到相关项目）',
+            'reason': f'项目库（识别到 {len(seen)} 个项目：子文件夹 {len(project_dirs)} 个，本层 {len(direct)} 个）',
             'path': norm,
             'custom_evars': custom_file,
             'custom_projects': custom_projs,
             'project_dirs': project_dirs,
+            'subfolder_evars': subfolder_evars,
             'direct': direct,
         }
     if direct:
@@ -158,7 +190,7 @@ def _classify_impl(norm):
     }
 
 
-def scan_library(path, timeout=8):
+def scan_library(path, timeout=30):
     """
     扫描路径库，返回 (projects, info)。
     projects: [{id, name, bat_path, lib_path, project_dir}]
@@ -174,11 +206,10 @@ def scan_library(path, timeout=8):
 
 
 def _scan_impl(path):
-    info = classify(path)
+    norm = util.normalize_path(path)
+    info = _classify_impl(norm)
     if info['kind'] in ('invalid', 'unsupported'):
         return [], info
-
-    norm = util.normalize_path(path)
     if info['kind'] == 'project':
         bats = info.get('direct') or ([info.get('path')] if info.get('path') else [])
         return _dedupe([_make_project(p, norm) for p in bats]), info
@@ -191,8 +222,10 @@ def _scan_impl(path):
         projects.extend(parse_custom_evars(info['custom_evars'], norm))
 
     # 2. 从下一层项目文件夹中提取的项目
+    subfolder_evars = info.get('subfolder_evars') or {}
     for d in (info.get('project_dirs') or []):
-        for p in _find_direct_evars(d):
+        bats = subfolder_evars.get(d) if d in subfolder_evars else _find_direct_evars(d)
+        for p in bats:
             projects.append(_make_project(p, norm, project_dir=d))
 
     # 3. 根目录下的直接 evars*.bat
@@ -211,17 +244,16 @@ def project_name(bat_path):
     return os.path.splitext(base)[0]
 
 
-def add_library(path, timeout=8):
+def add_library(path, timeout=12):
     """
     添加路径库：判定类型并扫描。
     返回 (lib, info, projects)；失败时 lib 为 None，info 含 reason。
     """
-    info = classify(path, timeout)
+    norm = util.normalize_path(path)
+    projects, info = scan_library(norm, timeout)
     if info['kind'] in ('invalid', 'unsupported'):
         return None, info, []
 
-    norm = util.normalize_path(path)
-    projects, info = scan_library(path, timeout)
     if not projects and info['kind'] == 'collection':
         return None, {**info, 'kind': 'invalid', 'reason': '该路径没有解析出任何项目'}, []
 
@@ -238,7 +270,7 @@ def add_library(path, timeout=8):
     return lib, info, projects
 
 
-def rescan_library(lib, timeout=8):
+def rescan_library(lib, timeout=12):
     """
     重新扫描已有路径库，原地更新 lib 字段。
     返回 (projects, lib)。

@@ -506,6 +506,43 @@ body {
   vertical-align: -2px; margin-right: 7px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* 开关 Toggle Switch */
+.switch {
+  position: relative; display: inline-block; width: 44px; height: 22px; flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; inset: 0; background-color: var(--bg-surface-3);
+  border: 1px solid var(--border-card); transition: .25s; border-radius: 22px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
+  background-color: var(--text-muted); transition: .25s; border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #238636; border-color: #2ea043;
+}
+input:checked + .slider:before {
+  transform: translateX(22px); background-color: #ffffff;
+}
+
+/* 工具箱卡片 */
+.tool-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; margin-bottom: 24px;
+}
+.tool-card {
+  background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-lg);
+  padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+  transition: all 0.24s var(--ease-spring);
+}
+.tool-card:hover {
+  background: var(--bg-surface-2); border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md);
+}
+.tool-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.tool-card-title { font-size: 15px; font-weight: 700; color: var(--text-pure); display: flex; align-items: center; gap: 8px; }
+.tool-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 6px; }
+.tool-card-action { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -536,6 +573,14 @@ body {
       <button class="nav-pill" data-view="libraries">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         路径库 <span class="pill-count" id="nav-libs">0</span>
+      </button>
+      <button class="nav-pill" data-view="plugins">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        插件管理 <span class="pill-count" id="nav-plugins">0</span>
+      </button>
+      <button class="nav-pill" data-view="diagnostics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        诊断与工具箱
       </button>
       <button class="nav-pill" data-view="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -666,6 +711,125 @@ body {
     <div id="lib-cards"><div class="empty-state">尚未配置路径库</div></div>
   </section>
 
+  <!-- 插件管理视图 (Plugins) -->
+  <section class="view-section" id="view-plugins">
+    <div class="filter-bar" style="justify-content:space-between;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="badge" style="font-size:12px;padding:4px 12px;background:rgba(255,255,255,0.06);color:var(--text-pure)">
+          插件目录: <code id="plg-root-path" style="margin-left:6px;color:#58a6ff;font-family:var(--font-mono)">D:\AVEVA\Plugins</code>
+        </span>
+        <button class="btn btn-ghost btn-sm" onclick="openPluginsDir()">📂 打开插件目录</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadPlugins()">⟳ 刷新扫描</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="openPluginCreateModal()">+ 新建插件骨架</button>
+        <button class="btn btn-sm" onclick="reindexAllPlugins()" title="为所有包含 pmllib 的插件自动生成 pml.index">⚡ 重建全部 PML 索引</button>
+      </div>
+    </div>
+    <div class="projects-container" id="plg-list"><div class="empty-state"><span class="spinner"></span>正在扫描插件目录…</div></div>
+  </section>
+
+  <!-- 诊断与工具箱视图 (Diagnostics & Tools) -->
+  <section class="view-section" id="view-diagnostics">
+    <div class="tool-grid">
+      <!-- 1. E3D 配置文件体检与修复 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#58a6ff">🩺</span> E3D 配置文件体检与死链清理
+            </div>
+            <span class="badge" id="tool-e3d-status" style="background:var(--emerald-surface);color:#34d399">就绪</span>
+          </div>
+          <div class="tool-card-desc">
+            全面深度体检 <code>evars.bat</code>、<code>evars.init</code> 及 <code>custom_evars.bat</code>，排查已失效的死路径与超时的离线 UNC / WSL 网络挂载（防启动卡死）。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-ghost btn-sm" onclick="runE3DDiag()">🔍 运行体检</button>
+          <button class="btn btn-primary btn-sm" onclick="runE3DFix()">⚡ 一键安全修复</button>
+        </div>
+      </div>
+
+      <!-- 2. USERDATA 缓存与死锁清理 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#f59e0b">🧹</span> USERDATA 运行缓存与死锁清理
+            </div>
+          </div>
+          <div class="tool-card-desc">
+            清理 <code>D:\AVEVA\USERDATA</code> 中异常退出遗留的 <code>*.lok</code> 数据库死锁文件、<code>AvevaAbaLog.txt</code>、临时会话与 crash 缓存，解决闪退与权限锁死。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-ghost btn-sm" onclick="runCleanUserData()">🧹 一键清理缓存</button>
+        </div>
+      </div>
+
+      <!-- 3. PML 索引极速重构器 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#bc8cff">⚡</span> PML 索引 (pml.index) 极速重构
+            </div>
+          </div>
+          <div class="tool-card-desc">
+            递归扫描 <code>D:\AVEVA\Plugins</code> 下所有插件的 <code>pmllib</code>，一键重新生成标准 <code>pml.index</code> 文件，彻底解决 <i>Form/Object/Function not found</i> 错误。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-ghost btn-sm" onclick="reindexAllPlugins()">⚡ 重建所有插件索引</button>
+        </div>
+      </div>
+
+      <!-- 4. AutoCAD 缺失字体静默修复 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#39c5cf">📐</span> AutoCAD 缺失字体静默替用修复
+            </div>
+          </div>
+          <div class="tool-card-desc">
+            修复 CAD 打开图纸提示缺少 <code>hzfs</code>、<code>HZDX</code>、<code>@~!hztxt</code> 等大字体弹窗与 <code>函数已取消</code> 报错；自动更新 <code>acad.fmp</code> 映射表并生成字体别名。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-primary btn-sm" onclick="runFixCadFonts()">🛠️ 一键修复 CAD 字体</button>
+        </div>
+      </div>
+
+      <!-- 5. 局域网网络共享与来宾访问诊断 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#10b981">🌐</span> 局域网网络共享与 UNC 诊断
+            </div>
+          </div>
+          <div class="tool-card-desc">
+            诊断所有路径库的 SMB 445 端口连通性、Windows 10/11 局域网来宾访问权限（<code>AllowInsecureGuestAuth</code>），支持一键断开重连。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-ghost btn-sm" onclick="diagnoseAll()">🩺 诊断所有路径库</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- E3D 体检详情卡片 -->
+    <div class="glass-card" id="diag-e3d-details-card" style="display:none;margin-top:20px">
+      <div class="card-head">
+        <h3><span class="head-dot"></span>E3D 配置文件体检报告详情</h3>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('diag-e3d-details-card').style.display='none'">收起</button>
+      </div>
+      <div class="card-body-content" id="diag-e3d-details-body"></div>
+    </div>
+  </section>
+
   <!-- 系统设置视图 (Settings) -->
   <section class="view-section" id="view-settings">
     <div class="glass-card">
@@ -783,6 +947,27 @@ body {
   <div class="modal-box modal-box-wide">
     <div class="modal-header"><h3>路径与网络健康诊断报告</h3><button class="modal-close" onclick="closeModal('modal-diag')">×</button></div>
     <div id="diag-body"><div class="empty-state"><span class="spinner"></span>正在执行网络与本地路径诊断…</div></div>
+  </div>
+</div>
+
+<!-- 新建插件弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-create" hidden>
+  <div class="modal-box">
+    <div class="modal-header"><h3>新建 E3D 插件骨架</h3><button class="modal-close" onclick="closeModal('modal-plugin-create')">×</button></div>
+    <div class="field-group"><label>插件英文名称</label><input type="text" id="npc-name" placeholder="例如：SteelTools, CableAids"></div>
+    <div class="field-group">
+      <label>初始化组件</label>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label class="filter-label"><input type="checkbox" id="npc-pmllib" checked> 包含 <code>pmllib</code> (PML 宏、表单与函数库)</label>
+        <label class="filter-label"><input type="checkbox" id="npc-pmlnet" checked> 包含 <code>bin</code> (PML.NET C# DLL 目录)</label>
+        <label class="filter-label"><input type="checkbox" id="npc-pmlui"> 包含 <code>pdmsui</code> (自定义界面菜单)</label>
+      </div>
+    </div>
+    <div class="field-note">插件将自动创建在 <code>D:\AVEVA\Plugins\&lt;插件名称&gt;</code>，并预置标准目录与样例代码。</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plugin-create')">取消</button>
+      <button class="btn btn-primary" onclick="submitCreatePlugin()">立即创建</button>
+    </div>
   </div>
 </div>
 
@@ -910,6 +1095,8 @@ function renderActiveView(){
   if(v==='projects') renderProjects();
   else if(v==='myprojects') renderMy();
   else if(v==='libraries') renderLibraries();
+  else if(v==='plugins') loadPlugins();
+  else if(v==='diagnostics') renderDiagnosticsView();
   else if(v==='settings') renderSettings();
   else renderOverview();
 }
@@ -929,6 +1116,7 @@ async function loadStatus(){
   if(!curActive || curActive.dataset.view !== 'overview') {
     renderOverview();
   }
+  loadPlugins(true);
 }
 
 function updateHeader(){
@@ -1592,10 +1780,12 @@ function renderDiagChecksHtml(rep){
     let fixHtml = '';
     if(c.fix){
       const steps = (c.fix.steps || []).map(s => `<li>${esc(s)}</li>`).join('');
+      // 命令与路径通过 data-* 传递，不拼进 JS 字符串字面量：
+      // esc() 产生的 &#39; 在属性中会被浏览器还原成单引号，直接内联会造成脚本注入。
       const cmds = (c.fix.commands || []).map(cmd => `
         <div class="diag-cmd">
           <code>${esc(cmd)}</code>
-          <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${esc(cmd)}');toast('已复制命令',true)">复制</button>
+          <button class="btn btn-sm" data-copy-cmd="${esc(cmd)}">复制</button>
         </div>
       `).join('');
       fixHtml = `
@@ -1603,7 +1793,7 @@ function renderDiagChecksHtml(rep){
           <div style="font-size:12px;font-weight:650;color:#fff;margin-bottom:6px">💡 处理指引：${esc(c.fix.title)}</div>
           ${steps ? `<ol style="margin:0 0 8px 18px;font-size:11.5px;color:var(--text-muted);line-height:1.6">${steps}</ol>` : ''}
           ${cmds}
-          ${c.fix.id==='guest_auth'?`<button class="btn btn-sm btn-primary" style="margin-top:8px" onclick="applyFix('guest_auth','${esc(rep.path)}')">自动安全修复</button>`:''}
+          ${c.fix.id==='guest_auth'?`<button class="btn btn-sm btn-primary" style="margin-top:8px" data-fix-id="guest_auth" data-fix-path="${esc(rep.path || '')}">自动安全修复</button>`:''}
         </div>
       `;
     }
@@ -1629,6 +1819,245 @@ async function applyFix(fixId, path){
 
 function openModal(id){ document.getElementById(id).hidden = false; }
 function closeModal(id){ document.getElementById(id).hidden = true; }
+
+// ==================== 插件管理 (Plugins) ====================
+let pluginsData = [];
+
+async function loadPlugins(silent){
+  if(!silent) toast('正在扫描插件目录…', true);
+  const res = await api('/api/plugins/list');
+  if(res.error){
+    if(!silent) document.getElementById('plg-list').innerHTML = `<div class="empty-state">加载插件失败: ${esc(res.error)}</div>`;
+    return;
+  }
+  pluginsData = res.plugins || [];
+  const rootEl = document.getElementById('plg-root-path');
+  if(rootEl) rootEl.textContent = res.plugins_dir || 'D:\\AVEVA\\Plugins';
+  const badgeEl = document.getElementById('nav-plugins');
+  if(badgeEl) badgeEl.textContent = pluginsData.length;
+  renderPluginsList();
+}
+
+function renderPluginsList(){
+  const box = document.getElementById('plg-list');
+  if(!box) return;
+  if(!pluginsData.length){
+    box.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size:15px;color:#fff;margin-bottom:8px">未在插件根目录下检测到插件</div>
+        <div>请点击上方“新建插件骨架”或将插件文件夹放置在 <code>${esc(document.getElementById('plg-root-path') ? document.getElementById('plg-root-path').textContent : 'D:\\AVEVA\\Plugins')}</code></div>
+      </div>
+    `;
+    return;
+  }
+
+  box.innerHTML = pluginsData.map(p => {
+    const isEnabled = p.enabled;
+    const comps = [];
+    if(p.has_pmllib){
+      comps.push(`<span class="tag-pill" style="color:#a855f7;border-color:rgba(168,85,247,0.3)">PMLLIB (${p.pml_files_count} 文件${p.has_pml_index ? '' : ' · <span style="color:#f43f5e">缺索引</span>'})</span>`);
+    }
+    if(p.has_pmlnet){
+      comps.push(`<span class="tag-pill" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">PML.NET (${(p.dll_files||[]).length} DLL)</span>`);
+    }
+    if(p.has_pmlui){
+      comps.push(`<span class="tag-pill" style="color:#34d399;border-color:rgba(52,211,153,0.3)">PMLUI</span>`);
+    }
+    if(p.has_dflts){
+      comps.push(`<span class="tag-pill" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">DFLTS</span>`);
+    }
+    if(p.doc_file){
+      comps.push(`<span class="tag-pill" style="color:#94a3b8">📄 ${esc(p.doc_file)}</span>`);
+    }
+
+    return `
+      <div class="project-card ${isEnabled ? 'is-favorite' : ''}" style="--card-accent:${isEnabled ? '#10b981' : '#64748b'}">
+        <div class="project-avatar" style="--avatar-bg:${isEnabled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #475569, #334155)'}">
+          ${esc(getAcronym(p.name))}
+        </div>
+        <div class="project-details">
+          <div class="project-title-row">
+            <span class="project-name">${esc(p.name)}</span>
+            <span class="badge" style="${isEnabled ? 'background:var(--emerald-surface);color:#34d399' : 'background:rgba(255,255,255,0.05);color:var(--text-dim)'}">
+              <span class="badge-dot" style="background:${isEnabled ? '#10b981' : '#64748b'}"></span>${isEnabled ? '已启用加载' : '已禁用'}
+            </span>
+          </div>
+          <div class="project-path"><code>${esc(p.path)}</code></div>
+          <div class="project-meta-row" style="margin-top:8px">${comps.join('')}</div>
+        </div>
+        <div class="project-actions" style="align-items:center;gap:12px">
+          ${p.has_pmllib ? `<button class="btn btn-ghost btn-sm" onclick="reindexPlugin('${esc(p.name)}')" title="遍历生成标准 pml.index">⚡ 重建索引</button>` : ''}
+          <label class="switch" title="启用 / 禁用该插件">
+            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="togglePlugin('${esc(p.name)}', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function togglePlugin(name, enabled){
+  toast(`正在${enabled ? '启用' : '禁用'}插件: ${name}…`, true);
+  const res = await api('/api/plugins/toggle', {name, enabled});
+  if(res.error){ toast('操作失败: ' + res.error, false); loadPlugins(); }
+  else { toast(`✓ 已${enabled ? '启用' : '禁用'}插件: ${name}`, true); loadPlugins(); }
+}
+
+async function reindexPlugin(name){
+  toast(`正在为 ${name} 重建 pml.index…`, true);
+  const res = await api('/api/plugins/reindex', {name});
+  if(res.error) toast('重建索引失败: ' + res.error, false);
+  else { toast(`✓ ${res.message || '索引重构完成'}`, true); loadPlugins(); }
+}
+
+async function reindexAllPlugins(){
+  toast('正在为全部插件重建 pml.index…', true);
+  const res = await api('/api/plugins/reindex', {});
+  if(res.error) toast('重建失败: ' + res.error, false);
+  else { toast('✓ 全部插件 PML 索引重构完成', true); loadPlugins(); }
+}
+
+async function openPluginsDir(){
+  const res = await api('/api/plugins/open-dir', {});
+  if(res.error) toast('打开目录失败: ' + res.error, false);
+}
+
+function openPluginCreateModal(){
+  document.getElementById('npc-name').value = '';
+  document.getElementById('npc-pmllib').checked = true;
+  document.getElementById('npc-pmlnet').checked = true;
+  document.getElementById('npc-pmlui').checked = false;
+  openModal('modal-plugin-create');
+}
+
+async function submitCreatePlugin(){
+  const name = document.getElementById('npc-name').value.trim();
+  if(!name){ toast('请输入插件英文名称', false); return; }
+  const has_pmllib = document.getElementById('npc-pmllib').checked;
+  const has_pmlnet = document.getElementById('npc-pmlnet').checked;
+  const has_pmlui = document.getElementById('npc-pmlui').checked;
+
+  toast('正在创建插件骨架…', true);
+  const res = await api('/api/plugins/create', {name, has_pmllib, has_pmlnet, has_pmlui});
+  if(res.error) toast('创建失败: ' + res.error, false);
+  else {
+    toast(`✓ ${res.message || '插件创建成功'}`, true);
+    closeModal('modal-plugin-create');
+    loadPlugins();
+  }
+}
+
+// ==================== 诊断与工具箱 (Diagnostics & Tools) ====================
+
+function renderDiagnosticsView(){
+  // 诊断视图切换时保持就绪状态
+}
+
+async function runE3DDiag(){
+  openModal('modal-diag');
+  document.getElementById('diag-body').innerHTML = '<div class="empty-state"><span class="spinner"></span>正在深度诊断 E3D 配置文件与网络项…</div>';
+  const res = await api('/api/diagnose/e3d', {});
+  if(res.error){ document.getElementById('diag-body').innerHTML = `<div class="empty-state">${esc(res.error)}</div>`; return; }
+  renderE3DDiagReport(res.report);
+}
+
+function renderE3DDiagReport(rep){
+  const box = document.getElementById('diag-body');
+  if(!rep){ box.innerHTML = '<div class="empty-state">未获取到诊断数据</div>'; return; }
+
+  let html = `
+    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-subtle)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h4 style="font-size:15px;color:#fff">E3D 运行配置文件全面体检</h4>
+        <button class="btn btn-primary btn-sm" onclick="runE3DFix()">⚡ 一键安全修复</button>
+      </div>
+      <div style="margin-top:6px;font-size:11.5px;color:var(--text-dim)">
+        安装目录: <code>${esc(rep.install_dir||'未探测')}</code> &nbsp;|&nbsp; 项目库: <code>${esc(rep.projects_dir||'未探测')}</code>
+      </div>
+    </div>
+  `;
+
+  html += (rep.checks || []).map(c => {
+    return `
+      <div class="diag-row ${c.status}">
+        <div class="diag-icon-badge">${c.status==='ok'?'✓':(c.status==='fail'?'✕':'!')}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:var(--text-pure)">${esc(c.name)}</div>
+          <div style="color:var(--text-muted);margin-top:3px;line-height:1.55;word-break:break-all">${esc(c.detail)}</div>
+          ${c.invalid_lines ? `
+            <div style="margin-top:6px;font-family:var(--font-mono);font-size:11px;color:#fda4af;background:rgba(244,63,94,0.06);padding:6px 10px;border-radius:4px;border:1px solid rgba(244,63,94,0.2)">
+              ${c.invalid_lines.map(l => `<div>• 行 ${esc(l.line_num)}: ${esc(l.text)} (${esc(l.reason)})</div>`).join('')}
+            </div>
+          ` : ''}
+          ${c.offline_projects ? `
+            <div style="margin-top:6px;font-family:var(--font-mono);font-size:11px;color:#fda4af;background:rgba(244,63,94,0.06);padding:6px 10px;border-radius:4px;border:1px solid rgba(244,63,94,0.2)">
+              ${c.offline_projects.map(p => `<div>• 项目 ${esc(p.name)}: ${esc(p.bat_path)} (${esc(p.reason)})</div>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  box.innerHTML = html;
+}
+
+async function runE3DFix(){
+  toast('正在安全备份并修复 E3D 配置死链与离线网络项…', true);
+  const res = await api('/api/diagnose/fix-e3d', {});
+  if(res.error) toast('修复失败: ' + res.error, false);
+  else {
+    toast(`✓ ${res.message || '修复成功'}`, true);
+    if(res.changes && res.changes.length){
+      openModal('modal-diag');
+      document.getElementById('diag-body').innerHTML = `
+        <div style="padding:10px 0">
+          <h4 style="font-size:15px;color:#34d399;margin-bottom:12px">✓ 修复完成明细</h4>
+          <div style="font-family:var(--font-mono);font-size:12px;line-height:1.8;color:var(--text-main)">
+            ${res.changes.map(ch => `<div>• ${esc(ch)}</div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
+async function runCleanUserData(){
+  if(!confirm('确定清理 USERDATA 中的临时缓存与死锁文件吗？(不会删除用户自定义表单)')) return;
+  toast('正在清理 USERDATA 运行缓存与死锁…', true);
+  const res = await api('/api/tools/clean-userdata', {});
+  if(res.error) toast('清理失败: ' + res.error, false);
+  else {
+    toast(`✓ ${res.message || '清理完成'}`, true);
+  }
+}
+
+async function runFixCadFonts(){
+  toast('正在自动化更新 CAD 字体映射表与别名…', true);
+  const res = await api('/api/tools/fix-cad-fonts', {});
+  if(res.error) toast('修复失败: ' + res.error, false);
+  else {
+    toast(`✓ ${res.message || 'CAD 字体修复完成'}`, true);
+  }
+}
+
+// 诊断面板按钮：通过事件委托读取 data-*，避免把路径/命令拼进内联 JS
+document.addEventListener('click', function(ev){
+  const copyBtn = ev.target.closest('[data-copy-cmd]');
+  if(copyBtn){
+    const cmd = copyBtn.getAttribute('data-copy-cmd') || '';
+    navigator.clipboard.writeText(cmd).then(
+      () => toast('已复制命令', true),
+      () => toast('复制失败，请手动选择命令文本', false)
+    );
+    return;
+  }
+  const fixBtn = ev.target.closest('[data-fix-id]');
+  if(fixBtn){
+    applyFix(fixBtn.getAttribute('data-fix-id') || '', fixBtn.getAttribute('data-fix-path') || '');
+  }
+});
 
 // 启动初始化
 window.addEventListener('DOMContentLoaded', loadStatus);

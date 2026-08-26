@@ -301,7 +301,12 @@ def update_category(data, category_id, name=None, color=None):
     if name is not None:
         name = ' '.join(str(name).split())
         if name:
-            cat['name'] = name[:30]
+            new_name = name[:30]
+            # 分类 ID 由名称派生，重名会产生两个界面上无法区分的分类
+            for other in (data.get('categories') or []):
+                if other is not cat and other.get('name', '').lower() == new_name.lower():
+                    raise ValueError(f'已存在同名分类: {new_name}')
+            cat['name'] = new_name
     if color:
         cat['color'] = color
     return cat

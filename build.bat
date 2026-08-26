@@ -55,6 +55,7 @@ pyinstaller --onefile --windowed ^
     --hidden-import e3d_launcher ^
     --hidden-import e3d_web ^
     --hidden-import e3d_diag ^
+    --hidden-import e3d_plugin ^
     switch_e3d_project.py
 
 if %errorlevel% neq 0 (

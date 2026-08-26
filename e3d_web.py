@@ -12,12 +12,14 @@ import os
 import secrets
 import socket
 import socketserver
+import sys
 import threading
 import time
 import webbrowser
 
 import e3d_diag
 import e3d_launcher as launcher
+import e3d_plugin
 import e3d_scanner as scanner
 import e3d_store as store
 import e3d_util as util
@@ -66,9 +68,17 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    # 请求体上限，避免畸形/恶意 Content-Length 让进程无限申请内存
+    MAX_BODY = 4 * 1024 * 1024
+
     def _read_body(self):
-        length = int(self.headers.get('Content-Length', 0))
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+        except (TypeError, ValueError):
+            return {}
         if length <= 0:
+            return {}
+        if length > self.MAX_BODY:
             return {}
         try:
             return json.loads(self.rfile.read(length).decode('utf-8'))
@@ -108,7 +118,14 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == '/api/status':
             if not self._is_authorized():
                 return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
-            self._handle_status()
+            try:
+                with _LOCK:
+                    self._handle_status()
+            except Exception as e:
+                try:
+                    self._send_json({'error': f'服务器内部错误: {e}'}, 500)
+                except Exception:
+                    pass
         elif self.path == '/favicon.ico':
             self.send_response(204)
             self.end_headers()
@@ -138,6 +155,15 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/diagnose/library': self._handle_diagnose_library,
             '/api/diagnose/all': self._handle_diagnose_all,
             '/api/diagnose/fix': self._handle_diagnose_fix,
+            '/api/diagnose/e3d': self._handle_diagnose_e3d,
+            '/api/diagnose/fix-e3d': self._handle_fix_e3d,
+            '/api/plugins/list': self._handle_plugins_list,
+            '/api/plugins/toggle': self._handle_plugins_toggle,
+            '/api/plugins/reindex': self._handle_plugins_reindex,
+            '/api/plugins/create': self._handle_plugins_create,
+            '/api/plugins/open-dir': self._handle_plugins_open_dir,
+            '/api/tools/clean-userdata': self._handle_tools_clean_userdata,
+            '/api/tools/fix-cad-fonts': self._handle_tools_fix_cad_fonts,
             '/api/settings/update': self._handle_settings_update,
             '/api/settings/open-config-dir': self._handle_open_config_dir,
             '/api/launch': self._handle_launch,
@@ -145,11 +171,18 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/quit': self._handle_quit,
         }
         fn = routes.get(self.path)
-        if fn:
+        if not fn:
+            return self._send_json({'error': 'not found'}, 404)
+        # 兜底：处理器里的任何意外异常都要变成 500 响应，
+        # 否则连接会被直接掐断，前端只看到 "Failed to fetch"，无从排查。
+        try:
             with _LOCK:
                 fn(self._read_body())
-        else:
-            self._send_json({'error': 'not found'}, 404)
+        except Exception as e:
+            try:
+                self._send_json({'error': f'服务器内部错误: {e}'}, 500)
+            except Exception:
+                pass
 
     # ---------- 状态 ----------
 
@@ -446,12 +479,15 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_category_update(self, body):
         data = store.load_data()
-        cat = store.update_category(
-            data,
-            body.get('id', ''),
-            body.get('name'),
-            body.get('color'),
-        )
+        try:
+            cat = store.update_category(
+                data,
+                body.get('id', ''),
+                body.get('name'),
+                body.get('color'),
+            )
+        except ValueError as e:
+            return self._send_json({'error': str(e)}, 400)
         if not cat:
             return self._send_json({'error': '未找到该分类'}, 404)
         store.save_data(data)
@@ -605,6 +641,94 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'ok': True, 'result': result})
         else:
             self._send_json({'ok': False, 'error': result.get('message', '修复失败'), 'result': result})
+
+    def _handle_diagnose_e3d(self, body):
+        try:
+            report = e3d_diag.diagnose_e3d_config(timeout=6)
+        except Exception as e:
+            return self._send_json({'error': f'E3D 环境诊断失败: {e}'}, 500)
+        self._send_json({'ok': True, 'report': report})
+
+    def _handle_fix_e3d(self, body):
+        try:
+            res = e3d_diag.fix_e3d_config(timeout=6)
+        except Exception as e:
+            return self._send_json({'error': f'E3D 环境修复失败: {e}'}, 500)
+        self._send_json(res)
+
+    # ---------- 插件管理 ----------
+
+    def _handle_plugins_list(self, body):
+        plugins_dir = e3d_plugin.get_plugins_dir()
+        plugins = e3d_plugin.scan_plugins(plugins_dir)
+        self._send_json({
+            'ok': True,
+            'plugins_dir': plugins_dir,
+            'plugins': plugins,
+            'count': len(plugins),
+            'enabled_count': sum(1 for p in plugins if p.get('enabled')),
+        })
+
+    def _handle_plugins_toggle(self, body):
+        name = (body.get('name') or '').strip()
+        enabled = bool(body.get('enabled', True))
+        if not name:
+            return self._send_json({'error': '缺少插件名称'}, 400)
+        try:
+            res = e3d_plugin.set_plugin_enabled(name, enabled)
+            self._send_json({'ok': True, 'name': name, 'enabled': res})
+        except Exception as e:
+            self._send_json({'error': f'切换插件状态失败: {e}'}, 500)
+
+    def _handle_plugins_reindex(self, body):
+        name = (body.get('name') or '').strip()
+        plugins_dir = e3d_plugin.get_plugins_dir()
+        if name:
+            p_path = os.path.join(plugins_dir, name)
+            info = e3d_plugin.scan_plugin_folder(p_path)
+            if not info or not info.get('has_pmllib'):
+                return self._send_json({'error': f'插件 {name} 未找到或不包含 pmllib'}, 400)
+            ok, msg = e3d_plugin.rebuild_pml_index(info['pmllib_path'])
+            self._send_json({'ok': ok, 'message': msg})
+        else:
+            res = e3d_plugin.rebuild_all_pml_indexes(plugins_dir)
+            self._send_json({'ok': True, 'results': res})
+
+    def _handle_plugins_create(self, body):
+        name = (body.get('name') or '').strip()
+        if not name:
+            return self._send_json({'error': '插件名称不能为空'}, 400)
+        has_pmllib = bool(body.get('has_pmllib', True))
+        has_pmlnet = bool(body.get('has_pmlnet', True))
+        has_pmlui = bool(body.get('has_pmlui', False))
+        try:
+            target = e3d_plugin.create_plugin_skeleton(name, has_pmllib=has_pmllib, has_pmlnet=has_pmlnet, has_pmlui=has_pmlui)
+            self._send_json({'ok': True, 'path': target, 'message': f'成功创建插件骨架: {name}'})
+        except Exception as e:
+            self._send_json({'error': str(e)}, 400)
+
+    def _handle_plugins_open_dir(self, body):
+        try:
+            d = e3d_plugin.open_plugins_folder()
+            self._send_json({'ok': True, 'path': d})
+        except Exception as e:
+            self._send_json({'error': f'打开插件目录失败: {e}'}, 500)
+
+    # ---------- 工具箱与一键维护 ----------
+
+    def _handle_tools_clean_userdata(self, body):
+        try:
+            res = e3d_diag.clean_userdata_cache()
+            self._send_json(res)
+        except Exception as e:
+            self._send_json({'error': f'清理 USERDATA 失败: {e}'}, 500)
+
+    def _handle_tools_fix_cad_fonts(self, body):
+        try:
+            res = e3d_diag.fix_cad_fonts_tool()
+            self._send_json(res)
+        except Exception as e:
+            self._send_json({'error': f'修复 CAD 字体失败: {e}'}, 500)
 
     def _handle_quit(self, body):
         self._send_json({'ok': True})

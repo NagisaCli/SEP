@@ -17,7 +17,11 @@ AVEVA Everything3D 项目管理系统：扫描项目库、维护项目信息（�
 - 目录内直接存在 `evarsXXX.bat` → **项目文件夹**（单项目）；
 - 目录下一层的子文件夹内存在 `evarsXXX.bat` → **项目库**（collection），该子文件夹即项目文件夹；
 - 下一层没有 `evarsXXX.bat` 的文件夹不视为项目文件夹；
-- 不再解析 `custom_evars.bat` 的 `call` 行来发现项目（该文件仅保留为启动时的托管区写入目标）；
+- `custom_evars.bat` 中用户自己手写的 `call` 行仍会被解析为项目，但以下两类会被排除：
+  - SEP 自己写入的托管区（`SEP MANAGED PROJECTS` 块）——否则启动某个远程项目后，
+    重新扫描本地项目库会凭空多出指向其他路径库的「幽灵项目」；
+  - `projects.bat` / `evars.bat` / `custom_evars.bat` 等基础设施文件（变量展开后再判断，
+    因此 `%projects_dir%projects.bat` 这类写法同样能被正确排除）；
 - 支持本地路径、`\\服务器\共享`、`smb://服务器/共享`；
 - `http(s)://` 已预留扩展窗口，本版本暂不支持。
 
@@ -82,6 +86,14 @@ python switch_e3d_project.py --load <名称或ID>
 python switch_e3d_project.py --launch-lib <库ID>
 python switch_e3d_project.py --cli
 python switch_e3d_project.py --detect
+python switch_e3d_project.py --diag-e3d   全面诊断 E3D 配置文件与环境
+python switch_e3d_project.py --fix-e3d    一键安全修复 E3D 配置文件死链与阻塞项
+python switch_e3d_project.py --plugin list            列出 D:\AVEVA\Plugins 插件与状态
+python switch_e3d_project.py --plugin enable <名称>   启用指定插件
+python switch_e3d_project.py --plugin disable <名称>  禁用指定插件
+python switch_e3d_project.py --plugin reindex [名称]  重构插件 pml.index 索引
+python switch_e3d_project.py --clean-userdata         清理 USERDATA 临时缓存与死锁
+python switch_e3d_project.py --fix-cad-fonts          一键修复 AutoCAD 缺失字体弹窗
 ```
 
 旧命令 `--add` / `--remove` / `--list` 继续兼容。
@@ -89,7 +101,7 @@ python switch_e3d_project.py --detect
 ## 文件结构
 
 ```
-├── SEP.exe                 # 主程序（PyInstaller 打包）
+├── SEP.exe                 # 主程序（PyInstaller 打包独立运行版）
 ├── switch_e3d_project.py   # 入口：CLI + Web 面板
 ├── e3d_config.py           # E3D 安装路径自动检测
 ├── e3d_util.py             # 路径规范化 / 编码 / 超时工具
@@ -97,8 +109,10 @@ python switch_e3d_project.py --detect
 ├── e3d_scanner.py          # 路径分类与项目扫描
 ├── e3d_launcher.py         # 配置写入 / 验证 / .lnk 启动
 ├── e3d_web.py              # 内嵌 HTTP 服务
-├── e3d_diag.py             # 网络 / 路径诊断与修复
-├── web_ui.html             # 项目管理面板页面
+├── e3d_plugin.py           # E3D 插件管理与 pml.index 索引重构引擎
+├── e3d_diag.py             # 网络 / 路径 / E3D 配置 / USERDATA 诊断与修复
+├── fix_cad_fonts.ps1       # AutoCAD 缺失字体一键静默修复脚本
+├── web_ui.html             # 项目与插件管理面板页面
 ├── e3d_projects.json       # 运行时自动生成的项目数据
 ├── e3d_paths.json          # E3D 路径检测缓存（自动生成）
 ├── build.bat               # 打包脚本

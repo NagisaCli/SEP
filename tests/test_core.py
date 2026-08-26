@@ -482,6 +482,24 @@ class TestGlobalStorage(unittest.TestCase):
             else:
                 os.environ['SEP_PORTABLE'] = old_env
 
+    def test_sanitize_unc_paths(self):
+        text = r'call \\NonExistentHost999\000E3D31\DPH\evarsDPH.bat'
+        fixed = util.sanitize_unc_paths(text, r'\\192.168.2.10\000E3D31')
+        self.assertIn(r'\\192.168.2.10\000E3D31\DPH\evarsDPH.bat', fixed)
+
+    def test_read_managed_with_if_exist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            custom_bat = os.path.join(tmp, 'custom_evars.bat')
+            with open(custom_bat, 'w', encoding='utf-8') as f:
+                f.write(launcher.MANAGED_START + '\n')
+                f.write('if exist "C:\\x\\evarsA.bat" call "C:\\x\\evarsA.bat"\n')
+                f.write('call "C:\\y\\evarsB.bat"\n')
+                f.write(launcher.MANAGED_END + '\n')
+            res = launcher.read_managed(tmp)
+            self.assertEqual(len(res), 2)
+            self.assertEqual(res[0], 'C:\\x\\evarsA.bat')
+            self.assertEqual(res[1], 'C:\\y\\evarsB.bat')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

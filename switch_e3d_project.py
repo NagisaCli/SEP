@@ -280,7 +280,7 @@ def _do_launch(mode, payload):
     data = store.load_data()
     lnk = data['settings'].get('e3d_lnk', '')
     summary = launcher.launch(mode, payload, lnk=lnk)
-    print(f'\n  ✓ 已启动 E3D')
+    print('\n  ✓ 已启动 E3D')
     print(f'    模式       : {summary["mode"]}')
     print(f'    项目库     : {summary["projects_dir"]}')
     if summary['managed_paths']:
@@ -333,6 +333,149 @@ def _cmd_launch_lib(lib_id):
         print(f'\n  ✗ 未找到路径库: {lib_id}')
         return 1
     return _do_launch('library', {'path': lib['path'], 'name': lib['name']})
+
+
+def _cmd_diag_e3d():
+    import e3d_diag
+    print('=' * 62)
+    print('  SEP — E3D 配置文件与运行环境体检')
+    print('=' * 62)
+    print('正在全面排查 evars.bat / evars.init / custom_evars.bat 及网络项...\n')
+    report = e3d_diag.diagnose_e3d_config()
+    print(f'E3D 安装路径 : {report.get("install_dir") or "(未找到)"}')
+    print(f'项目库目录   : {report.get("projects_dir") or "(未找到)"}')
+    print(f'evars.init   : {report.get("evars_init") or "(未找到)"}')
+    print(f'custom_evars : {report.get("custom_evars") or "(未找到)"}')
+    print('-' * 62)
+
+    status_icon = {'ok': '✓', 'warn': '⚠', 'fail': '✗', 'skip': '-'}
+    for c in report.get('checks', []):
+        icon = status_icon.get(c['status'], '?')
+        print(f' [{icon}] {c["name"]}: {c["detail"]}')
+        if c.get('invalid_lines'):
+            for inv in c['invalid_lines']:
+                print(f'     - 行 {inv.get("line_num")}: {inv.get("path")} ({inv.get("reason")})')
+        if c.get('timeout_lines'):
+            for tm in c['timeout_lines']:
+                print(f'     - 行 {tm.get("line_num")}: {tm.get("path")} ({tm.get("reason")})')
+        if c.get('offline_projects'):
+            for op in c['offline_projects']:
+                print(f'     - 项目 {op.get("name")}: {op.get("bat_path")} ({op.get("reason")})')
+
+    print('-' * 62)
+    if report.get('ok'):
+        print('✓ E3D 配置文件状态良好，未发现可能导致启动卡顿或报错的配置项。')
+    else:
+        print('⚠ 发现上述异常配置项。若需自动安全备份并修复，请运行：')
+        print('  python switch_e3d_project.py --fix-e3d')
+    return 0 if report.get('ok') else 1
+
+
+def _cmd_fix_e3d():
+    import e3d_diag
+    print('=' * 62)
+    print('  SEP — E3D 配置文件一键安全修复')
+    print('=' * 62)
+    print('正在备份原文件并清理死路径、离线网络挂载及超时阻塞项...\n')
+    res = e3d_diag.fix_e3d_config()
+    if res.get('ok'):
+        print('✓ 修复成功！')
+        changes = res.get('changes', [])
+        if changes:
+            print('修复明细：')
+            for ch in changes:
+                print(f'  • {ch}')
+        else:
+            print('未发现需要修复的配置项。')
+        return 0
+    else:
+        print(f'✗ 修复失败: {res.get("message")}')
+        return 1
+
+
+def _cmd_plugin_list():
+    import e3d_plugin
+    p_dir = e3d_plugin.get_plugins_dir()
+    plugins = e3d_plugin.scan_plugins(p_dir)
+    print('=' * 62)
+    print('  SEP — E3D 插件管理器')
+    print(f'  插件目录: {p_dir}')
+    print('=' * 62)
+    if not plugins:
+        print('  未在插件目录下发现任何插件子文件夹。')
+        return 0
+    for p in plugins:
+        status = '✓ 已启用' if p['enabled'] else '○ 已禁用'
+        comps = []
+        if p['has_pmllib']:
+            comps.append(f"PMLLIB({p['pml_files_count']}个文件{'[有索引]' if p['has_pml_index'] else '[无索引]'})")
+        if p['has_pmlnet']:
+            comps.append(f"PML.NET({len(p['dll_files'])}个DLL)")
+        if p['has_pmlui']:
+            comps.append('PMLUI')
+        if p['has_dflts']:
+            comps.append('DFLTS')
+        print(f"  [{status}] {p['name']:<18} 组件: {', '.join(comps) if comps else '基础插件'}")
+    return 0
+
+
+def _cmd_plugin_enable(name):
+    import e3d_plugin
+    e3d_plugin.set_plugin_enabled(name, True)
+    print(f'✓ 已启用插件: {name}')
+    return 0
+
+
+def _cmd_plugin_disable(name):
+    import e3d_plugin
+    e3d_plugin.set_plugin_enabled(name, False)
+    print(f'○ 已禁用插件: {name}')
+    return 0
+
+
+def _cmd_plugin_reindex(name=None):
+    import e3d_plugin
+    if name:
+        p_path = os.path.join(e3d_plugin.get_plugins_dir(), name)
+        info = e3d_plugin.scan_plugin_folder(p_path)
+        if not info or not info.get('has_pmllib'):
+            print(f'✗ 未找到插件或无 pmllib: {name}')
+            return 1
+        ok, msg = e3d_plugin.rebuild_pml_index(info['pmllib_path'])
+        print(f"{'✓' if ok else '✗'} {name}: {msg}")
+        return 0 if ok else 1
+    else:
+        results = e3d_plugin.rebuild_all_pml_indexes()
+        for k, v in results.items():
+            print(f"  {'✓' if v['ok'] else '✗'} {k}: {v['message']}")
+        return 0
+
+
+def _cmd_clean_userdata():
+    import e3d_diag
+    print('=' * 62)
+    print('  SEP — E3D USERDATA 临时缓存与死锁清理')
+    print('=' * 62)
+    res = e3d_diag.clean_userdata_cache()
+    print(f"  {res.get('message')}")
+    if res.get('cleaned'):
+        for c in res.get('cleaned')[:20]:
+            print(f"    - 清理: {c}")
+        if len(res.get('cleaned')) > 20:
+            print(f"    ... 以及另外 {len(res.get('cleaned')) - 20} 个文件")
+    return 0 if res.get('ok') else 1
+
+
+def _cmd_fix_cad_fonts():
+    import e3d_diag
+    print('=' * 62)
+    print('  SEP — AutoCAD 缺失字体静默修复')
+    print('=' * 62)
+    res = e3d_diag.fix_cad_fonts_tool()
+    print(f"  {res.get('message')}")
+    for ch in res.get('changes', []):
+        print(f"    • {ch}")
+    return 0 if res.get('ok') else 1
 
 
 def _cmd_cli():
@@ -403,6 +546,12 @@ def main():
     parser.add_argument('--load', metavar='NAME_OR_ID', help='临时载入单个项目（不加入我的项目）')
     parser.add_argument('--launch-lib', metavar='LIB_ID', help='整库载入（方式 A）')
     parser.add_argument('--detect', action='store_true', help='重新检测 E3D 安装路径')
+    parser.add_argument('--diag-e3d', action='store_true', help='全面诊断 E3D 配置文件与运行环境')
+    parser.add_argument('--fix-e3d', action='store_true', help='一键安全修复 E3D 配置文件中的失效与阻塞项')
+    parser.add_argument('--plugin', nargs='+', metavar=('CMD', 'ARG'),
+                        help='插件管理: list / enable <名称> / disable <名称> / reindex [名称]')
+    parser.add_argument('--clean-userdata', action='store_true', help='清理 USERDATA 临时缓存与死锁')
+    parser.add_argument('--fix-cad-fonts', action='store_true', help='一键修复 AutoCAD 缺失字体弹窗与映射')
     parser.add_argument('--cli', action='store_true', help='使用终端菜单模式')
     parser.add_argument('--web', action='store_true', help='启动 Web 面板（默认）')
 
@@ -412,6 +561,33 @@ def main():
     parser.add_argument('--list', action='store_true', help='(兼容) 列出我的项目')
     args = parser.parse_args()
 
+    if args.diag_e3d:
+        return _cmd_diag_e3d()
+    if args.fix_e3d:
+        return _cmd_fix_e3d()
+    if args.clean_userdata:
+        return _cmd_clean_userdata()
+    if args.fix_cad_fonts:
+        return _cmd_fix_cad_fonts()
+    if args.plugin:
+        cmd = args.plugin[0].lower()
+        rest = args.plugin[1:]
+        if cmd == 'list':
+            return _cmd_plugin_list()
+        if cmd == 'enable':
+            if not rest:
+                print('用法: --plugin enable <插件名称>')
+                return 1
+            return _cmd_plugin_enable(rest[0])
+        if cmd == 'disable':
+            if not rest:
+                print('用法: --plugin disable <插件名称>')
+                return 1
+            return _cmd_plugin_disable(rest[0])
+        if cmd == 'reindex':
+            return _cmd_plugin_reindex(rest[0] if rest else None)
+        print(f'未知 --plugin 命令: {cmd}')
+        return 1
     if args.status:
         _print_status()
         return 0

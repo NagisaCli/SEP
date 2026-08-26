@@ -11,6 +11,7 @@ import hashlib
 import locale
 import os
 import re
+import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 
@@ -117,8 +118,8 @@ def normalize_path(path):
         rest = p[6:].replace('/', '\\')
         if '\\' in rest:
             host, tail = rest.split('\\', 1)
-            return '\\\\' + host + '\\' + tail
-        return '\\\\' + rest
+            return _strip_trailing('\\\\' + host + '\\' + tail)
+        return _strip_trailing('\\\\' + rest)
 
     if low.startswith('file://'):
         rest = p[7:]
@@ -143,7 +144,13 @@ def _strip_trailing(p):
     # 盘符根目录保留尾斜杠
     if re.match(r'^[A-Za-z]:\\?$', p):
         return p.rstrip('\\') + '\\'
-    while len(p) > 1 and p.endswith('\\'):
+    # UNC 前缀 \\ 必须原样保留：继续截断会退化成本地根目录 \，
+    # 从而把网络路径误判成 local。
+    if set(p) == {'\\'}:
+        return '\\\\' if len(p) >= 2 else p
+    while len(p) > 2 and p.endswith('\\'):
+        p = p[:-1]
+    if len(p) == 2 and p.endswith('\\') and not p.startswith('\\'):
         p = p[:-1]
     return p
 
@@ -307,4 +314,58 @@ def find_e3d_lnk(preferred=''):
             continue
 
     return found_any
+
+
+def is_host_resolvable(hostname, timeout=1.5):
+    """检测主机名或 IP 是否可解析。"""
+    if not hostname:
+        return False
+    # IPv4 地址格式直接通过
+    if re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname):
+        return True
+    try:
+        return run_with_timeout(lambda: bool(socket.gethostbyname(hostname)), timeout, False)
+    except Exception:
+        return False
+
+
+def sanitize_unc_paths(text, reference_path=None):
+    r"""
+    自动检测并修复文本中无法解析的 UNC 电脑名：
+    例如当当前处于 \\192.168.2.10\000E3D31 库中，若文本中残留 \\Pc-20220629mexd\000E3D31\...
+    且 Pc-20220629mexd 无法解析时，自动替换为当前可达的 reference_path 对应主机。
+    """
+    if not text:
+        return text
+
+    unc_re = re.compile(r'\\\\([a-zA-Z0-9_\-\.]+)\\([^\r\n"\'\s,;]+)', re.IGNORECASE)
+
+    # 提取参考路径中的主机与第一级共享名
+    ref_host, ref_share = None, None
+    if reference_path:
+        norm_ref = normalize_path(reference_path)
+        m_ref = re.match(r'^\\\\([^\\]+)\\([^\\]+)', norm_ref)
+        if m_ref:
+            ref_host = m_ref.group(1)
+            ref_share = m_ref.group(2).lower()
+
+    def repl(m):
+        host = m.group(1)
+        rest = m.group(2)
+        share = rest.split('\\')[0].lower() if '\\' in rest else rest.lower()
+
+        # 如果主机名本身可解析或是有效 IP，保留原样
+        if re.match(r'^\d+\.\d+\.\d+\.\d+$', host) or is_host_resolvable(host, timeout=1.0):
+            return m.group(0)
+
+        # 如果主机名不可解析，但与当前参考路径同名共享（或参考路径存在），自动修复替换
+        if ref_host:
+            if ref_share and (share == ref_share or not rest):
+                return f'\\\\{ref_host}\\{rest}'
+            elif not ref_share:
+                return f'\\\\{ref_host}\\{rest}'
+
+        return m.group(0)
+
+    return unc_re.sub(repl, text)
 
