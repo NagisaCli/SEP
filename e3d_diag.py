@@ -515,6 +515,21 @@ def _check_path_validity(p, timeout=1.5):
     return False, '本地路径不存在（死链）'
 
 
+def _expand_evars_vars(path, projects_dir='', e3d_install_dir=''):
+    """展开路径中的 %projects_dir% / %aveva_design_exe% 等环境变量。"""
+    if not path:
+        return ''
+    res = path
+    if projects_dir:
+        p_dir = projects_dir.rstrip('\\/') + '\\'
+        res = re.sub(r'%projects_dir%\\?', p_dir, res, flags=re.IGNORECASE)
+    if e3d_install_dir:
+        i_dir = e3d_install_dir.rstrip('\\/') + '\\'
+        res = re.sub(r'%aveva_design_exe%\\?', i_dir, res, flags=re.IGNORECASE)
+        res = re.sub(r'%eveva_design_exe%\\?', i_dir, res, flags=re.IGNORECASE)
+    return os.path.expandvars(res)
+
+
 def diagnose_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=1.5, check_my_projects=None):
     """
     全面诊断 E3D 本地配置文件与运行环境：
@@ -695,9 +710,9 @@ def diagnose_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=1.5, ch
                 if not in_managed:
                     m_call = re.search(r'(?:if\s+exist\s+["\']?([^"\'\r\n]+)["\']?\s+)?call\s+["\']?([^"\'\r\n]+)["\']?', raw, re.IGNORECASE)
                     if m_call:
-                        target = m_call.group(1) or m_call.group(2)
-                        target = util.normalize_path(target.strip())
-                        if target.lower().endswith('.bat') and not any(k in target.lower() for k in ('projects.bat', 'custom_evars.bat')):
+                        raw_target = (m_call.group(1) or m_call.group(2)).strip()
+                        target = util.normalize_path(_expand_evars_vars(raw_target, projects_dir, e3d_install_dir))
+                        if target.lower().endswith('.bat') and not any(k in target.lower() for k in ('projects.bat', 'custom_evars.bat', 'avevacatalogue', 'evarsavevacatalogue.bat')):
                             ok, reason = _check_path_validity(target, timeout=timeout)
                             if not ok:
                                 if target.startswith('\\\\'):
@@ -918,8 +933,9 @@ def fix_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=2, clean_off
                 # 检查手写 call
                 m_call = re.search(r'(?:if\s+exist\s+["\']?([^"\'\r\n]+)["\']?\s+)?call\s+["\']?([^"\'\r\n]+)["\']?', raw, re.IGNORECASE)
                 if m_call and clean_offline_unc:
-                    target = util.normalize_path((m_call.group(1) or m_call.group(2)).strip())
-                    if target.lower().endswith('.bat') and not any(k in target.lower() for k in ('projects.bat', 'custom_evars.bat')):
+                    raw_target = (m_call.group(1) or m_call.group(2)).strip()
+                    target = util.normalize_path(_expand_evars_vars(raw_target, projects_dir, e3d_install_dir))
+                    if target.lower().endswith('.bat') and not any(k in target.lower() for k in ('projects.bat', 'custom_evars.bat', 'avevacatalogue', 'evarsavevacatalogue.bat')):
                         ok, _ = _check_path_validity(target, timeout=timeout)
                         if not ok:
                             new_lines.append(f'rem [SEP DISABLED - UNREACHABLE PROJECT] {line}')
