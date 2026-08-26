@@ -475,11 +475,111 @@ def _cmd_plugin_hotload():
     return 0
 
 
+def _cmd_plugin_tree(target_name=None):
+    import e3d_plugin
+    p_dir = e3d_plugin.get_plugins_dir()
+    plugins = e3d_plugin.scan_plugins(p_dir)
+    if target_name:
+        plugins = [p for p in plugins if p['name'].lower() == target_name.lower()]
+        if not plugins:
+            print(f'✗ 未找到插件: {target_name}')
+            return 1
+
+    print('=' * 72)
+    print('  SEP — E3D 插件底层文件与符号全景树')
+    print('=' * 72)
+    for p in plugins:
+        st = '✓已启用' if p['enabled'] else '○已禁用'
+        print(f"\n📦 插件 [{st}]: {p['name']} ({p['path']})")
+        # 1. Forms
+        if p.get('forms'):
+            print(f"  ├── 🖼️ PML 表单 (Forms, 共 {len(p['forms'])} 个):")
+            for f in p['forms']:
+                print(f"  │   ├── {f['file']:<24} 窗体: !!{f.get('form_name')} [{f.get('window_type')}] -> {f.get('call_cmd')} ({f['size_str']}, {f['line_count']}行)")
+        # 2. Objects
+        if p.get('objects'):
+            print(f"  ├── 🧩 PML 数据对象 (Objects, 共 {len(p['objects'])} 个):")
+            for o in p['objects']:
+                methods = ', '.join([m['name'] for m in o.get('methods', [])[:4]])
+                if len(o.get('methods', [])) > 4: methods += f"...(共{len(o.get('methods', []))}方法)"
+                print(f"  │   ├── {o['file']:<24} 对象: {o.get('object_name')} -> 方法: [{methods}] ({o['size_str']})")
+        # 3. Functions
+        if p.get('functions'):
+            print(f"  ├── ⚙️ PML 全局函数 (Functions, 共 {len(p['functions'])} 个):")
+            for fn in p['functions']:
+                print(f"  │   ├── {fn['file']:<24} 函数: !{fn.get('function_name')}({fn.get('args')}) ({fn['size_str']})")
+        # 4. Macros
+        if p.get('macros'):
+            print(f"  ├── 📜 PML 宏命令 (Macros, 共 {len(p['macros'])} 个):")
+            for m in p['macros']:
+                print(f"  │   ├── {m['file']:<24} 执行: $m {m['file']} ({m['size_str']})")
+        # 5. Assemblies
+        if p.get('assemblies'):
+            print(f"  ├── 🔌 PML.NET 程序集 (DLLs, 共 {len(p['assemblies'])} 个):")
+            for a in p['assemblies']:
+                desc = '主程序集' if not a.get('is_framework') else '依赖库'
+                print(f"  │   ├── {a['file']:<24} [{desc}] {a.get('call_cmd') or ''} ({a['size_str']})")
+        # 6. UIC
+        if p.get('uic_configs'):
+            print(f"  ├── 🎨 Ribbon 功能区定制 (UIC):")
+            for u in p['uic_configs']:
+                print(f"  │   ├── {u['file']} (定义 {len(u.get('tabs', []))} 个Tab, {len(u.get('tools', []))} 个按钮)")
+        # 7. Index status
+        if p.get('has_pmllib'):
+            idx_st = '✓ 索引同步正常' if p.get('pml_index_status') == 'ok' else f"⚠ {p.get('pml_index_status')}"
+            print(f"  ├── 🗂️ PML 索引 (pml.index): {idx_st} (收录 {p.get('pml_index_count')} 项 / 实际 {p.get('pml_index_actual_count')} 项)")
+        # 8. Diagnostics
+        if p.get('diagnostics'):
+            print(f"  └── ⚠️ 排查诊断警报:")
+            for d in p['diagnostics']:
+                print(f"      * {d}")
+    print('\n' + '=' * 72)
+    return 0
+
+
+def _cmd_plugin_conflicts():
+    import e3d_plugin
+    res = e3d_plugin.detect_global_conflicts()
+    print('=' * 72)
+    print(f"  SEP — E3D 插件全局命名与搜索遮蔽冲突检测 (已检查 {res['total_symbols_checked']} 个符号)")
+    print('=' * 72)
+    if not res['conflicts']:
+        print('  ✓ 未在已启用的插件中检测到任何重名冲突或符号遮蔽！')
+    else:
+        print(f"  ⚠ 发现 {res['conflict_count']} 处重名与符号遮蔽冲突：")
+        for c in res['conflicts']:
+            print(f"\n  [!] {c['warning']}")
+            print(f"      胜出优先加载项: 插件【{c['winner']['plugin']}】 -> {c['winner']['path']}")
+            for sh in c['shadowed']:
+                print(f"      被遮蔽忽略项:   插件【{sh['plugin']}】 -> {sh['path']}")
+    print('=' * 72)
+    return 0
+
+
+def _cmd_plugin_chain():
+    import e3d_plugin
+    res = e3d_plugin.simulate_e3d_resolution_chain()
+    print('=' * 72)
+    print('  SEP — E3D 底层环境变量加载流水线模拟')
+    print('=' * 72)
+    print(f"\n[1] PMLLIB 搜索路径链 (优先级从上至下):")
+    for i, item in enumerate(res['pmllib'], 1):
+        print(f"    {i}. [{item['plugin']}] -> {item['path']} ({'有索引' if item['has_index'] else '无索引!'})")
+    print(f"\n[2] PMLNET 程序集路径链:")
+    for i, item in enumerate(res['pmlnet'], 1):
+        print(f"    {i}. [{item['plugin']}] -> {item['path']} ({item['dll_count']} 个DLL)")
+    print(f"\n[3] PMLUI 菜单与模块重载路径链:")
+    for i, item in enumerate(res['pmlui'], 1):
+        print(f"    {i}. [{item['plugin']}] -> {item['path']}")
+    print('=' * 72)
+    return 0
+
+
 def _cmd_plugin_reindex(name=None):
     import e3d_plugin
     if name:
         p_path = os.path.join(e3d_plugin.get_plugins_dir(), name)
-        info = e3d_plugin.scan_plugin_folder(p_path)
+        info = e3d_plugin.inspect_plugin_deep(p_path)
         if not info or not info.get('has_pmllib'):
             print(f'✗ 未找到插件或无 pmllib: {name}')
             return 1
@@ -591,7 +691,7 @@ def main():
     parser.add_argument('--diag-e3d', action='store_true', help='全面诊断 E3D 配置文件与运行环境')
     parser.add_argument('--fix-e3d', action='store_true', help='一键安全修复 E3D 配置文件中的失效与阻塞项')
     parser.add_argument('--plugin', nargs='+', metavar=('CMD', 'ARG'),
-                        help='插件管理: list / enable <名称> / disable <名称> / reindex [名称]')
+                        help='插件底层管理: list / tree [名称] / inspect <名称> / conflicts / chain / enable <名称> / disable <名称> / reindex / hotload-mac')
     parser.add_argument('--clean-userdata', action='store_true', help='清理 USERDATA 临时缓存与死锁')
     parser.add_argument('--fix-cad-fonts', action='store_true', help='一键修复 AutoCAD 缺失字体弹窗与映射')
     parser.add_argument('--cli', action='store_true', help='使用终端菜单模式')
@@ -616,6 +716,17 @@ def main():
         rest = args.plugin[1:]
         if cmd == 'list':
             return _cmd_plugin_list()
+        if cmd in ('tree', 'files', 'view'):
+            return _cmd_plugin_tree(rest[0] if rest else None)
+        if cmd in ('inspect', 'detail'):
+            if not rest:
+                print('用法: --plugin inspect <插件名称>')
+                return 1
+            return _cmd_plugin_tree(rest[0])
+        if cmd in ('conflicts', 'conflict', 'check'):
+            return _cmd_plugin_conflicts()
+        if cmd in ('chain', 'evars', 'pipeline'):
+            return _cmd_plugin_chain()
         if cmd in ('enable', 'on'):
             if not rest:
                 print('用法: --plugin enable <插件名称>')
@@ -634,7 +745,7 @@ def main():
             return _cmd_plugin_hotload()
         if cmd == 'reindex':
             return _cmd_plugin_reindex(rest[0] if rest else None)
-        print(f'未知 --plugin 命令: {cmd} (可用: list, enable, disable, enable-all, disable-all, reindex, hotload-mac)')
+        print(f'未知 --plugin 命令: {cmd} (可用: list, tree [名称], inspect <名称>, conflicts, chain, enable, disable, enable-all, disable-all, reindex, hotload-mac)')
         return 1
     if args.status:
         _print_status()

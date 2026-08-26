@@ -161,6 +161,9 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/plugins/toggle': self._handle_plugins_toggle,
             '/api/plugins/toggle-all': self._handle_plugins_toggle_all,
             '/api/plugins/hotload-macro': self._handle_plugins_hotload_macro,
+            '/api/plugins/file-content': self._handle_plugins_file_content,
+            '/api/plugins/conflicts': self._handle_plugins_conflicts,
+            '/api/plugins/resolution-chain': self._handle_plugins_resolution_chain,
             '/api/plugins/reindex': self._handle_plugins_reindex,
             '/api/plugins/create': self._handle_plugins_create,
             '/api/plugins/open-dir': self._handle_plugins_open_dir,
@@ -696,6 +699,30 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'ok': True, 'path': macro_path, 'content': content})
         except Exception as e:
             self._send_json({'error': f'生成热装载宏失败: {e}'}, 500)
+
+    def _handle_plugins_file_content(self, body):
+        path = (body.get('path') or '').strip()
+        if not path:
+            return self._send_json({'error': '缺少文件路径'}, 400)
+        res = e3d_plugin.read_plugin_file_content(path)
+        if res.get('ok'):
+            self._send_json(res)
+        else:
+            self._send_json(res, 400)
+
+    def _handle_plugins_conflicts(self, body):
+        try:
+            res = e3d_plugin.detect_global_conflicts()
+            self._send_json({'ok': True, 'conflicts': res})
+        except Exception as e:
+            self._send_json({'error': f'检测冲突失败: {e}'}, 500)
+
+    def _handle_plugins_resolution_chain(self, body):
+        try:
+            res = e3d_plugin.simulate_e3d_resolution_chain()
+            self._send_json({'ok': True, 'resolution': res})
+        except Exception as e:
+            self._send_json({'error': f'模拟寻址链失败: {e}'}, 500)
 
     def _handle_plugins_reindex(self, body):
         name = (body.get('name') or '').strip()

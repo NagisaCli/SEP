@@ -718,15 +718,18 @@ input:checked + .slider:before {
         <span class="badge" style="font-size:12px;padding:4px 12px;background:rgba(255,255,255,0.06);color:var(--text-pure)">
           插件目录: <code id="plg-root-path" style="margin-left:6px;color:#58a6ff;font-family:var(--font-mono)">D:\AVEVA\Plugins</code>
         </span>
+        <input type="text" id="plg-search-input" placeholder="🔍 实时搜索表单、对象、函数或文件名…" oninput="filterPluginsList(this.value)" style="width:260px;font-size:12px;padding:5px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff">
         <button class="btn btn-ghost btn-sm" onclick="openPluginsDir()">📂 打开目录</button>
         <button class="btn btn-ghost btn-sm" onclick="loadPlugins()">⟳ 刷新扫描</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="toggleAllPlugins(true)" title="一键全部启用">✓ 全部启用</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleAllPlugins(false)" title="一键全部禁用">○ 全部禁用</button>
-        <button class="btn btn-ghost btn-sm" onclick="showHotloadModal()" title="查看并生成 E3D 命令行热装载宏" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">🔥 运行时热装载宏</button>
+        <button class="btn btn-ghost btn-sm" onclick="showConflictsModal()" title="检查全局同名表单/对象遮蔽冲突" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">🔍 冲突检测</button>
+        <button class="btn btn-ghost btn-sm" onclick="showChainModal()" title="查看 E3D 实际接收的环境变量搜索链" style="color:#34d399;border-color:rgba(52,211,153,0.3)">🚦 寻址流水线</button>
+        <button class="btn btn-ghost btn-sm" onclick="showHotloadModal()" title="查看并生成 E3D 命令行热装载宏" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">🔥 热装载宏</button>
         <button class="btn btn-ghost btn-sm" onclick="reindexAllPlugins()" title="为所有包含 pmllib 的插件自动生成 pml.index">⚡ 重建 PML 索引</button>
-        <button class="btn btn-primary btn-sm" onclick="openPluginCreateModal()">+ 新建插件骨架</button>
+        <button class="btn btn-primary btn-sm" onclick="openPluginCreateModal()">+ 新建插件</button>
       </div>
     </div>
     <div class="projects-container" id="plg-list"><div class="empty-state"><span class="spinner"></span>正在扫描插件目录…</div></div>
@@ -1001,6 +1004,63 @@ input:checked + .slider:before {
       <button class="btn btn-ghost" onclick="closeModal('modal-plugin-create')">取消</button>
       <button class="btn btn-primary" onclick="submitCreatePlugin()">立即创建</button>
     </div>
+  </div>
+</div>
+
+<!-- 插件文件源码与符号详情弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-file-viewer" hidden>
+  <div class="modal-box" style="max-width:850px">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="pfv-icon" style="font-size:18px">📄</span>
+        <div>
+          <h3 id="pfv-title" style="margin:0;font-size:16px">文件源码查看</h3>
+          <div id="pfv-path" style="font-size:11px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-plugin-file-viewer')">×</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="badge" id="pfv-badge-cat" style="background:rgba(255,255,255,0.06);color:var(--text-pure)">类型</span>
+      <span class="badge" id="pfv-badge-size" style="background:rgba(255,255,255,0.06);color:var(--text-dim)">0 KB</span>
+      <span class="badge" id="pfv-badge-lines" style="background:rgba(255,255,255,0.06);color:var(--text-dim)">0 行</span>
+      <div id="pfv-symbols-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto"></div>
+    </div>
+    <div style="position:relative">
+      <textarea id="pfv-content" readonly style="width:100%;height:380px;font-family:var(--font-mono);font-size:12px;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:12px;line-height:1.5;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="copyPfvContent()">📋 复制全部源码</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-plugin-file-viewer')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 全局冲突与遮蔽检测弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-conflicts" hidden>
+  <div class="modal-box modal-box-wide">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🔍</span>
+        <h3>E3D 插件全局命名与搜索遮蔽冲突检测</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-plugin-conflicts')">×</button>
+    </div>
+    <div id="plg-conflicts-body"><div class="empty-state"><span class="spinner"></span>正在分析全局符号树…</div></div>
+  </div>
+</div>
+
+<!-- E3D 底层寻址流水线模拟弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-chain" hidden>
+  <div class="modal-box modal-box-wide">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🚦</span>
+        <h3>E3D 底层环境变量与寻址流水线模拟</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-plugin-chain')">×</button>
+    </div>
+    <div id="plg-chain-body"><div class="empty-state"><span class="spinner"></span>正在计算环境变量加载堆栈…</div></div>
   </div>
 </div>
 
@@ -1853,12 +1913,15 @@ async function applyFix(fixId, path){
 function openModal(id){ document.getElementById(id).hidden = false; }
 function closeModal(id){ document.getElementById(id).hidden = true; }
 
-// ==================== 插件管理 (Plugins) ====================
+// ==================== 插件管理 (Plugins & Deep Inspection) ====================
 let pluginsData = [];
+let pluginFilterKeyword = '';
+let pluginExpandedMap = {};
 let currentHotloadMacro = {path: '', content: ''};
+let currentViewingFileContent = '';
 
 async function loadPlugins(silent){
-  if(!silent) toast('正在扫描插件目录…', true);
+  if(!silent) toast('正在扫描插件目录与底层文件…', true);
   const res = await api('/api/plugins/list');
   if(res.error){
     if(!silent) document.getElementById('plg-list').innerHTML = `<div class="empty-state">加载插件失败: ${esc(res.error)}</div>`;
@@ -1872,81 +1935,329 @@ async function loadPlugins(silent){
   renderPluginsList();
 }
 
+function filterPluginsList(kw){
+  pluginFilterKeyword = (kw || '').trim().toLowerCase();
+  renderPluginsList();
+}
+
+function togglePluginDetail(name){
+  pluginExpandedMap[name] = !pluginExpandedMap[name];
+  renderPluginsList();
+}
+
 function renderPluginsList(){
   const box = document.getElementById('plg-list');
   if(!box) return;
-  if(!pluginsData.length){
+
+  let list = pluginsData;
+  if(pluginFilterKeyword){
+    const kw = pluginFilterKeyword;
+    list = list.filter(p => {
+      if(p.name.toLowerCase().includes(kw)) return true;
+      if((p.forms||[]).some(f => f.file.toLowerCase().includes(kw) || (f.form_name||'').toLowerCase().includes(kw))) return true;
+      if((p.objects||[]).some(o => o.file.toLowerCase().includes(kw) || (o.object_name||'').toLowerCase().includes(kw))) return true;
+      if((p.functions||[]).some(fn => fn.file.toLowerCase().includes(kw) || (fn.function_name||'').toLowerCase().includes(kw))) return true;
+      if((p.macros||[]).some(m => m.file.toLowerCase().includes(kw))) return true;
+      if((p.assemblies||[]).some(a => a.file.toLowerCase().includes(kw))) return true;
+      return false;
+    });
+  }
+
+  if(!list.length){
     box.innerHTML = `
       <div class="empty-state">
-        <div style="font-size:15px;color:#fff;margin-bottom:8px">未在插件根目录下检测到插件</div>
-        <div>请点击上方“新建插件骨架”或将插件文件夹放置在 <code>${esc(document.getElementById('plg-root-path') ? document.getElementById('plg-root-path').textContent : 'D:\\AVEVA\\Plugins')}</code></div>
+        <div style="font-size:15px;color:#fff;margin-bottom:8px">${pluginFilterKeyword ? '未找到符合条件的插件或文件' : '未在插件根目录下检测到插件'}</div>
+        <div>请点击上方“新建插件”或将插件放置在 <code>${esc(document.getElementById('plg-root-path') ? document.getElementById('plg-root-path').textContent : 'D:\\AVEVA\\Plugins')}</code></div>
       </div>
     `;
     return;
   }
 
-  box.innerHTML = pluginsData.map(p => {
+  box.innerHTML = list.map(p => {
     const isEnabled = p.enabled;
+    const isExpanded = !!pluginExpandedMap[p.name];
+
+    // 能力组件标签
     const comps = [];
     if(p.has_pmllib){
       const details = [];
-      if(p.forms_count) details.push(`${p.forms_count}表单`);
-      if(p.objects_count) details.push(`${p.objects_count}对象`);
-      if(p.functions_count) details.push(`${p.functions_count}函数`);
-      if(p.macros_count) details.push(`${p.macros_count}宏`);
-      const cntStr = details.length ? details.join('+') : `${p.pml_files_count}文件`;
-      comps.push(`<span class="tag-pill" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">PMLLIB (${cntStr}${p.has_pml_index ? '' : ' · <span style="color:#f43f5e">缺索引</span>'})</span>`);
+      if((p.forms||[]).length) details.push(`${p.forms.length}表单`);
+      if((p.objects||[]).length) details.push(`${p.objects.length}对象`);
+      if((p.functions||[]).length) details.push(`${p.functions.length}函数`);
+      if((p.macros||[]).length) details.push(`${p.macros.length}宏`);
+      const cntStr = details.length ? details.join('+') : `${p.pml_index_actual_count||0}文件`;
+      const idxBadge = p.pml_index_status === 'ok' ? '' : ` · <span style="color:#f43f5e">${p.pml_index_status==='missing'?'缺索引':'索引过期'}</span>`;
+      comps.push(`<span class="tag-pill" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">PMLLIB (${cntStr}${idxBadge})</span>`);
     }
     if(p.has_pmlnet){
-      comps.push(`<span class="tag-pill" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">PML.NET (${(p.dll_files||[]).length} DLL)</span>`);
+      comps.push(`<span class="tag-pill" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">PML.NET (${(p.assemblies||[]).length} DLL)</span>`);
     }
     if(p.has_pmlui){
       comps.push(`<span class="tag-pill" style="color:#34d399;border-color:rgba(52,211,153,0.3)">PMLUI (自定义菜单)</span>`);
     }
-    if(p.has_uic){
-      comps.push(`<span class="tag-pill" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">UIC (Ribbon定制)</span>`);
+    if(p.uic_configs && p.uic_configs.length){
+      comps.push(`<span class="tag-pill" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">UIC (${p.uic_configs.length} 功能区定制)</span>`);
     }
     if(p.has_dflts){
       comps.push(`<span class="tag-pill" style="color:#fb923c;border-color:rgba(251,146,60,0.3)">DFLTS</span>`);
     }
-    if(p.doc_file){
-      comps.push(`<span class="tag-pill" style="color:#94a3b8">📄 ${esc(p.doc_file)}</span>`);
+    if(p.doc_files && p.doc_files.length){
+      comps.push(`<span class="tag-pill" style="color:#94a3b8" onclick="viewPluginFile('${esc(p.doc_files[0].path)}')" title="点击查看说明文档">📄 ${esc(p.doc_files[0].file)}</span>`);
     }
 
+    // 快捷入口命令按钮
     const cmdPills = (p.entry_commands || []).map(cmd => `
       <button class="badge" onclick="copyPluginCmd('${esc(cmd)}')" title="点击复制执行命令" style="cursor:pointer;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);font-family:var(--font-mono);font-size:11px;padding:3px 8px">
         ⚡ ${esc(cmd)} <span style="opacity:0.6;font-size:10px">📋</span>
       </button>
     `).join('');
 
-    return `
-      <div class="project-card ${isEnabled ? 'is-favorite' : ''}" style="--card-accent:${isEnabled ? '#10b981' : '#64748b'}">
-        <div class="project-avatar" style="--avatar-bg:${isEnabled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #475569, #334155)'}">
-          ${esc(getAcronym(p.name))}
-        </div>
-        <div class="project-details">
-          <div class="project-title-row">
-            <span class="project-name">${esc(p.name)}</span>
-            <span class="badge" style="${isEnabled ? 'background:var(--emerald-surface);color:#34d399' : 'background:rgba(255,255,255,0.05);color:var(--text-dim)'}">
-              <span class="badge-dot" style="background:${isEnabled ? '#10b981' : '#64748b'}"></span>${isEnabled ? '已启用加载' : '已禁用'}
-            </span>
-          </div>
-          <div class="project-path"><code>${esc(p.path)}</code></div>
-          <div class="project-meta-row" style="margin-top:8px">${comps.join('')}</div>
-          ${cmdPills ? `
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">
-              <span style="font-size:11px;color:var(--text-dim)">入口指令:</span>
-              ${cmdPills}
+    // 构建展开的底层文件明细 HTML
+    let detailHtml = '';
+    if(isExpanded){
+      const sections = [];
+
+      // 1. 表单 Forms
+      if(p.forms && p.forms.length){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#c084fc;margin-bottom:6px">🖼️ PML 表单 (Forms, 共 ${p.forms.length} 个)</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+                <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+                  <th style="padding:6px 10px">文件名称</th><th style="padding:6px 10px">窗体名称</th><th style="padding:6px 10px">标题/类型</th><th style="padding:6px 10px">调用指令</th><th style="padding:6px 10px">行数/大小</th><th style="padding:6px 10px;text-align:right">操作</th>
+                </tr></thead>
+                <tbody>
+                  ${p.forms.map(f => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                      <td style="padding:6px 10px;font-family:var(--font-mono);color:#fff">${esc(f.file)}</td>
+                      <td style="padding:6px 10px;color:#58a6ff;font-weight:600">!!${esc(f.form_name)}</td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${esc(f.title || f.window_type || 'standard')}</td>
+                      <td style="padding:6px 10px"><code style="color:#34d399;font-family:var(--font-mono)">${esc(f.call_cmd)}</code></td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${f.line_count}行 / ${f.size_str}</td>
+                      <td style="padding:6px 10px;text-align:right">
+                        <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('${esc(f.call_cmd)}')">复制指令</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(f.path)}')">查看源码</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
             </div>
-          ` : ''}
+          </div>
+        `);
+      }
+
+      // 2. 数据对象 Objects
+      if(p.objects && p.objects.length){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#38bdf8;margin-bottom:6px">🧩 PML 数据对象 (Objects, 共 ${p.objects.length} 个)</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+                <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+                  <th style="padding:6px 10px">文件名称</th><th style="padding:6px 10px">对象名称</th><th style="padding:6px 10px">内置方法与函数</th><th style="padding:6px 10px">大小</th><th style="padding:6px 10px;text-align:right">操作</th>
+                </tr></thead>
+                <tbody>
+                  ${p.objects.map(o => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                      <td style="padding:6px 10px;font-family:var(--font-mono);color:#fff">${esc(o.file)}</td>
+                      <td style="padding:6px 10px;color:#38bdf8;font-weight:600">${esc(o.object_name)}</td>
+                      <td style="padding:6px 10px">
+                        ${(o.methods||[]).slice(0, 6).map(m => `<span class="badge" style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;margin:2px;background:rgba(56,189,248,0.1);color:#38bdf8">${esc(m.name)}()</span>`).join('')}
+                        ${(o.methods||[]).length > 6 ? `<span style="color:var(--text-dim);font-size:10px">...共${o.methods.length}个</span>` : ''}
+                      </td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${o.size_str}</td>
+                      <td style="padding:6px 10px;text-align:right">
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(o.path)}')">查看源码</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `);
+      }
+
+      // 3. 全局函数 Functions
+      if(p.functions && p.functions.length){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#34d399;margin-bottom:6px">⚙️ PML 全局函数 (Functions, 共 ${p.functions.length} 个)</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+                <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+                  <th style="padding:6px 10px">文件名称</th><th style="padding:6px 10px">函数调用签名</th><th style="padding:6px 10px">大小</th><th style="padding:6px 10px;text-align:right">操作</th>
+                </tr></thead>
+                <tbody>
+                  ${p.functions.map(fn => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                      <td style="padding:6px 10px;font-family:var(--font-mono);color:#fff">${esc(fn.file)}</td>
+                      <td style="padding:6px 10px"><code style="color:#34d399;font-family:var(--font-mono)">!${esc(fn.function_name)}(${esc(fn.args||'')})</code></td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${fn.size_str}</td>
+                      <td style="padding:6px 10px;text-align:right">
+                        <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('${esc(fn.call_cmd)}')">复制指令</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(fn.path)}')">查看源码</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `);
+      }
+
+      // 4. 宏命令 Macros
+      if(p.macros && p.macros.length){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#fbbf24;margin-bottom:6px">📜 PML 宏命令脚本 (Macros, 共 ${p.macros.length} 个)</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+                <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+                  <th style="padding:6px 10px">宏文件</th><th style="padding:6px 10px">E3D 命令行快捷调用</th><th style="padding:6px 10px">大小</th><th style="padding:6px 10px;text-align:right">操作</th>
+                </tr></thead>
+                <tbody>
+                  ${p.macros.map(m => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                      <td style="padding:6px 10px;font-family:var(--font-mono);color:#fff">${esc(m.file)}</td>
+                      <td style="padding:6px 10px"><code style="color:#fbbf24;font-family:var(--font-mono)">$m ${esc(m.file)}</code></td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${m.size_str}</td>
+                      <td style="padding:6px 10px;text-align:right">
+                        <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('$m ${esc(m.path)}')">复制绝对路径</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(m.path)}')">查看内容</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `);
+      }
+
+      // 5. PML.NET Assemblies
+      if(p.assemblies && p.assemblies.length){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#38bdf8;margin-bottom:6px">🔌 PML.NET 程序集 (DLLs, 共 ${p.assemblies.length} 个)</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+              <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+                <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+                  <th style="padding:6px 10px">DLL 文件</th><th style="padding:6px 10px">程序集名称</th><th style="padding:6px 10px">类型</th><th style="padding:6px 10px">PML 导入命令</th><th style="padding:6px 10px">大小</th>
+                </tr></thead>
+                <tbody>
+                  ${p.assemblies.map(a => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                      <td style="padding:6px 10px;font-family:var(--font-mono);color:#fff">${esc(a.file)}</td>
+                      <td style="padding:6px 10px;color:#38bdf8;font-weight:600">${esc(a.assembly_name)}</td>
+                      <td style="padding:6px 10px"><span class="badge" style="font-size:10px">${a.is_framework ? '运行时依赖' : '主插件程序集'}</span></td>
+                      <td style="padding:6px 10px">${a.call_cmd ? `<code style="color:#58a6ff">${esc(a.call_cmd)}</code>` : '<span style="color:var(--text-dim)">-</span>'}</td>
+                      <td style="padding:6px 10px;color:var(--text-dim)">${a.size_str}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `);
+      }
+
+      // 6. UIC & PMLUI
+      if((p.uic_configs && p.uic_configs.length) || (p.pmlui_scripts && p.pmlui_scripts.length)){
+        sections.push(`
+          <div style="margin-bottom:14px">
+            <div style="font-weight:600;font-size:12px;color:#fb923c;margin-bottom:6px">🎨 Ribbon 界面与 PMLUI 菜单重载</div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 14px;font-size:12px">
+              ${(p.uic_configs||[]).map(u => `
+                <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+                  <div><strong>${esc(u.file)}</strong>: 定义 ${(u.tabs||[]).length} 个选项卡, ${(u.tools||[]).length} 个功能按钮</div>
+                  <button class="btn btn-ghost btn-sm" onclick="viewPluginFile('${esc(u.path)}')">查看 XML</button>
+                </div>
+              `).join('')}
+              ${(p.pmlui_scripts||[]).map(s => `
+                <div style="color:var(--text-dim);font-family:var(--font-mono);font-size:11px">📁 菜单重载: ${esc(s.file)}</div>
+              `).join('')}
+            </div>
+          </div>
+        `);
+      }
+
+      // 7. pml.index 状态
+      if(p.has_pmllib){
+        const isOk = p.pml_index_status === 'ok';
+        sections.push(`
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid #30363d;border-radius:6px;padding:8px 12px;margin-top:10px">
+            <div style="font-size:12px">
+              <span style="font-weight:600">🗂️ pml.index 索引状态:</span>
+              <span class="badge" style="margin-left:6px;${isOk ? 'background:var(--emerald-surface);color:#34d399' : 'background:rgba(244,63,94,0.15);color:#f43f5e'}">
+                ${isOk ? `✓ 索引正常 (收录 ${p.pml_index_count} 项 / 实际 ${p.pml_index_actual_count} 项)` : `⚠ 索引状态: ${p.pml_index_status}`}
+              </span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="reindexPlugin('${esc(p.name)}')">⚡ 重建此索引</button>
+          </div>
+        `);
+      }
+
+      // 8. 诊断提示
+      if(p.diagnostics && p.diagnostics.length){
+        sections.push(`
+          <div style="background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.3);border-radius:6px;padding:8px 12px;margin-top:10px;font-size:12px;color:#fca5a5">
+            <strong>⚠️ 诊断与排查警报:</strong>
+            <ul style="margin:4px 0 0 18px;padding:0">
+              ${p.diagnostics.map(d => `<li>${esc(d)}</li>`).join('')}
+            </ul>
+          </div>
+        `);
+      }
+
+      detailHtml = `
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">
+          ${sections.join('')}
         </div>
-        <div class="project-actions" style="align-items:center;gap:12px">
-          ${p.has_pmllib ? `<button class="btn btn-ghost btn-sm" onclick="reindexPlugin('${esc(p.name)}')" title="遍历生成标准 pml.index">⚡ 重建索引</button>` : ''}
-          <label class="switch" title="启用 / 禁用该插件">
-            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="togglePlugin('${esc(p.name)}', this.checked)">
-            <span class="slider"></span>
-          </label>
+      `;
+    }
+
+    return `
+      <div class="project-card ${isEnabled ? 'is-favorite' : ''}" style="--card-accent:${isEnabled ? '#10b981' : '#64748b'};display:block">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="project-avatar" style="--avatar-bg:${isEnabled ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #475569, #334155)'}">
+              ${esc(getAcronym(p.name))}
+            </div>
+            <div>
+              <div class="project-title-row">
+                <span class="project-name">${esc(p.name)}</span>
+                <span class="badge" style="${isEnabled ? 'background:var(--emerald-surface);color:#34d399' : 'background:rgba(255,255,255,0.05);color:var(--text-dim)'}">
+                  <span class="badge-dot" style="background:${isEnabled ? '#10b981' : '#64748b'}"></span>${isEnabled ? '已启用加载' : '已禁用'}
+                </span>
+              </div>
+              <div class="project-path"><code>${esc(p.path)}</code></div>
+            </div>
+          </div>
+          <div class="project-actions" style="align-items:center;gap:10px">
+            <button class="btn btn-ghost btn-sm" onclick="togglePluginDetail('${esc(p.name)}')" title="展开或收起底层文件与符号明细">
+              ${isExpanded ? '▲ 收起明细' : '▼ 查看底层文件明细'}
+            </button>
+            <label class="switch" title="启用 / 禁用该插件">
+              <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="togglePlugin('${esc(p.name)}', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
+
+        <div class="project-meta-row" style="margin-top:10px">${comps.join('')}</div>
+
+        ${cmdPills ? `
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">
+            <span style="font-size:11px;color:var(--text-dim)">入口指令:</span>
+            ${cmdPills}
+          </div>
+        ` : ''}
+
+        ${detailHtml}
       </div>
     `;
   }).join('');
@@ -1958,6 +2269,148 @@ function copyPluginCmd(cmd){
   }).catch(() => {
     prompt('请复制指令:', cmd);
   });
+}
+
+async function viewPluginFile(filePath){
+  toast('正在读取文件与符号…', true);
+  const res = await api('/api/plugins/file-content', {path: filePath});
+  if(res.error){ toast('读取失败: ' + res.error, false); return; }
+
+  const meta = res.meta || {};
+  document.getElementById('pfv-title').textContent = meta.file || '文件详情';
+  document.getElementById('pfv-path').textContent = meta.path || '';
+  document.getElementById('pfv-badge-cat').textContent = meta.category || '文件';
+  document.getElementById('pfv-badge-size').textContent = meta.size_str || '';
+  document.getElementById('pfv-badge-lines').textContent = (meta.line_count || 0) + ' 行';
+
+  const symBox = document.getElementById('pfv-symbols-bar');
+  if(symBox){
+    const syms = meta.symbols || [];
+    symBox.innerHTML = syms.map(s => `<span class="badge" style="font-size:10px;background:rgba(56,189,248,0.12);color:#38bdf8;font-family:var(--font-mono)">${esc(s)}</span>`).join('');
+  }
+
+  currentViewingFileContent = res.content || '';
+  document.getElementById('pfv-content').value = currentViewingFileContent;
+  openModal('modal-plugin-file-viewer');
+}
+
+function copyPfvContent(){
+  navigator.clipboard.writeText(currentViewingFileContent).then(() => {
+    toast('✓ 已复制全部源码到剪贴板', true);
+  }).catch(() => {
+    prompt('请复制源码:', currentViewingFileContent);
+  });
+}
+
+async function showConflictsModal(){
+  openModal('modal-plugin-conflicts');
+  document.getElementById('plg-conflicts-body').innerHTML = '<div class="empty-state"><span class="spinner"></span>正在进行全局符号重名与遮蔽检测…</div>';
+  const res = await api('/api/plugins/conflicts', {});
+  if(res.error){
+    document.getElementById('plg-conflicts-body').innerHTML = `<div class="empty-state">检测失败: ${esc(res.error)}</div>`;
+    return;
+  }
+  const cData = res.conflicts || {};
+  if(!cData.conflicts || !cData.conflicts.length){
+    document.getElementById('plg-conflicts-body').innerHTML = `
+      <div style="text-align:center;padding:30px 20px">
+        <div style="font-size:36px;margin-bottom:12px">✅</div>
+        <div style="font-size:16px;font-weight:600;color:#34d399;margin-bottom:8px">未检测到任何符号冲突或遮蔽</div>
+        <div style="color:var(--text-dim);font-size:13px">已检查 ${cData.total_symbols_checked||0} 个 PML 表单、对象、函数与 DLL 符号，全部命名唯一，E3D 可安全寻址加载！</div>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById('plg-conflicts-body').innerHTML = `
+    <div style="margin-bottom:14px;color:#fca5a5;font-size:13px">
+      ⚠️ 检测到 <strong>${cData.conflict_count}</strong> 处重名遮蔽冲突。在 E3D 搜索链中，排名靠前的库会抢先命中，导致后续同名文件被完全忽略：
+    </div>
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+      <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
+        <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
+          <th style="padding:8px 12px">冲突符号</th><th style="padding:8px 12px">类型</th><th style="padding:8px 12px">E3D 实际胜出加载项 (优先)</th><th style="padding:8px 12px">被遮蔽忽略项 (失效)</th>
+        </tr></thead>
+        <tbody>
+          ${cData.conflicts.map(c => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:8px 12px;font-family:var(--font-mono);font-weight:600;color:#f87171">${esc(c.symbol)}</td>
+              <td style="padding:8px 12px"><span class="badge" style="font-size:10px">${esc(c.type)}</span></td>
+              <td style="padding:8px 12px;color:#34d399">
+                <strong>【${esc(c.winner.plugin)}】</strong> ${esc(c.winner.file)}
+              </td>
+              <td style="padding:8px 12px;color:#fca5a5">
+                ${c.shadowed.map(s => `<div><strong>【${esc(s.plugin)}】</strong> ${esc(s.file)}</div>`).join('')}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function showChainModal(){
+  openModal('modal-plugin-chain');
+  document.getElementById('plg-chain-body').innerHTML = '<div class="empty-state"><span class="spinner"></span>正在模拟计算环境变量流水线…</div>';
+  const res = await api('/api/plugins/resolution-chain', {});
+  if(res.error){
+    document.getElementById('plg-chain-body').innerHTML = `<div class="empty-state">模拟失败: ${esc(res.error)}</div>`;
+    return;
+  }
+  const r = res.resolution || {};
+  document.getElementById('plg-chain-body').innerHTML = `
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px">
+      当前已启用 <strong>${r.enabled_plugins_count||0}</strong> / ${r.total_plugins_count||0} 个插件。以下展示 E3D 启动与运行时实际接收的环境变量解析栈：
+    </div>
+
+    <!-- 1. PMLLIB -->
+    <div style="margin-bottom:18px">
+      <div style="font-weight:600;color:#c084fc;margin-bottom:8px">1. %PMLLIB% 搜索路径链 (优先级从上至下)</div>
+      <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 14px">
+        ${(r.pmllib||[]).length ? r.pmllib.map((item, idx) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+            <div>
+              <span class="badge" style="font-size:10px;margin-right:6px">优先级 ${idx+1}</span>
+              <strong>【${esc(item.plugin)}】</strong> <code style="color:#58a6ff">${esc(item.path)}</code>
+            </div>
+            <span class="badge" style="font-size:10px;${item.has_index ? 'background:var(--emerald-surface);color:#34d399' : 'background:rgba(244,63,94,0.15);color:#f43f5e'}">
+              ${item.has_index ? '✓ 有索引' : '⚠ 缺索引'}
+            </span>
+          </div>
+        `).join('') : '<div style="color:var(--text-dim);font-size:12px">暂无启用的 PMLLIB 路径</div>'}
+      </div>
+    </div>
+
+    <!-- 2. PMLNET -->
+    <div style="margin-bottom:18px">
+      <div style="font-weight:600;color:#38bdf8;margin-bottom:8px">2. %PMLNET% C# 程序集路径链</div>
+      <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 14px">
+        ${(r.pmlnet||[]).length ? r.pmlnet.map((item, idx) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+            <div>
+              <span class="badge" style="font-size:10px;margin-right:6px">序号 ${idx+1}</span>
+              <strong>【${esc(item.plugin)}】</strong> <code style="color:#38bdf8">${esc(item.path)}</code>
+            </div>
+            <span class="badge" style="font-size:10px">${item.dll_count} 个 DLL</span>
+          </div>
+        `).join('') : '<div style="color:var(--text-dim);font-size:12px">暂无启用的 PMLNET 路径</div>'}
+      </div>
+    </div>
+
+    <!-- 3. PMLUI -->
+    <div>
+      <div style="font-weight:600;color:#34d399;margin-bottom:8px">3. %PMLUI% 界面与模块重载路径链</div>
+      <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 14px">
+        ${(r.pmlui||[]).length ? r.pmlui.map((item, idx) => `
+          <div style="padding:4px 0;font-size:12px">
+            <span class="badge" style="font-size:10px;margin-right:6px">序号 ${idx+1}</span>
+            <strong>【${esc(item.plugin)}】</strong> <code style="color:#34d399">${esc(item.path)}</code>
+          </div>
+        `).join('') : '<div style="color:var(--text-dim);font-size:12px">暂无启用的 PMLUI 重载路径</div>'}
+      </div>
+    </div>
+  `;
 }
 
 async function togglePlugin(name, enabled){
