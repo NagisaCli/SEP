@@ -661,6 +661,18 @@ def diagnose_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=1.5, ch
                     })
                     continue
 
+                # 检查带引号的 set 赋值语法（AVEVA E3D 自研 evars 解析器不支持 set "var=val"）
+                m_quoted_set = re.match(r'^\s*set\s+"([^"]*)"', raw, re.IGNORECASE)
+                if m_quoted_set:
+                    custom_invalid_lines.append({
+                        'line_num': idx,
+                        'raw_line': raw,
+                        'path': '',
+                        'reason': 'AVEVA E3D 启动解析器不支持带双引号的 set "变量=值" 语法（报 Invalid syntax）',
+                        'in_managed': in_managed,
+                    })
+                    continue
+
                 # 检查未定义变量的 if not exist / if exist (如 if not exist "%mms_installed_dir%")
                 m_if_var = re.search(r'if\s+(?:not\s+)?exist\s+"%([^%]+)%"', raw, re.IGNORECASE)
                 if m_if_var:
@@ -910,6 +922,15 @@ def fix_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=2, clean_off
                         changes.append(f'custom_evars.bat: 注释未定义变量条件行 -> {raw}')
                         modified = True
                         continue
+
+                # 检查带双引号的 set 语法（自动修复去除双引号）
+                m_quoted_set = re.match(r'^\s*set\s+"([^"]*)"', raw, re.IGNORECASE)
+                if m_quoted_set:
+                    unquoted = f'set {m_quoted_set.group(1)}'
+                    new_lines.append(unquoted)
+                    changes.append(f'custom_evars.bat: 修复双引号 set 语法 -> {unquoted}')
+                    modified = True
+                    continue
 
                 # 检查 set
                 paths = _extract_paths_from_set_line(raw)
