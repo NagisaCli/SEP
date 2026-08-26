@@ -397,10 +397,10 @@ def _cmd_plugin_list():
     import e3d_plugin
     p_dir = e3d_plugin.get_plugins_dir()
     plugins = e3d_plugin.scan_plugins(p_dir)
-    print('=' * 62)
+    print('=' * 66)
     print('  SEP — E3D 插件管理器')
     print(f'  插件目录: {p_dir}')
-    print('=' * 62)
+    print('=' * 66)
     if not plugins:
         print('  未在插件目录下发现任何插件子文件夹。')
         return 0
@@ -408,14 +408,31 @@ def _cmd_plugin_list():
         status = '✓ 已启用' if p['enabled'] else '○ 已禁用'
         comps = []
         if p['has_pmllib']:
-            comps.append(f"PMLLIB({p['pml_files_count']}个文件{'[有索引]' if p['has_pml_index'] else '[无索引]'})")
+            pml_details = []
+            if p.get('forms_count'): pml_details.append(f"{p['forms_count']}表单")
+            if p.get('objects_count'): pml_details.append(f"{p['objects_count']}对象")
+            if p.get('functions_count'): pml_details.append(f"{p['functions_count']}函数")
+            if p.get('macros_count'): pml_details.append(f"{p['macros_count']}宏")
+            cnt_str = '+'.join(pml_details) if pml_details else f"{p['pml_files_count']}个文件"
+            comps.append(f"PMLLIB({cnt_str}{', 有索引' if p['has_pml_index'] else ', 无索引!'})")
         if p['has_pmlnet']:
             comps.append(f"PML.NET({len(p['dll_files'])}个DLL)")
         if p['has_pmlui']:
-            comps.append('PMLUI')
+            comps.append('PMLUI(自定义菜单)')
+        if p.get('has_uic'):
+            comps.append(f"UIC({', '.join(p['uic_files'])})")
         if p['has_dflts']:
             comps.append('DFLTS')
-        print(f"  [{status}] {p['name']:<18} 组件: {', '.join(comps) if comps else '基础插件'}")
+        if p.get('doc_file'):
+            comps.append(f"📄{p['doc_file']}")
+
+        print(f"\n  [{status}] {p['name']}")
+        print(f"      能力组件: {', '.join(comps) if comps else '基础插件'}")
+        if p.get('entry_commands'):
+            print(f"      入口指令: {', '.join(p['entry_commands'])}")
+        if p.get('hotload_cmds'):
+            print(f"      热加载:   { ' ; '.join(p['hotload_cmds']) }")
+    print('\n' + '=' * 66)
     return 0
 
 
@@ -430,6 +447,31 @@ def _cmd_plugin_disable(name):
     import e3d_plugin
     e3d_plugin.set_plugin_enabled(name, False)
     print(f'○ 已禁用插件: {name}')
+    return 0
+
+
+def _cmd_plugin_enable_all():
+    import e3d_plugin
+    target = e3d_plugin.set_all_plugins_enabled(True)
+    print(f'✓ 已一键启用全部 {len(target)} 个插件: {", ".join(target)}')
+    return 0
+
+
+def _cmd_plugin_disable_all():
+    import e3d_plugin
+    e3d_plugin.set_all_plugins_enabled(False)
+    print('○ 已一键禁用全部插件')
+    return 0
+
+
+def _cmd_plugin_hotload():
+    import e3d_plugin
+    path, content = e3d_plugin.generate_hotload_macro()
+    print('=' * 66)
+    print(f'  ✓ 成功生成 E3D 运行时热装载宏: {path}')
+    print('  在已运行的 E3D 命令行输入以下指令即可即时载入全部启用插件：')
+    print(f'  $m {path}')
+    print('=' * 66)
     return 0
 
 
@@ -574,19 +616,25 @@ def main():
         rest = args.plugin[1:]
         if cmd == 'list':
             return _cmd_plugin_list()
-        if cmd == 'enable':
+        if cmd in ('enable', 'on'):
             if not rest:
                 print('用法: --plugin enable <插件名称>')
                 return 1
             return _cmd_plugin_enable(rest[0])
-        if cmd == 'disable':
+        if cmd in ('disable', 'off'):
             if not rest:
                 print('用法: --plugin disable <插件名称>')
                 return 1
             return _cmd_plugin_disable(rest[0])
+        if cmd in ('enable-all', 'all-on'):
+            return _cmd_plugin_enable_all()
+        if cmd in ('disable-all', 'all-off'):
+            return _cmd_plugin_disable_all()
+        if cmd in ('hotload-mac', 'macro', 'mac'):
+            return _cmd_plugin_hotload()
         if cmd == 'reindex':
             return _cmd_plugin_reindex(rest[0] if rest else None)
-        print(f'未知 --plugin 命令: {cmd}')
+        print(f'未知 --plugin 命令: {cmd} (可用: list, enable, disable, enable-all, disable-all, reindex, hotload-mac)')
         return 1
     if args.status:
         _print_status()

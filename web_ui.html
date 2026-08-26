@@ -713,17 +713,20 @@ input:checked + .slider:before {
 
   <!-- 插件管理视图 (Plugins) -->
   <section class="view-section" id="view-plugins">
-    <div class="filter-bar" style="justify-content:space-between;gap:12px">
+    <div class="filter-bar" style="justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span class="badge" style="font-size:12px;padding:4px 12px;background:rgba(255,255,255,0.06);color:var(--text-pure)">
           插件目录: <code id="plg-root-path" style="margin-left:6px;color:#58a6ff;font-family:var(--font-mono)">D:\AVEVA\Plugins</code>
         </span>
-        <button class="btn btn-ghost btn-sm" onclick="openPluginsDir()">📂 打开插件目录</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPluginsDir()">📂 打开目录</button>
         <button class="btn btn-ghost btn-sm" onclick="loadPlugins()">⟳ 刷新扫描</button>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="toggleAllPlugins(true)" title="一键全部启用">✓ 全部启用</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAllPlugins(false)" title="一键全部禁用">○ 全部禁用</button>
+        <button class="btn btn-ghost btn-sm" onclick="showHotloadModal()" title="查看并生成 E3D 命令行热装载宏" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">🔥 运行时热装载宏</button>
+        <button class="btn btn-ghost btn-sm" onclick="reindexAllPlugins()" title="为所有包含 pmllib 的插件自动生成 pml.index">⚡ 重建 PML 索引</button>
         <button class="btn btn-primary btn-sm" onclick="openPluginCreateModal()">+ 新建插件骨架</button>
-        <button class="btn btn-sm" onclick="reindexAllPlugins()" title="为所有包含 pmllib 的插件自动生成 pml.index">⚡ 重建全部 PML 索引</button>
       </div>
     </div>
     <div class="projects-container" id="plg-list"><div class="empty-state"><span class="spinner"></span>正在扫描插件目录…</div></div>
@@ -947,6 +950,36 @@ input:checked + .slider:before {
   <div class="modal-box modal-box-wide">
     <div class="modal-header"><h3>路径与网络健康诊断报告</h3><button class="modal-close" onclick="closeModal('modal-diag')">×</button></div>
     <div id="diag-body"><div class="empty-state"><span class="spinner"></span>正在执行网络与本地路径诊断…</div></div>
+  </div>
+</div>
+
+<!-- 运行时热装载宏弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-hotload" hidden>
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:#f59e0b;font-size:20px">🔥</span>
+        <h3>E3D 运行时动态热装载宏</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-plugin-hotload')">×</button>
+    </div>
+    <div class="field-note" style="margin-bottom:12px;color:var(--text-sub)">
+      在<strong>已经运行的 E3D</strong> 命令行中，无需重启软件，直接输入下方执行命令即可即时载入所有启用的插件、重构索引并加载 PML.NET 程序集：
+    </div>
+    <div class="diag-cmd" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:6px;margin-bottom:14px">
+      <code id="hotload-run-cmd" style="color:#58a6ff;font-size:13px;font-family:var(--font-mono)">$m D:\AVEVA\Plugins\load_all_plugins.mac</code>
+      <button class="btn btn-primary btn-sm" onclick="copyHotloadRunCmd()">📋 复制命令</button>
+    </div>
+    <div class="field-group">
+      <label style="display:flex;justify-content:space-between;align-items:center">
+        <span>宏文件内容预览 (<span id="hotload-file-path">load_all_plugins.mac</span>)</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyHotloadContent()">复制全部脚本</button>
+      </label>
+      <textarea id="hotload-content-box" readonly style="height:180px;font-family:var(--font-mono);font-size:12px;background:#0a0e14;color:#94a3b8;line-height:1.5;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plugin-hotload')">关闭</button>
+    </div>
   </div>
 </div>
 
@@ -1822,6 +1855,7 @@ function closeModal(id){ document.getElementById(id).hidden = true; }
 
 // ==================== 插件管理 (Plugins) ====================
 let pluginsData = [];
+let currentHotloadMacro = {path: '', content: ''};
 
 async function loadPlugins(silent){
   if(!silent) toast('正在扫描插件目录…', true);
@@ -1855,20 +1889,35 @@ function renderPluginsList(){
     const isEnabled = p.enabled;
     const comps = [];
     if(p.has_pmllib){
-      comps.push(`<span class="tag-pill" style="color:#a855f7;border-color:rgba(168,85,247,0.3)">PMLLIB (${p.pml_files_count} 文件${p.has_pml_index ? '' : ' · <span style="color:#f43f5e">缺索引</span>'})</span>`);
+      const details = [];
+      if(p.forms_count) details.push(`${p.forms_count}表单`);
+      if(p.objects_count) details.push(`${p.objects_count}对象`);
+      if(p.functions_count) details.push(`${p.functions_count}函数`);
+      if(p.macros_count) details.push(`${p.macros_count}宏`);
+      const cntStr = details.length ? details.join('+') : `${p.pml_files_count}文件`;
+      comps.push(`<span class="tag-pill" style="color:#c084fc;border-color:rgba(192,132,252,0.3)">PMLLIB (${cntStr}${p.has_pml_index ? '' : ' · <span style="color:#f43f5e">缺索引</span>'})</span>`);
     }
     if(p.has_pmlnet){
       comps.push(`<span class="tag-pill" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">PML.NET (${(p.dll_files||[]).length} DLL)</span>`);
     }
     if(p.has_pmlui){
-      comps.push(`<span class="tag-pill" style="color:#34d399;border-color:rgba(52,211,153,0.3)">PMLUI</span>`);
+      comps.push(`<span class="tag-pill" style="color:#34d399;border-color:rgba(52,211,153,0.3)">PMLUI (自定义菜单)</span>`);
+    }
+    if(p.has_uic){
+      comps.push(`<span class="tag-pill" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">UIC (Ribbon定制)</span>`);
     }
     if(p.has_dflts){
-      comps.push(`<span class="tag-pill" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">DFLTS</span>`);
+      comps.push(`<span class="tag-pill" style="color:#fb923c;border-color:rgba(251,146,60,0.3)">DFLTS</span>`);
     }
     if(p.doc_file){
       comps.push(`<span class="tag-pill" style="color:#94a3b8">📄 ${esc(p.doc_file)}</span>`);
     }
+
+    const cmdPills = (p.entry_commands || []).map(cmd => `
+      <button class="badge" onclick="copyPluginCmd('${esc(cmd)}')" title="点击复制执行命令" style="cursor:pointer;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);font-family:var(--font-mono);font-size:11px;padding:3px 8px">
+        ⚡ ${esc(cmd)} <span style="opacity:0.6;font-size:10px">📋</span>
+      </button>
+    `).join('');
 
     return `
       <div class="project-card ${isEnabled ? 'is-favorite' : ''}" style="--card-accent:${isEnabled ? '#10b981' : '#64748b'}">
@@ -1884,6 +1933,12 @@ function renderPluginsList(){
           </div>
           <div class="project-path"><code>${esc(p.path)}</code></div>
           <div class="project-meta-row" style="margin-top:8px">${comps.join('')}</div>
+          ${cmdPills ? `
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <span style="font-size:11px;color:var(--text-dim)">入口指令:</span>
+              ${cmdPills}
+            </div>
+          ` : ''}
         </div>
         <div class="project-actions" style="align-items:center;gap:12px">
           ${p.has_pmllib ? `<button class="btn btn-ghost btn-sm" onclick="reindexPlugin('${esc(p.name)}')" title="遍历生成标准 pml.index">⚡ 重建索引</button>` : ''}
@@ -1897,11 +1952,58 @@ function renderPluginsList(){
   }).join('');
 }
 
+function copyPluginCmd(cmd){
+  navigator.clipboard.writeText(cmd).then(() => {
+    toast(`✓ 已复制 E3D 指令: ${cmd}`, true);
+  }).catch(() => {
+    prompt('请复制指令:', cmd);
+  });
+}
+
 async function togglePlugin(name, enabled){
   toast(`正在${enabled ? '启用' : '禁用'}插件: ${name}…`, true);
   const res = await api('/api/plugins/toggle', {name, enabled});
   if(res.error){ toast('操作失败: ' + res.error, false); loadPlugins(); }
   else { toast(`✓ 已${enabled ? '启用' : '禁用'}插件: ${name}`, true); loadPlugins(); }
+}
+
+async function toggleAllPlugins(enabled){
+  toast(`正在${enabled ? '启用' : '禁用'}全部插件…`, true);
+  const res = await api('/api/plugins/toggle-all', {enabled});
+  if(res.error) toast('批量操作失败: ' + res.error, false);
+  else {
+    toast(`✓ 已${enabled ? '全部启用' : '全部禁用'} ${res.count || 0} 个插件`, true);
+    loadPlugins();
+  }
+}
+
+async function showHotloadModal(){
+  toast('正在生成 E3D 运行时热装载宏…', true);
+  const res = await api('/api/plugins/hotload-macro', {});
+  if(res.error){ toast('生成热装载宏失败: ' + res.error, false); return; }
+  currentHotloadMacro = res;
+  document.getElementById('hotload-run-cmd').textContent = `$m ${res.path}`;
+  document.getElementById('hotload-file-path').textContent = res.path;
+  document.getElementById('hotload-content-box').value = res.content || '';
+  openModal('modal-plugin-hotload');
+}
+
+function copyHotloadRunCmd(){
+  const cmd = document.getElementById('hotload-run-cmd').textContent.trim();
+  navigator.clipboard.writeText(cmd).then(() => {
+    toast('✓ 已复制热装载宏调用命令: ' + cmd, true);
+  }).catch(() => {
+    prompt('请复制命令:', cmd);
+  });
+}
+
+function copyHotloadContent(){
+  const content = document.getElementById('hotload-content-box').value;
+  navigator.clipboard.writeText(content).then(() => {
+    toast('✓ 已复制全部宏脚本内容', true);
+  }).catch(() => {
+    prompt('请复制脚本:', content);
+  });
 }
 
 async function reindexPlugin(name){

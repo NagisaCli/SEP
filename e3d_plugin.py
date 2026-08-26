@@ -1,51 +1,50 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SEP 插件管理模块 (E3D Plugin Manager)
-====================================
-默认插件根目录: D:\\AVEVA\\Plugins
-功能：
-  1. 插件自动扫描与能力识别 (PMLLIB, PML.NET / bin, PMLUI / pdmsui, DFLTS, 表单与文档)
-  2. 插件启用 / 禁用托管（自动写入 custom_evars.bat 的 SEP MANAGED PLUGINS 区块）
-  3. PML 索引 (pml.index) 极速重构器（遍历 .pmlfrm, .pmlobj, .pmlfnc 自动生成标准索引）
-  4. 插件骨架生成与目录管理
+SEP — E3D 插件管理系统核心模块
+========================================
+负责 AVEVA Everything3D 插件的自动扫描、能力识别、
+custom_evars.bat 独立托管区块注入、pml.index 极速索引重构、
+PML.NET 程序集与 Ribbon UIC 定制识别，以及运行时热装载/热卸载宏生成。
+
+默认插件根目录：D:\\AVEVA\\Plugins
 """
 
 import os
 import re
 import shutil
-import subprocess
 import sys
 
 import e3d_store as store
 import e3d_util as util
 
-DEFAULT_PLUGINS_DIR = r"D:\AVEVA\Plugins"
-
 PLUGINS_BLOCK_START = ':: >>> SEP MANAGED PLUGINS (do not edit) >>>'
 PLUGINS_BLOCK_END = ':: <<< SEP MANAGED PLUGINS <<<'
+
 PLUGINS_BLOCK_RE = re.compile(
     r'(?ms)^[ \t]*' + re.escape(PLUGINS_BLOCK_START) + r'.*?' + re.escape(PLUGINS_BLOCK_END) + r'[ \t]*\r?\n?'
 )
 
+DEFAULT_PLUGINS_DIR = r"D:\AVEVA\Plugins"
 
-def get_plugins_dir(data=None):
-    """获取当前插件根目录（默认 D:\\AVEVA\\Plugins，支持在设置中自定义）。"""
-    data = data or store.load_data()
+
+# ============================================================
+# 基础路径与配置读取
+# ============================================================
+
+def get_plugins_dir():
+    """获取当前配置的插件根目录，默认 D:\\AVEVA\\Plugins。"""
+    data = store.load_data()
     settings = data.get('settings') or {}
-    p_dir = settings.get('plugins_dir') or DEFAULT_PLUGINS_DIR
-    p_norm = util.normalize_path(p_dir)
-    if p_norm and not os.path.exists(p_norm):
-        try:
-            os.makedirs(p_norm, exist_ok=True)
-        except OSError:
-            pass
-    return p_norm or DEFAULT_PLUGINS_DIR
+    p = settings.get('plugins_dir')
+    if p and os.path.isdir(p):
+        return util.normalize_path(p)
+    return util.normalize_path(DEFAULT_PLUGINS_DIR)
 
 
-def set_plugins_dir(new_dir):
-    """设置插件根目录。"""
-    norm = util.normalize_path(new_dir)
+def set_plugins_dir(path):
+    """设置并持久化插件根目录。"""
+    norm = util.normalize_path(path)
     if not norm:
         raise ValueError('插件目录路径不能为空')
     os.makedirs(norm, exist_ok=True)
@@ -73,8 +72,34 @@ def custom_file_path(local_dir=None):
 # 插件扫描与能力识别
 # ============================================================
 
+def _extract_form_name_from_file(file_path):
+    """从 .pmlfrm 文件中提取 setup form !!<Name> 的真实表单名。"""
+    try:
+        with open(file_path, 'r', encoding='latin-1', errors='ignore') as f:
+            for _ in range(50):
+                line = f.readline()
+                if not line:
+                    break
+                m = re.search(r'setup\s+form\s+!!([a-zA-Z0-9_]+)', line, re.IGNORECASE)
+                if m:
+                    return m.group(1)
+    except Exception:
+        pass
+    base = os.path.basename(file_path)
+    return os.path.splitext(base)[0]
+
+
 def scan_plugin_folder(folder_path):
-    """深度解析单个插件文件夹的能力与组件。"""
+    """
+    深度解析单个插件文件夹的能力与组件：
+    - PMLLIB (forms, objects, functions, macros)
+    - PML.NET (C# DLL assemblies)
+    - PMLUI / PDMSUI (自定义应用与菜单)
+    - UIC (Ribbon 功能区界面定制)
+    - DFLTS (默认配置)
+    - 入口调用指令 (Entry Commands, 如 show !!nozSpecMgr)
+    - 运行时热装载脚本 (Hot-load snippet)
+    """
     folder_path = util.normalize_path(folder_path)
     if not os.path.isdir(folder_path):
         return None
@@ -89,12 +114,20 @@ def scan_plugin_folder(folder_path):
         'pmlui_path': None,
         'has_pmlnet': False,
         'pmlnet_path': None,
+        'has_uic': False,
+        'uic_files': [],
         'has_dflts': False,
         'dflts_path': None,
         'has_pml_index': False,
         'pml_files_count': 0,
+        'forms_count': 0,
+        'objects_count': 0,
+        'functions_count': 0,
+        'macros_count': 0,
         'dll_files': [],
         'doc_file': None,
+        'entry_commands': [],
+        'hotload_cmds': [],
         'enabled': False,
     }
 
@@ -117,8 +150,8 @@ def scan_plugin_folder(folder_path):
                 info['has_pmlnet'] = True
                 info['pmlnet_path'] = sub
                 try:
-                    dlls = [f for f in os.listdir(sub) if f.lower().endswith('.dll')]
-                    info['dll_files'] = dlls
+                    dlls = [f for f in os.listdir(sub) if f.lower().endswith('.dll') and not f.lower().endswith('.old')]
+                    info['dll_files'] = sorted(dlls)
                 except OSError:
                     pass
             elif low in ('dflts', 'defaults'):
@@ -127,6 +160,23 @@ def scan_plugin_folder(folder_path):
         elif os.path.isfile(sub):
             if low.startswith(('readme', 'install', '安装说明')) and low.endswith(('.md', '.txt', '.docx', '.doc')):
                 info['doc_file'] = entry
+            elif low.endswith(('.uic', '.xml')) and ('uic' in low or 'ribbon' in low or low.endswith('.uic')):
+                info['has_uic'] = True
+                info['uic_files'].append(entry)
+
+    # 检查是否有 install/ 下的 doc / uic
+    install_dir = os.path.join(folder_path, 'install')
+    if os.path.isdir(install_dir):
+        try:
+            for f in os.listdir(install_dir):
+                low_f = f.lower()
+                if not info['doc_file'] and low_f.startswith(('readme', 'install', '安装说明')):
+                    info['doc_file'] = os.path.join('install', f)
+                if low_f.endswith(('.uic', '.xml')) and ('uic' in low_f or 'ribbon' in low_f or low_f.endswith('.uic')):
+                    info['has_uic'] = True
+                    info['uic_files'].append(os.path.join('install', f))
+        except OSError:
+            pass
 
     # 若根目录下直接存在 pmllib 相关文件但没有 pmllib 子文件夹
     if not info['has_pmllib']:
@@ -135,24 +185,78 @@ def scan_plugin_folder(folder_path):
             if pml_files:
                 info['has_pmllib'] = True
                 info['pmllib_path'] = folder_path
-                info['pml_files_count'] = len(pml_files)
         except OSError:
             pass
 
-    # 统计 PMLLIB 详细信息
+    # 统计 PMLLIB 详细信息及提取入口调用命令
+    forms = []
+    objects = []
+    functions = []
+    macros = []
+    entry_cmds = []
+
     if info['has_pmllib'] and info['pmllib_path']:
         pml_dir = info['pmllib_path']
         idx_file = os.path.join(pml_dir, 'pml.index')
         info['has_pml_index'] = os.path.isfile(idx_file)
-        cnt = 0
         try:
-            for root, _, files in os.walk(pml_dir):
+            for root, dirs, files in os.walk(pml_dir):
+                # 过滤掉备份与隐藏文件夹
+                dirs[:] = [d for d in dirs if not d.startswith('.') and 'backup' not in d.lower() and 'bak' not in d.lower()]
                 for f in files:
-                    if f.lower().endswith(('.pmlfrm', '.pmlobj', '.pmlfnc', '.pmlcmd', '.pmlmac')):
-                        cnt += 1
-            info['pml_files_count'] = cnt
+                    low = f.lower()
+                    if low.endswith(('.bak', '.old', '.invalid')) or '.bak' in low:
+                        continue
+                    fp = os.path.join(root, f)
+                    if low.endswith('.pmlfrm'):
+                        form_name = _extract_form_name_from_file(fp)
+                        forms.append(form_name)
+                        entry_cmds.append(f'show !!{form_name}')
+                    elif low.endswith('.pmlobj'):
+                        obj_name = os.path.splitext(f)[0]
+                        objects.append(obj_name)
+                    elif low.endswith('.pmlfnc'):
+                        fnc_name = os.path.splitext(f)[0]
+                        functions.append(fnc_name)
+                    elif low.endswith('.mac'):
+                        macros.append(f)
         except OSError:
             pass
+
+    info['forms_count'] = len(forms)
+    info['objects_count'] = len(objects)
+    info['functions_count'] = len(functions)
+    info['macros_count'] = len(macros)
+    info['pml_files_count'] = len(forms) + len(objects) + len(functions)
+
+    # 针对 PML.NET 程序集提取导入命令
+    for dll in info['dll_files']:
+        dll_base = os.path.splitext(dll)[0]
+        if dll_base.startswith(('System.', 'Microsoft.')):
+            continue
+        entry_cmds.append(f"import '{dll_base}'")
+
+    # 针对典型函数与宏提取命令
+    if not forms and functions:
+        main_fnc = next((fn for fn in functions if name.lower() in fn.lower() or 'watch' in fn.lower() or 'main' in fn.lower()), functions[0])
+        entry_cmds.append(f"{main_fnc}()")
+
+    if not forms and not functions and macros:
+        main_mac = next((m for m in macros if name.lower() in m.lower()), macros[0])
+        entry_cmds.append(f"$m {main_mac}")
+
+    info['entry_commands'] = entry_cmds
+
+    # 生成单插件热加载指令
+    hotloads = []
+    if info['has_pmllib'] and info['pmllib_path']:
+        hotloads.append(f"pml index '{info['pmllib_path']}'")
+        hotloads.append("pml rehash all")
+    for dll in info['dll_files']:
+        dll_base = os.path.splitext(dll)[0]
+        if not dll_base.startswith(('System.', 'Microsoft.')):
+            hotloads.append(f"import '{dll_base}'")
+    info['hotload_cmds'] = hotloads
 
     return info
 
@@ -198,7 +302,7 @@ def read_enabled_plugins(local_projects_dir=None):
     if m:
         block = m.group(0)
         for line in block.splitlines():
-            m_pml = re.search(r'set\s+(?:PMLLIB|PMLNET|PMLUI)=[^\r\n]*?\\Plugins\\([^\\]+)', line, re.IGNORECASE)
+            m_pml = re.search(r'set\s+(?:PMLLIB|PMLNET|PMLUI|AVEVA_DESIGN_DFLTS)=[^\r\n]*?\\Plugins\\([^\\]+)', line, re.IGNORECASE)
             if m_pml:
                 enabled.add(m_pml.group(1))
 
@@ -206,7 +310,7 @@ def read_enabled_plugins(local_projects_dir=None):
     for line in text.splitlines():
         if line.strip().startswith('rem') or line.strip().startswith('::'):
             continue
-        m_pml = re.search(r'set\s+(?:PMLLIB|PMLNET|PMLUI)=[^\r\n]*?\\Plugins\\([^\\]+)', line, re.IGNORECASE)
+        m_pml = re.search(r'set\s+(?:PMLLIB|PMLNET|PMLUI|AVEVA_DESIGN_DFLTS)=[^\r\n]*?\\Plugins\\([^\\]+)', line, re.IGNORECASE)
         if m_pml:
             enabled.add(m_pml.group(1))
 
@@ -295,6 +399,15 @@ def set_plugin_enabled(name, enabled=True, local_projects_dir=None, plugins_dir=
     return enabled
 
 
+def set_all_plugins_enabled(enabled=True, local_projects_dir=None, plugins_dir=None):
+    """一键启用或禁用全部已发现的插件。"""
+    p_dir = util.normalize_path(plugins_dir or get_plugins_dir())
+    all_plugins = scan_plugins(p_dir, local_projects_dir)
+    target = [p['name'] for p in all_plugins] if enabled else []
+    write_plugins_block(target, local_projects_dir=local_projects_dir, plugins_dir=plugins_dir)
+    return target
+
+
 # ============================================================
 # PML 索引 (pml.index) 重构引擎
 # ============================================================
@@ -302,21 +415,25 @@ def set_plugin_enabled(name, enabled=True, local_projects_dir=None, plugins_dir=
 def rebuild_pml_index(pmllib_path):
     """
     遍历指定 pmllib 目录，自动生成标准 AVEVA PML pml.index 文件。
-    能够准确识别子目录路径和根目录文件，彻底解决 Form/Object/Function not found 错误。
+    能够准确识别子目录路径和根目录文件，过滤无害文件与临时备份，
+    彻底解决 Form/Object/Function not found 错误。
     """
     pmllib_path = util.normalize_path(pmllib_path)
     if not os.path.isdir(pmllib_path):
         return False, '指定路径不是有效的目录'
 
-    # 收集全部文件并按相对子目录归类
-    # 结构: rel_dir -> [filename1, filename2]
-    # 例: "/" -> ["cadaidbridge.pmlobj"], "/functions/" -> ["cad2e3ddiag.pmlfnc", ...]
     dir_files = {}
-
     pml_exts = {'.pmlfrm', '.pmlobj', '.pmlfnc', '.pmlcmd', '.pmlmac'}
 
-    for root, _, files in os.walk(pmllib_path):
-        valid_files = [f for f in files if os.path.splitext(f)[1].lower() in pml_exts]
+    for root, dirs, files in os.walk(pmllib_path):
+        # 过滤备份与隐藏文件夹
+        dirs[:] = [d for d in dirs if not d.startswith('.') and 'backup' not in d.lower() and 'bak' not in d.lower()]
+        valid_files = [
+            f for f in files
+            if os.path.splitext(f)[1].lower() in pml_exts
+            and not f.lower().endswith(('.bak', '.old', '.invalid'))
+            and '.bak' not in f.lower()
+        ]
         if not valid_files:
             continue
 
@@ -333,7 +450,6 @@ def rebuild_pml_index(pmllib_path):
 
     # 按照标准 PML 结构生成内容：先写非根目录，最后写根目录 /
     lines = []
-    # 优先排序子目录，最后放根目录 /
     sorted_keys = sorted([k for k in dir_files.keys() if k != '/'])
     if '/' in dir_files:
         sorted_keys.append('/')
@@ -364,6 +480,69 @@ def rebuild_all_pml_indexes(plugins_dir=None):
             ok, msg = rebuild_pml_index(p['pmllib_path'])
             results[p['name']] = {'ok': ok, 'message': msg}
     return results
+
+
+# ============================================================
+# 运行时热装载宏生成器 (E3D Hot-Load Macro)
+# ============================================================
+
+def generate_hotload_macro(plugins_dir=None, local_projects_dir=None, output_path=None):
+    """
+    生成 AVEVA PML 运行时动态热装载宏文件 (load_all_plugins.mac)。
+    在已经运行的 E3D 命令行中直接输入 $m D:\\AVEVA\\Plugins\\load_all_plugins.mac
+    即可免重启即时装载全部启用的插件库、重构索引并导入 PML.NET 程序集。
+    """
+    p_dir = util.normalize_path(plugins_dir or get_plugins_dir())
+    plugins = scan_plugins(p_dir, local_projects_dir)
+    enabled_plugins = [p for p in plugins if p['enabled']]
+
+    if not output_path:
+        output_path = os.path.join(p_dir, 'load_all_plugins.mac')
+
+    lines = [
+        '-- ========================================================',
+        '-- AVEVA E3D Plugin Dynamic Hot-Load Macro',
+        '-- Auto-generated by SEP (Smart E3D Project Launcher)',
+        '-- Usage in E3D: $m ' + output_path,
+        '-- ========================================================',
+        '',
+    ]
+
+    # 1. 重构/指定 PMLLIB 索引
+    lines.append('-- 1. Index PML Libraries')
+    for p in enabled_plugins:
+        if p['has_pmllib'] and p['pmllib_path']:
+            lines.append(f"pml index '{p['pmllib_path']}'")
+
+    lines.append('')
+    lines.append('-- 2. Rehash all PML definitions into memory')
+    lines.append('pml rehash all')
+    lines.append('')
+
+    # 3. 导入 PML.NET 程序集
+    lines.append('-- 3. Import PML.NET Assemblies')
+    for p in enabled_plugins:
+        for dll in p['dll_files']:
+            dll_base = os.path.splitext(dll)[0]
+            if not dll_base.startswith(('System.', 'Microsoft.')):
+                lines.append(f"import '{dll_base}'")
+
+    lines.append('')
+    lines.append('$P ========================================================')
+    lines.append(f'$P [SEP] {len(enabled_plugins)} E3D plugins successfully hot-loaded!')
+    lines.append('$P Available Entry Commands:')
+    for p in enabled_plugins:
+        cmds = ', '.join(p['entry_commands']) if p['entry_commands'] else 'No direct form'
+        lines.append(f"$P   * {p['name']}: {cmds}")
+    lines.append('$P ========================================================')
+
+    content = '\r\n'.join(lines) + '\r\n'
+    try:
+        with open(output_path, 'w', encoding='utf-8', errors='replace') as f:
+            f.write(content)
+        return output_path, content
+    except OSError as e:
+        raise OSError(f'生成热装载宏失败: {e}')
 
 
 def create_plugin_skeleton(name, plugins_dir=None, has_pmllib=True, has_pmlnet=True, has_pmlui=False):

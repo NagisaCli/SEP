@@ -159,6 +159,8 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/diagnose/fix-e3d': self._handle_fix_e3d,
             '/api/plugins/list': self._handle_plugins_list,
             '/api/plugins/toggle': self._handle_plugins_toggle,
+            '/api/plugins/toggle-all': self._handle_plugins_toggle_all,
+            '/api/plugins/hotload-macro': self._handle_plugins_hotload_macro,
             '/api/plugins/reindex': self._handle_plugins_reindex,
             '/api/plugins/create': self._handle_plugins_create,
             '/api/plugins/open-dir': self._handle_plugins_open_dir,
@@ -679,6 +681,21 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'ok': True, 'name': name, 'enabled': res})
         except Exception as e:
             self._send_json({'error': f'切换插件状态失败: {e}'}, 500)
+
+    def _handle_plugins_toggle_all(self, body):
+        enabled = bool(body.get('enabled', True))
+        try:
+            target = e3d_plugin.set_all_plugins_enabled(enabled)
+            self._send_json({'ok': True, 'enabled': enabled, 'count': len(target), 'plugins': target})
+        except Exception as e:
+            self._send_json({'error': f'批量切换插件状态失败: {e}'}, 500)
+
+    def _handle_plugins_hotload_macro(self, body):
+        try:
+            macro_path, content = e3d_plugin.generate_hotload_macro()
+            self._send_json({'ok': True, 'path': macro_path, 'content': content})
+        except Exception as e:
+            self._send_json({'error': f'生成热装载宏失败: {e}'}, 500)
 
     def _handle_plugins_reindex(self, body):
         name = (body.get('name') or '').strip()

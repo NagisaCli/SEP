@@ -90,6 +90,28 @@ class TestE3DPluginManager(unittest.TestCase):
         self.assertIn('myform.pmlfrm', idx_content)
         self.assertIn('root_obj.pmlobj', idx_content)
 
+    def test_batch_toggle_and_hotload_macro(self):
+        e3d_plugin.create_plugin_skeleton('Plugin1', plugins_dir=self.plugins_dir)
+        e3d_plugin.create_plugin_skeleton('Plugin2', plugins_dir=self.plugins_dir)
+
+        # Batch Enable
+        target = e3d_plugin.set_all_plugins_enabled(True, local_projects_dir=self.projects_dir, plugins_dir=self.plugins_dir)
+        self.assertEqual(len(target), 2)
+        self.assertEqual(len(e3d_plugin.read_enabled_plugins(self.projects_dir)), 2)
+
+        # Generate Hotload Macro
+        macro_path = os.path.join(self.plugins_dir, 'load_all.mac')
+        p, content = e3d_plugin.generate_hotload_macro(
+            plugins_dir=self.plugins_dir, local_projects_dir=self.projects_dir, output_path=macro_path
+        )
+        self.assertTrue(os.path.isfile(macro_path))
+        self.assertIn("pml index '", content)
+        self.assertIn("pml rehash all", content)
+
+        # Batch Disable
+        e3d_plugin.set_all_plugins_enabled(False, local_projects_dir=self.projects_dir, plugins_dir=self.plugins_dir)
+        self.assertEqual(len(e3d_plugin.read_enabled_plugins(self.projects_dir)), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
