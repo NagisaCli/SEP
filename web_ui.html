@@ -2149,7 +2149,7 @@ function renderPluginsList(){
       comps.push(`<span class="tag-pill" style="color:#fb923c;border-color:rgba(251,146,60,0.3)">DFLTS</span>`);
     }
     if(p.doc_files && p.doc_files.length){
-      comps.push(`<span class="tag-pill" style="color:#94a3b8" onclick="viewPluginFile('${esc(p.doc_files[0].path)}')" title="点击查看说明文档">📄 ${esc(p.doc_files[0].file)}</span>`);
+      comps.push(`<span class="tag-pill" style="color:#94a3b8;cursor:pointer" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(p.doc_files[0].path)}" title="点击查看说明文档">📄 ${esc(p.doc_files[0].file)}</span>`);
     }
 
     // 快捷入口命令按钮
@@ -2184,7 +2184,7 @@ function renderPluginsList(){
                       <td style="padding:6px 10px;color:var(--text-dim)">${f.line_count}行 / ${f.size_str}</td>
                       <td style="padding:6px 10px;text-align:right">
                         <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('${esc(f.call_cmd)}')">复制指令</button>
-                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(f.path)}')">查看源码</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(f.path)}">查看源码</button>
                       </td>
                     </tr>
                   `).join('')}
@@ -2216,7 +2216,7 @@ function renderPluginsList(){
                       </td>
                       <td style="padding:6px 10px;color:var(--text-dim)">${o.size_str}</td>
                       <td style="padding:6px 10px;text-align:right">
-                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(o.path)}')">查看源码</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(o.path)}">查看源码</button>
                       </td>
                     </tr>
                   `).join('')}
@@ -2245,7 +2245,7 @@ function renderPluginsList(){
                       <td style="padding:6px 10px;color:var(--text-dim)">${fn.size_str}</td>
                       <td style="padding:6px 10px;text-align:right">
                         <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('${esc(fn.call_cmd)}')">复制指令</button>
-                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(fn.path)}')">查看源码</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(fn.path)}">查看源码</button>
                       </td>
                     </tr>
                   `).join('')}
@@ -2274,7 +2274,7 @@ function renderPluginsList(){
                       <td style="padding:6px 10px;color:var(--text-dim)">${m.size_str}</td>
                       <td style="padding:6px 10px;text-align:right">
                         <button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:11px" onclick="copyPluginCmd('$m ${esc(m.path)}')">复制绝对路径</button>
-                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile('${esc(m.path)}')">查看内容</button>
+                        <button class="btn btn-primary btn-sm" style="padding:2px 6px;font-size:11px" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(m.path)}">查看内容</button>
                       </td>
                     </tr>
                   `).join('')}
@@ -2321,7 +2321,7 @@ function renderPluginsList(){
               ${(p.uic_configs||[]).map(u => `
                 <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
                   <div><strong>${esc(u.file)}</strong>: 定义 ${(u.tabs||[]).length} 个选项卡, ${(u.tools||[]).length} 个功能按钮</div>
-                  <button class="btn btn-ghost btn-sm" onclick="viewPluginFile('${esc(u.path)}')">查看 XML</button>
+                  <button class="btn btn-ghost btn-sm" onclick="viewPluginFile(this.getAttribute('data-view-path'))" data-view-path="${esc(u.path)}">查看 XML</button>
                 </div>
               `).join('')}
               ${(p.pmlui_scripts||[]).map(s => `

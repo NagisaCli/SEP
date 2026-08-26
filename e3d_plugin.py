@@ -896,23 +896,37 @@ def generate_hotload_macro(plugins_dir=None, local_projects_dir=None, output_pat
 # ============================================================
 
 def read_plugin_file_content(file_path, max_lines=1000):
-    """安全读取插件文件内容以供前端/CLI展示。"""
-    file_path = util.normalize_path(file_path)
-    plugins_dir = get_plugins_dir()
-    # 安全校验：确保只读取 plugins_dir 下的文件
-    if not os.path.isfile(file_path) or not file_path.lower().startswith(plugins_dir.lower()):
-        return {'ok': False, 'error': '非法文件路径或文件不存在'}
+    """安全读取插件/脚本文件内容以供前端展示。"""
+    if not file_path:
+        return {'ok': False, 'error': '文件路径不能为空'}
 
-    meta = parse_pml_file_deep(file_path)
+    norm_fp = util.normalize_path(file_path)
+    if not os.path.isfile(norm_fp):
+        return {'ok': False, 'error': f'文件不存在或无法访问: {file_path}'}
+
+    plugins_dir = util.normalize_path(get_plugins_dir())
+    abs_fp = os.path.abspath(norm_fp).lower()
+    abs_pdir = os.path.abspath(plugins_dir).lower()
+
+    # 安全校验：限制只允许读取常用源码扩展名
+    ext = os.path.splitext(norm_fp)[1].lower()
+    allowed_exts = {
+        '.pmlfrm', '.pmlobj', '.pmlfnc', '.mac', '.uic', '.xml',
+        '.txt', '.md', '.log', '.bat', '.json', '.cs', '.h', '.cpp'
+    }
+    if ext not in allowed_exts and not abs_fp.startswith(abs_pdir):
+        return {'ok': False, 'error': f'不支持查看该类型文件: {ext}'}
+
+    meta = parse_pml_file_deep(norm_fp)
     try:
-        with open(file_path, 'r', encoding='latin-1', errors='ignore') as f:
-            lines = [f.readline() for _ in range(max_lines)]
-        content = ''.join(lines)
+        text, enc = util.read_text_smart(norm_fp)
+        lines = text.splitlines(keepends=True)
+        content = ''.join(lines[:max_lines])
         return {
             'ok': True,
             'meta': meta,
             'content': content,
-            'is_truncated': len(lines) == max_lines,
+            'is_truncated': len(lines) > max_lines,
         }
     except Exception as e:
         return {'ok': False, 'error': f'读取文件失败: {e}'}
