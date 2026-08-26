@@ -491,7 +491,14 @@ def launch_e3d(lnk=''):
         raise LauncherError('当前系统不是 Windows，无法启动 E3D')
 
     try:
-        # 1. 如果是 .lnk 快捷方式，使用 WScript.Shell 精准解析 Target、Arguments 与 WorkingDirectory
+        # 1. 优先使用 Windows Shell 原生机制 (os.startfile) 前台拉起快捷方式或可执行文件
+        try:
+            os.startfile(found)
+            return found
+        except Exception:
+            pass
+
+        # 2. 如果是 .lnk 快捷方式，使用 WScript.Shell 精准解析 Target、Arguments 与 WorkingDirectory
         if found.lower().endswith('.lnk'):
             try:
                 import win32com.client
@@ -504,12 +511,12 @@ def launch_e3d(lnk=''):
                     workdir = os.path.dirname(target) if target else r'D:\AVEVA\USERDATA'
                 if target and os.path.isfile(target):
                     cmd = f'"{target}" {args}' if args else f'"{target}"'
-                    subprocess.Popen(cmd, cwd=workdir, shell=False)
+                    subprocess.Popen(cmd, cwd=workdir, shell=True)
                     return found
             except Exception:
                 pass
 
-        # 2. 如果是 mon.exe 直接启动
+        # 3. 如果是 mon.exe 直接启动
         if found.lower().endswith('mon.exe'):
             init_file = os.path.join(os.path.dirname(found), 'launch.init')
             args = f'PROD E3D init "{init_file}"' if os.path.isfile(init_file) else ''
@@ -517,11 +524,9 @@ def launch_e3d(lnk=''):
             if not os.path.isdir(workdir):
                 workdir = os.path.dirname(found)
             cmd = f'"{found}" {args}' if args else f'"{found}"'
-            subprocess.Popen(cmd, cwd=workdir, shell=False)
+            subprocess.Popen(cmd, cwd=workdir, shell=True)
             return found
 
-        # 3. 兜底使用 os.startfile
-        os.startfile(found)
         return found
     except Exception as e:
         raise LauncherError(f'启动 E3D 失败: {e}')

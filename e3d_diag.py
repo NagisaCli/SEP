@@ -993,7 +993,7 @@ def clean_userdata_cache(userdata_dir=None):
             for f in files:
                 low = f.lower()
                 should_delete = False
-                if low.endswith(('.lok', '.tmp', '.temp', '.dmp', '.crash')) or low in ('avevaabalog.txt',):
+                if low.startswith('session_') or low.endswith(('.lok', '.tmp', '.temp', '.dmp', '.crash')) or low in ('avevaabalog.txt',):
                     should_delete = True
                 if should_delete:
                     fp = os.path.join(root, f)
