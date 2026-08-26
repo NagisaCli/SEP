@@ -729,6 +729,7 @@ input:checked + .slider:before {
         <button class="btn btn-ghost btn-sm" onclick="showChainModal()" title="查看 E3D 实际接收的环境变量搜索链" style="color:#34d399;border-color:rgba(52,211,153,0.3)">🚦 寻址流水线</button>
         <button class="btn btn-ghost btn-sm" onclick="showHotloadModal()" title="查看并生成 E3D 命令行热装载宏" style="color:#fbbf24;border-color:rgba(251,191,36,0.3)">🔥 热装载宏</button>
         <button class="btn btn-ghost btn-sm" onclick="reindexAllPlugins()" title="为所有包含 pmllib 的插件自动生成 pml.index">⚡ 重建 PML 索引</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPluginImportModal()" title="从外部目录或压缩包快速导入插件">📥 导入插件</button>
         <button class="btn btn-primary btn-sm" onclick="openPluginCreateModal()">+ 新建插件</button>
       </div>
     </div>
@@ -1003,6 +1004,33 @@ input:checked + .slider:before {
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
       <button class="btn btn-ghost" onclick="closeModal('modal-plugin-create')">取消</button>
       <button class="btn btn-primary" onclick="submitCreatePlugin()">立即创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入外部插件弹窗 -->
+<div class="modal-backdrop" id="modal-plugin-import" hidden>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📥</span>
+        <h3>导入外部插件目录或压缩包 (.zip)</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-plugin-import')">×</button>
+    </div>
+    <div class="field-group">
+      <label>外部插件文件夹或 .zip 文件绝对路径</label>
+      <input type="text" id="npi-path" placeholder="例如：C:\Users\A\Downloads\MyPlugin.zip 或 D:\Temp\NozzleTool">
+    </div>
+    <div class="field-group">
+      <label class="filter-label"><input type="checkbox" id="npi-auto-enable" checked> 导入后立即自动启用并写入 E3D 环境配置</label>
+    </div>
+    <div class="field-note">
+      SEP 将自动解压/复制该插件至 <code>D:\AVEVA\Plugins</code>，自动解析所有表单与对象，并自动重构 <code>pml.index</code>。
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plugin-import')">取消</button>
+      <button class="btn btn-primary" onclick="submitImportPlugin()">立即导入</button>
     </div>
   </div>
 </div>
@@ -2499,6 +2527,27 @@ async function submitCreatePlugin(){
   else {
     toast(`✓ ${res.message || '插件创建成功'}`, true);
     closeModal('modal-plugin-create');
+    loadPlugins();
+  }
+}
+
+function openPluginImportModal(){
+  document.getElementById('npi-path').value = '';
+  document.getElementById('npi-auto-enable').checked = true;
+  openModal('modal-plugin-import');
+}
+
+async function submitImportPlugin(){
+  const src_path = document.getElementById('npi-path').value.trim();
+  if(!src_path){ toast('请输入文件夹或 .zip 文件绝对路径', false); return; }
+  const auto_enable = document.getElementById('npi-auto-enable').checked;
+
+  toast('正在导入插件并自动构建 PML 索引…', true);
+  const res = await api('/api/plugins/import', {src_path, auto_enable});
+  if(res.error) toast('导入失败: ' + res.error, false);
+  else {
+    toast(`✓ ${res.message || '插件导入成功'}`, true);
+    closeModal('modal-plugin-import');
     loadPlugins();
   }
 }

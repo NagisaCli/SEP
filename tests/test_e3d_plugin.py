@@ -112,6 +112,46 @@ class TestE3DPluginManager(unittest.TestCase):
         e3d_plugin.set_all_plugins_enabled(False, local_projects_dir=self.projects_dir, plugins_dir=self.plugins_dir)
         self.assertEqual(len(e3d_plugin.read_enabled_plugins(self.projects_dir)), 0)
 
+    def test_auto_heal_missing_pml_index(self):
+        # Create a raw plugin folder with pmllib/forms but NO pml.index
+        pml_dir = os.path.join(self.plugins_dir, 'AutoHealTool', 'pmllib')
+        forms_dir = os.path.join(pml_dir, 'forms')
+        os.makedirs(forms_dir, exist_ok=True)
+        with open(os.path.join(forms_dir, 'healform.pmlfrm'), 'w') as f:
+            f.write('setup form !!healForm dialog\r\n  title \'Healed\'\r\nexit\r\n')
+
+        # Scan with auto_heal=True
+        plugins = e3d_plugin.scan_plugins(plugins_dir=self.plugins_dir, local_projects_dir=self.projects_dir, auto_heal=True)
+        self.assertEqual(len(plugins), 1)
+        p = plugins[0]
+        self.assertEqual(p['name'], 'AutoHealTool')
+        self.assertTrue(p['has_pml_index'])
+        self.assertEqual(p['pml_index_status'], 'ok')
+        self.assertEqual(len(p['forms']), 1)
+        self.assertEqual(p['forms'][0]['form_name'], 'healForm')
+
+    def test_import_plugin_from_zip(self):
+        import zipfile
+        zip_path = os.path.join(self.tmp.name, 'MyExternalPlugin.zip')
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr('MyExternalPlugin/pmllib/forms/test.pmlfrm', 'setup form !!externalForm\r\nexit\r\n')
+            zf.writestr('MyExternalPlugin/bin/Dummy.dll', 'binary dummy')
+
+        target_dir, name = e3d_plugin.import_plugin_from_path(
+            zip_path, plugins_dir=self.plugins_dir, local_projects_dir=self.projects_dir, auto_enable=True
+        )
+        self.assertTrue(os.path.isdir(target_dir))
+        self.assertEqual(name, 'MyExternalPlugin')
+
+        # Verify auto-indexed and auto-enabled
+        enabled = e3d_plugin.read_enabled_plugins(self.projects_dir)
+        self.assertIn('MyExternalPlugin', enabled)
+
+        plugins = e3d_plugin.scan_plugins(plugins_dir=self.plugins_dir, local_projects_dir=self.projects_dir)
+        p = next(x for x in plugins if x['name'] == 'MyExternalPlugin')
+        self.assertTrue(p['has_pml_index'])
+        self.assertEqual(len(p['forms']), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

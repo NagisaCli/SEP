@@ -373,25 +373,145 @@ def inspect_plugin_deep(folder_path):
     return tree
 
 
-def scan_plugins(plugins_dir=None, local_projects_dir=None):
-    """扫描指定插件目录下的所有插件，并检查其当前启用状态。"""
+def scan_plugins(plugins_dir=None, local_projects_dir=None, auto_heal=True):
+    """
+    扫描指定插件目录下的所有插件，并检查其当前启用状态。
+    支持 auto_heal 自动为新加入的插件重构/修补缺失的 pml.index 索引，
+    支持识别直接放入根目录的散落 PML 脚本。
+    """
     p_dir = util.normalize_path(plugins_dir or get_plugins_dir())
     if not p_dir or not os.path.isdir(p_dir):
         return []
 
     enabled_names = set(read_enabled_plugins(local_projects_dir))
     plugins = []
+    root_loose_files = []
+
     try:
-        for entry in sorted(os.listdir(p_dir)):
-            sub = os.path.join(p_dir, entry)
-            if os.path.isdir(sub) and not entry.startswith('.'):
-                info = inspect_plugin_deep(sub)
-                if info:
-                    info['enabled'] = info['name'] in enabled_names
-                    plugins.append(info)
+        entries = sorted(os.listdir(p_dir))
     except OSError:
-        pass
+        return []
+
+    for entry in entries:
+        sub = os.path.join(p_dir, entry)
+        if entry.startswith('.'):
+            continue
+        if os.path.isdir(sub):
+            info = inspect_plugin_deep(sub)
+            if info:
+                # 自动愈合：如果发现新放入的插件缺少或索引过期，自动生成标准 pml.index
+                if auto_heal and info.get('has_pmllib') and info.get('pmllib_path'):
+                    if info.get('pml_index_status') in ('missing', 'outdated') and info.get('pml_index_actual_count', 0) > 0:
+                        ok, _ = rebuild_pml_index(info['pmllib_path'])
+                        if ok:
+                            info['has_pml_index'] = True
+                            info['pml_index_status'] = 'ok'
+                            info['pml_index_count'] = info['pml_index_actual_count']
+                            info['diagnostics'] = [d for d in info['diagnostics'] if 'pml.index' not in d]
+
+                info['enabled'] = info['name'] in enabled_names
+                plugins.append(info)
+        elif os.path.isfile(sub):
+            ext = os.path.splitext(entry)[1].lower()
+            if ext in ('.pmlfrm', '.pmlobj', '.pmlfnc', '.mac', '.uic', '.dll', '.xml') and entry.lower() != 'load_all_plugins.mac':
+                parsed = parse_pml_file_deep(sub)
+                if parsed:
+                    root_loose_files.append(parsed)
+
+    # 若根目录存在散落文件，自动聚合成通用根插件
+    if root_loose_files:
+        root_plugin = {
+            'name': '_Root_Scripts_',
+            'path': p_dir,
+            'enabled': '_Root_Scripts_' in enabled_names,
+            'has_pmllib': True,
+            'pmllib_path': p_dir,
+            'has_pmlui': False,
+            'pmlui_path': None,
+            'has_pmlnet': False,
+            'pmlnet_path': None,
+            'has_dflts': False,
+            'dflts_path': None,
+            'has_pml_index': os.path.isfile(os.path.join(p_dir, 'pml.index')),
+            'pml_index_path': os.path.join(p_dir, 'pml.index'),
+            'pml_index_count': len(root_loose_files),
+            'pml_index_actual_count': len(root_loose_files),
+            'pml_index_status': 'ok',
+            'forms': [f for f in root_loose_files if f['category'] == 'form'],
+            'objects': [f for f in root_loose_files if f['category'] == 'object'],
+            'functions': [f for f in root_loose_files if f['category'] == 'function'],
+            'macros': [f for f in root_loose_files if f['category'] == 'macro'],
+            'assemblies': [f for f in root_loose_files if f['category'] == 'pmlnet'],
+            'uic_configs': [f for f in root_loose_files if f['category'] == 'uic'],
+            'pmlui_scripts': [],
+            'doc_files': [],
+            'other_files': [],
+            'entry_commands': [f['call_cmd'] for f in root_loose_files if f.get('call_cmd')],
+            'hotload_cmds': [f"pml index '{p_dir}'", "pml rehash all"],
+            'diagnostics': [],
+        }
+        if auto_heal and not root_plugin['has_pml_index']:
+            rebuild_pml_index(p_dir)
+            root_plugin['has_pml_index'] = True
+        plugins.append(root_plugin)
+
     return plugins
+
+
+def import_plugin_from_path(src_path, plugins_dir=None, local_projects_dir=None, auto_enable=True):
+    """
+    智能导入外部插件目录或压缩包（.zip）：
+    1. 自动解压或复制至 D:\\AVEVA\\Plugins\\<名称>；
+    2. 自动检测并重构 pml.index 索引；
+    3. 自动同步至 custom_evars.bat 并更新热装载宏。
+    """
+    import zipfile
+    p_dir = util.normalize_path(plugins_dir or get_plugins_dir())
+    src_path = util.normalize_path(src_path)
+    if not os.path.exists(src_path):
+        raise FileNotFoundError(f'源路径不存在: {src_path}')
+
+    os.makedirs(p_dir, exist_ok=True)
+    base_name = os.path.splitext(os.path.basename(src_path))[0]
+    safe_name = re.sub(r'[^a-zA-Z0-9_\-\u4e00-\u9fa5]', '_', base_name).strip() or 'Plugin_' + util.random_id()[:6]
+    target_dir = os.path.join(p_dir, safe_name)
+
+    if os.path.isdir(src_path):
+        # 复制整个目录
+        if os.path.exists(target_dir):
+            target_dir = os.path.join(p_dir, f"{safe_name}_{int(os.path.getmtime(src_path))}")
+        shutil.copytree(src_path, target_dir)
+    elif zipfile.is_zipfile(src_path):
+        # 解压 zip
+        os.makedirs(target_dir, exist_ok=True)
+        with zipfile.ZipFile(src_path, 'r') as zf:
+            zf.extractall(target_dir)
+
+        # 检查是否包含单层多余根文件夹（例如 MyPlugin.zip 内部直接包含 MyPlugin/ 目录）
+        sub_items = [i for i in os.listdir(target_dir) if not i.startswith('.')]
+        if len(sub_items) == 1 and os.path.isdir(os.path.join(target_dir, sub_items[0])):
+            single_inner = os.path.join(target_dir, sub_items[0])
+            for inner_item in os.listdir(single_inner):
+                shutil.move(os.path.join(single_inner, inner_item), target_dir)
+            os.rmdir(single_inner)
+    else:
+        # 单个独立脚本文件
+        os.makedirs(target_dir, exist_ok=True)
+        shutil.copy2(src_path, target_dir)
+
+    # 深度分析与自动建索引
+    info = inspect_plugin_deep(target_dir)
+    if info and info.get('has_pmllib') and info.get('pmllib_path'):
+        rebuild_pml_index(info['pmllib_path'])
+
+    if auto_enable:
+        set_plugin_enabled(safe_name, True, local_projects_dir=local_projects_dir, plugins_dir=p_dir)
+        try:
+            generate_hotload_macro(plugins_dir=p_dir, local_projects_dir=local_projects_dir)
+        except Exception:
+            pass
+
+    return target_dir, safe_name
 
 
 # ============================================================

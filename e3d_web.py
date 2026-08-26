@@ -166,6 +166,7 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/plugins/resolution-chain': self._handle_plugins_resolution_chain,
             '/api/plugins/reindex': self._handle_plugins_reindex,
             '/api/plugins/create': self._handle_plugins_create,
+            '/api/plugins/import': self._handle_plugins_import,
             '/api/plugins/open-dir': self._handle_plugins_open_dir,
             '/api/tools/clean-userdata': self._handle_tools_clean_userdata,
             '/api/tools/fix-cad-fonts': self._handle_tools_fix_cad_fonts,
@@ -750,6 +751,22 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'ok': True, 'path': target, 'message': f'成功创建插件骨架: {name}'})
         except Exception as e:
             self._send_json({'error': str(e)}, 400)
+
+    def _handle_plugins_import(self, body):
+        src_path = (body.get('src_path') or '').strip()
+        if not src_path:
+            return self._send_json({'error': '导入路径不能为空'}, 400)
+        auto_enable = bool(body.get('auto_enable', True))
+        try:
+            target_dir, safe_name = e3d_plugin.import_plugin_from_path(src_path, auto_enable=auto_enable)
+            self._send_json({
+                'ok': True,
+                'name': safe_name,
+                'path': target_dir,
+                'message': f'成功导入插件【{safe_name}】，已自动构建 PML 索引并加入托管区！'
+            })
+        except Exception as e:
+            self._send_json({'error': f'导入插件失败: {e}'}, 400)
 
     def _handle_plugins_open_dir(self, body):
         try:
