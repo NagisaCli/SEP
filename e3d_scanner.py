@@ -93,6 +93,105 @@ def parse_custom_evars(custom_bat_path, base_dir=None):
     return _dedupe(projects)
 
 
+def _scan_single_dir_fast(dirpath):
+    """
+    单层目录极速扫描（基于 os.scandir，利用内核目录缓存，零冗余 stat 系统调用）。
+    返回 (direct_evars_list, subdirs_list, custom_evars_path_or_None)
+    """
+    direct_evars = []
+    subdirs = []
+    custom_evars_path = None
+
+    try:
+        with os.scandir(dirpath) as it:
+            for entry in it:
+                try:
+                    name_lower = entry.name.lower()
+                    if entry.is_file():
+                        if name_lower.startswith('evars') and name_lower.endswith('.bat') and name_lower != 'evars.bat':
+                            direct_evars.append(entry.path)
+                        elif name_lower in ('custom_evars.bat', 'custom_evar.bat'):
+                            custom_evars_path = entry.path
+                    elif entry.is_dir():
+                        subdirs.append(entry.path)
+                except OSError:
+                    continue
+    except OSError:
+        pass
+
+    return sorted(direct_evars), sorted(subdirs), custom_evars_path
+
+
+def _probe_subdirs_parallel(subdirs):
+    """
+    并发探测下一层子目录中的 evars*.bat。
+    返回 { subdir_path: [direct_evars_in_subdir] }，仅保留包含 evars 的子目录。
+    """
+    if not subdirs:
+        return {}
+
+    subfolder_evars = {}
+    if len(subdirs) <= 2:
+        for d in subdirs:
+            evs = _find_direct_evars(d)
+            if evs:
+                subfolder_evars[d] = evs
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        max_workers = min(16, len(subdirs))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_d = {executor.submit(_find_direct_evars, d): d for d in subdirs}
+            for future in as_completed(future_to_d):
+                try:
+                    evs = future.result()
+                    if evs:
+                        d = future_to_d[future]
+                        subfolder_evars[d] = evs
+                except Exception:
+                    pass
+
+    return subfolder_evars
+
+
+def _inspect_collection_fast(norm):
+    """
+    单次快速判定并抽取项目库信息（零冗余重复遍历）。
+    """
+    direct, subdirs, custom_file = _scan_single_dir_fast(norm)
+    custom_projs = parse_custom_evars(custom_file, norm) if custom_file else []
+    subfolder_evars = _probe_subdirs_parallel(subdirs)
+    project_dirs = sorted(subfolder_evars.keys())
+
+    if custom_file or project_dirs:
+        seen = {util.normalize_path(p['bat_path']).lower() for p in custom_projs}
+        for d in project_dirs:
+            seen.update(util.normalize_path(p).lower() for p in subfolder_evars[d])
+        seen.update(util.normalize_path(p).lower() for p in direct)
+        return {
+            'kind': 'collection',
+            'reason': f'项目库（识别到 {len(seen)} 个项目：子文件夹 {len(project_dirs)} 个，本层 {len(direct)} 个）',
+            'path': norm,
+            'custom_evars': custom_file,
+            'custom_projects': custom_projs,
+            'project_dirs': project_dirs,
+            'subfolder_evars': subfolder_evars,
+            'direct': direct,
+        }
+    if direct:
+        return {
+            'kind': 'project',
+            'reason': f'项目文件夹（直接发现 {len(direct)} 个 evars*.bat）',
+            'path': norm,
+            'direct': direct,
+        }
+
+    return {
+        'kind': 'invalid',
+        'reason': '目录中未找到 custom_evars.bat 或 evarsXXX.bat，且子文件夹也没有项目文件',
+        'path': norm,
+    }
+
+
 def _find_custom_evars_file(dirpath):
     """查找目录下的 custom_evars.bat 文件。"""
     for name in ('custom_evars.bat', 'custom_evar.bat'):
@@ -127,12 +226,32 @@ def classify(path, timeout=6):
     return _classify_impl(norm)
 
 
+def format_os_error(e, path=''):
+    """针对 Windows 网络错误码提供精确、友好的中文诊断提示。"""
+    win_err = getattr(e, 'winerror', None)
+    if win_err == 71:
+        return f'目标电脑的局域网共享连接数已达 20 人上限 (WinError 71)。说明：目标电脑为 Windows 桌面系统（非 Windows Server），存在 20 个并发连接硬编码限制。请在目标电脑运行 net session /delete /y 释放空闲会话，或改用 IP 访问 / Windows Server 服务器。'
+    if win_err == 53:
+        return f'网络路径不存在或目标电脑未开机/防火墙拦截 (WinError 53): {path}'
+    if win_err == 5:
+        return f'局域网共享访问被拒绝 (WinError 5，缺少共享访问权限): {path}'
+    if win_err == 67:
+        return f'找不到网络共享名 (WinError 67，请检查文件夹共享名称): {path}'
+    return f'{e}'
+
+
 def _classify_impl(norm):
     try:
         exists = os.path.exists(norm)
-    except OSError:
-        exists = False
+    except OSError as e:
+        return {'kind': 'invalid', 'reason': f'路径不可访问: {format_os_error(e, norm)}', 'path': norm}
     if not exists:
+        # 尝试使用 scandir 探查是否是由于连接数超限等原因被判定为 not exists
+        try:
+            with os.scandir(norm):
+                pass
+        except OSError as e:
+            return {'kind': 'invalid', 'reason': f'路径访问失败: {format_os_error(e, norm)}', 'path': norm}
         return {'kind': 'invalid', 'reason': f'路径不存在或不可访问: {norm}', 'path': norm}
 
     if os.path.isfile(norm):
@@ -147,47 +266,10 @@ def _classify_impl(norm):
                 'custom_projects': custom_projs,
             }
         if base != 'evars.bat' and EVARS_FILE_RE.match(base):
-            return {'kind': 'project', 'reason': '单项目文件', 'path': norm}
+            return {'kind': 'project', 'reason': '单项目文件', 'path': norm, 'direct': [norm]}
         return {'kind': 'invalid', 'reason': '文件不是 evarsXXX.bat 或 custom_evars.bat 项目文件', 'path': norm}
 
-    custom_file = _find_custom_evars_file(norm)
-    custom_projs = parse_custom_evars(custom_file, norm) if custom_file else []
-    project_dirs = _find_project_dirs(norm)
-    direct = _find_direct_evars(norm)
-
-    if custom_file or project_dirs:
-        # 同一个项目可能既在子文件夹里、又被 custom_evars.bat 显式 call，
-        # 按 bat 路径去重后再报数，避免与实际扫描结果对不上。
-        seen = {util.normalize_path(p['bat_path']).lower() for p in custom_projs}
-        subfolder_evars = {}
-        for d in project_dirs:
-            evs = _find_direct_evars(d)
-            subfolder_evars[d] = evs
-            seen.update(util.normalize_path(p).lower() for p in evs)
-        seen.update(util.normalize_path(p).lower() for p in direct)
-        return {
-            'kind': 'collection',
-            'reason': f'项目库（识别到 {len(seen)} 个项目：子文件夹 {len(project_dirs)} 个，本层 {len(direct)} 个）',
-            'path': norm,
-            'custom_evars': custom_file,
-            'custom_projects': custom_projs,
-            'project_dirs': project_dirs,
-            'subfolder_evars': subfolder_evars,
-            'direct': direct,
-        }
-    if direct:
-        return {
-            'kind': 'project',
-            'reason': f'项目文件夹（直接发现 {len(direct)} 个 evars*.bat）',
-            'path': norm,
-            'direct': direct,
-        }
-
-    return {
-        'kind': 'invalid',
-        'reason': '目录中未找到 custom_evars.bat 或 evarsXXX.bat，且子文件夹也没有项目文件',
-        'path': norm,
-    }
+    return _inspect_collection_fast(norm)
 
 
 def scan_library(path, timeout=30):
@@ -207,7 +289,37 @@ def scan_library(path, timeout=30):
 
 def _scan_impl(path):
     norm = util.normalize_path(path)
-    info = _classify_impl(norm)
+    try:
+        exists = os.path.exists(norm)
+    except OSError as e:
+        return [], {'kind': 'invalid', 'reason': f'路径不可访问: {format_os_error(e, norm)}', 'path': norm}
+    if not exists:
+        try:
+            with os.scandir(norm):
+                pass
+        except OSError as e:
+            return [], {'kind': 'invalid', 'reason': f'路径访问失败: {format_os_error(e, norm)}', 'path': norm}
+        return [], {'kind': 'invalid', 'reason': f'路径不存在或不可访问: {norm}', 'path': norm}
+
+    if os.path.isfile(norm):
+        base = os.path.basename(norm).lower()
+        if base in ('custom_evars.bat', 'custom_evar.bat'):
+            custom_projs = parse_custom_evars(norm)
+            info = {
+                'kind': 'collection',
+                'reason': f'项目总服务器配置（发现 {len(custom_projs)} 个项目引用）',
+                'path': norm,
+                'custom_evars': norm,
+                'custom_projects': custom_projs,
+            }
+            return custom_projs, info
+        if base != 'evars.bat' and EVARS_FILE_RE.match(base):
+            proj = [_make_project(norm, norm)]
+            info = {'kind': 'project', 'reason': '单项目文件', 'path': norm, 'direct': [norm]}
+            return proj, info
+        return [], {'kind': 'invalid', 'reason': '文件不是 evarsXXX.bat 或 custom_evars.bat 项目文件', 'path': norm}
+
+    info = _inspect_collection_fast(norm)
     if info['kind'] in ('invalid', 'unsupported'):
         return [], info
     if info['kind'] == 'project':
@@ -218,13 +330,10 @@ def _scan_impl(path):
     # 1. 从 custom_evars.bat 中提取的项目
     if info.get('custom_projects'):
         projects.extend(info['custom_projects'])
-    elif info.get('custom_evars'):
-        projects.extend(parse_custom_evars(info['custom_evars'], norm))
 
     # 2. 从下一层项目文件夹中提取的项目
     subfolder_evars = info.get('subfolder_evars') or {}
-    for d in (info.get('project_dirs') or []):
-        bats = subfolder_evars.get(d) if d in subfolder_evars else _find_direct_evars(d)
+    for d, bats in subfolder_evars.items():
         for p in bats:
             projects.append(_make_project(p, norm, project_dir=d))
 
@@ -285,41 +394,52 @@ def rescan_library(lib, timeout=12):
     return projects, lib
 
 
+def rescan_libraries_parallel(libraries_list, timeout=12):
+    """
+    并行并发重新扫描多个已有路径库。
+    使用 ThreadPoolExecutor 并发探测，大幅降低多路径库与网络 UNC 的累计等待时间。
+    返回 [(projects, lib), ...]
+    """
+    if not libraries_list:
+        return []
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    results = {}
+    max_workers = min(8, len(libraries_list))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_idx = {
+            executor.submit(rescan_library, lib, timeout): idx
+            for idx, lib in enumerate(libraries_list)
+        }
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception as e:
+                lib_copy = dict(libraries_list[idx])
+                lib_copy['last_error'] = str(e)
+                results[idx] = ([], lib_copy)
+
+    return [results[i] for i in range(len(libraries_list))]
+
+
 # ---- 内部工具 ----
 
 def _find_project_dirs(dirpath):
     """
-    返回项目库下一层中的项目文件夹：
+    返回项目库下一层中的项目文件夹（并发探测加速）。
     子文件夹里直接存在 evars*.bat（不含 evars.bat）才算是项目文件夹。
     """
-    out = []
-    try:
-        entries = os.listdir(dirpath)
-    except OSError:
-        return []
-    for name in sorted(entries):
-        p = os.path.join(dirpath, name)
-        try:
-            if os.path.isdir(p) and _find_direct_evars(p):
-                out.append(p)
-        except OSError:
-            continue
-    return out
+    _, subdirs, _ = _scan_single_dir_fast(dirpath)
+    subfolder_evars = _probe_subdirs_parallel(subdirs)
+    return sorted(subfolder_evars.keys())
 
 
 def _find_direct_evars(dirpath):
-    """返回目录直接包含的 evars*.bat（排除 evars.bat 自身）。"""
-    out = []
-    try:
-        for name in os.listdir(dirpath):
-            low = name.lower()
-            if low.startswith('evars') and low.endswith('.bat') and low != 'evars.bat':
-                p = os.path.join(dirpath, name)
-                if os.path.isfile(p):
-                    out.append(p)
-    except OSError:
-        return []
-    return sorted(out)
+    """返回目录直接包含的 evars*.bat（排除 evars.bat 自身，基于 os.scandir 极速过滤）。"""
+    evs, _, _ = _scan_single_dir_fast(dirpath)
+    return evs
 
 
 def _make_project(bat_path, lib_path, project_dir=None):

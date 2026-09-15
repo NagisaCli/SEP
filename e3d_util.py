@@ -13,6 +13,8 @@ import os
 import re
 import socket
 import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 
 
@@ -236,22 +238,81 @@ def path_exists(path, timeout=6):
         return False
 
 
+# 共享的守护线程池：超时后绝不 join 卡住的线程。
+# 旧实现用 `with ThreadPoolExecutor()`，退出时 shutdown(wait=True) 会一直等到
+# 卡死的网络调用返回，timeout 形同虚设（离线 UNC 路径实测阻塞 20s+）。
+_IO_POOL = None
+_IO_POOL_LOCK = threading.Lock()
+
+
+def _io_pool():
+    global _IO_POOL
+    if _IO_POOL is None:
+        with _IO_POOL_LOCK:
+            if _IO_POOL is None:
+                _IO_POOL = ThreadPoolExecutor(max_workers=16, thread_name_prefix='sep-io')
+    return _IO_POOL
+
+
 def run_with_timeout(fn, timeout=6, default=None):
-    """在后台线程执行函数，超时返回 default。"""
+    """在后台线程执行函数，超时立即返回 default（不等待卡住的线程）。"""
     if timeout <= 0:
         try:
             return fn()
         except Exception:
             return default
-    with ThreadPoolExecutor(max_workers=1) as ex:
-        fut = ex.submit(fn)
+    try:
+        fut = _io_pool().submit(fn)
+    except RuntimeError:
         try:
-            return fut.result(timeout=timeout)
-        except FutureTimeout:
-            fut.cancel()
-            return default
+            return fn()
         except Exception:
             return default
+    try:
+        return fut.result(timeout=timeout)
+    except FutureTimeout:
+        fut.cancel()
+        return default
+    except Exception:
+        return default
+
+
+class TTLCache:
+    """极简线程安全 TTL 缓存，用于避免热路径上重复的磁盘 / 网络探测。"""
+
+    def __init__(self, ttl=60.0):
+        self.ttl = ttl
+        self._data = {}
+        self._lock = threading.Lock()
+
+    def get(self, key, default=None):
+        with self._lock:
+            item = self._data.get(key)
+            if not item:
+                return default
+            value, expires = item
+            if expires < time.monotonic():
+                self._data.pop(key, None)
+                return default
+            return value
+
+    def set(self, key, value, ttl=None):
+        with self._lock:
+            self._data[key] = (value, time.monotonic() + (self.ttl if ttl is None else ttl))
+        return value
+
+    def pop(self, key):
+        with self._lock:
+            self._data.pop(key, None)
+
+    def clear(self):
+        with self._lock:
+            self._data.clear()
+
+
+_HOST_CACHE = TTLCache(ttl=120.0)
+_LNK_CACHE = TTLCache(ttl=300.0)
+_LNK_MISSING = object()
 
 
 def validate_safe_bat_path(path):
@@ -273,10 +334,25 @@ def validate_safe_bat_path(path):
 
 
 def find_e3d_lnk(preferred=''):
-    """查找 E3D 启动快捷方式，找不到返回 None。支持开始菜单与桌面搜索。"""
+    """
+    查找 E3D 启动快捷方式，找不到返回 None。支持开始菜单与桌面搜索。
+    结果缓存 5 分钟：递归遍历开始菜单 / 桌面代价很高，而 load_data() 每个请求都会调用。
+    """
     if preferred and os.path.exists(preferred):
         return preferred
+    cached = _LNK_CACHE.get('lnk')
+    if cached is not None:
+        return None if cached is _LNK_MISSING else cached
+    found = _find_e3d_lnk_uncached()
+    _LNK_CACHE.set('lnk', found if found else _LNK_MISSING)
+    return found
 
+
+def invalidate_lnk_cache():
+    _LNK_CACHE.clear()
+
+
+def _find_e3d_lnk_uncached():
     candidates = [
         r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\AVEVA\Design\AVEVA Everything3D 3.1.lnk',
         os.path.expandvars(r'%ProgramData%\Microsoft\Windows\Start Menu\Programs\AVEVA\Design\AVEVA Everything3D 3.1.lnk'),
@@ -317,16 +393,36 @@ def find_e3d_lnk(preferred=''):
 
 
 def is_host_resolvable(hostname, timeout=1.5):
-    """检测主机名或 IP 是否可解析。"""
+    """检测主机名或 IP 是否可解析（结果缓存 2 分钟，避免逐行重复 DNS 查询）。"""
     if not hostname:
         return False
     # IPv4 地址格式直接通过
     if re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname):
         return True
+    key = hostname.lower()
+    cached = _HOST_CACHE.get(key)
+    if cached is not None:
+        return cached
     try:
-        return run_with_timeout(lambda: bool(socket.gethostbyname(hostname)), timeout, False)
+        ok = run_with_timeout(lambda: bool(socket.gethostbyname(hostname)), timeout, False)
     except Exception:
-        return False
+        ok = False
+    return _HOST_CACHE.set(key, bool(ok))
+
+
+def random_id(length=8):
+    """短随机十六进制 ID。"""
+    import secrets
+    return secrets.token_hex(max(1, (length + 1) // 2))[:length]
+
+
+def format_iso(ts):
+    """时间戳 -> ISO 字符串（秒级）。"""
+    import datetime
+    try:
+        return datetime.datetime.fromtimestamp(ts).isoformat(timespec='seconds')
+    except Exception:
+        return ''
 
 
 def sanitize_unc_paths(text, reference_path=None):
@@ -398,22 +494,27 @@ def resolve_cross_device_path(candidate_paths, sub_path='', default_drive_pref=(
     2. 若原盘符不存在（例如原设备有 D: 盘，新设备仅有 C: 盘），自动扫描其他有效盘符；
     3. 若均不存在，在首选可用盘符上自动安全创建，并返回 (path, was_created, notice)。
     """
-    # 1. 尝试已有候选路径
+    # 1. 尝试已有候选路径（候选本身就是完整路径，sub_path 只用于盘符兜底扫描）
     for cand in candidate_paths:
         if not cand:
             continue
-        p = normalize_path(os.path.join(cand, sub_path) if sub_path else cand)
-        if os.path.isdir(p):
+        p = normalize_path(cand)
+        if p and os.path.isdir(p):
             return p, False, None
 
     # 2. 尝试在系统已有盘符中寻找同名或标准目录
     drives = get_available_drives()
     clean_sub = sub_path.strip('\\/') if sub_path else ''
-    
+
+    # 注意 os.path.join('D:', 'x') 得到的是盘符相对路径 'D:x'，必须显式加根斜杠
+    def _on_drive(drive, sub):
+        root = drive if drive.endswith(('\\', '/')) else drive + '\\'
+        return normalize_path(os.path.join(root, sub) if sub else root)
+
     # 检查各盘符下是否存在
     if clean_sub:
         for d in drives:
-            test_p = normalize_path(os.path.join(d, clean_sub))
+            test_p = _on_drive(d, clean_sub)
             if os.path.isdir(test_p):
                 return test_p, False, f"已自动定位至本机可用驱动器: {test_p}"
 
@@ -428,7 +529,7 @@ def resolve_cross_device_path(candidate_paths, sub_path='', default_drive_pref=(
     if not target_drive:
         target_drive = 'C:'
 
-    created_path = normalize_path(os.path.join(target_drive, clean_sub))
+    created_path = _on_drive(target_drive, clean_sub)
     try:
         os.makedirs(created_path, exist_ok=True)
         return created_path, True, f"原设备路径不可用，已自动在 {target_drive} 盘创建并初始化: {created_path}"

@@ -15,6 +15,7 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -298,6 +299,27 @@ class TestWebHandlerHardening(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(body.get('ok'))
 
+    def test_device_paths_api_uses_real_path_contracts(self):
+        """设备路径看板必须返回字符串路径，不能调用不存在的探测函数或传回字典。"""
+        roots = {}
+        for name in ('install', 'projects', 'plugins', 'userdata'):
+            roots[name] = os.path.join(self.tmp.name, name)
+            os.makedirs(roots[name], exist_ok=True)
+
+        with mock.patch.object(e3d_web.launcher, 'resolve_e3d', return_value=True), \
+                mock.patch.object(e3d_web.store, 'read_paths_cache', return_value={'install_dir': roots['install']}), \
+                mock.patch.object(e3d_web.launcher, 'get_local_projects_dir', return_value=roots['projects']), \
+                mock.patch.object(e3d_web.e3d_plugin, 'get_plugins_dir', return_value=roots['plugins']), \
+                mock.patch.object(e3d_web.e3d_diag, 'get_userdata_dir', return_value=roots['userdata']), \
+                mock.patch.object(e3d_web.util, 'get_available_drives', return_value=['C:']):
+            status, body = self._post('/api/settings/device-paths', {})
+
+        self.assertEqual(status, 200)
+        self.assertTrue(body.get('ok'))
+        self.assertEqual(len(body.get('paths', [])), 4)
+        self.assertTrue(all(isinstance(p.get('path'), str) for p in body['paths']))
+        self.assertTrue(all(p.get('exists') for p in body['paths']))
+
     def test_requires_token(self):
         self.assertEqual(self._post('/api/detect', {}, token=None)[0], 403)
         self.assertEqual(self._post('/api/detect', {}, token='0' * 32)[0], 403)
@@ -354,7 +376,7 @@ class TestNoUndefinedNames(unittest.TestCase):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         for name in ('e3d_util.py', 'e3d_store.py', 'e3d_scanner.py',
                      'e3d_launcher.py', 'e3d_web.py', 'e3d_diag.py',
-                     'e3d_config.py', 'switch_e3d_project.py'):
+                     'e3d_config.py', 'e3d_proj_admin.py', 'switch_e3d_project.py'):
             py_compile.compile(os.path.join(root, name), doraise=True)
 
 

@@ -549,6 +549,75 @@ input:checked + .slider:before {
 .tool-card-title { font-size: 15px; font-weight: 700; color: var(--text-pure); display: flex; align-items: center; gap: 8px; }
 .tool-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 6px; }
 .tool-card-action { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* ---- 用户管理模块 ---- */
+.ua-subtab {
+  padding: 7px 18px; background: transparent; border: none; border-bottom: 2px solid transparent;
+  color: var(--text-muted); font-size: 13px; cursor: pointer; transition: color .2s, border-color .2s;
+  font-family: var(--font-main);
+}
+.ua-subtab.active, .ua-subtab:hover { color: var(--primary); border-bottom-color: var(--primary); }
+.ua-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.ua-table th { background: var(--bg-surface-2); color: var(--text-dim); font-weight: 600; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-card); }
+.ua-table td { padding: 7px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); vertical-align: middle; }
+.ua-table tr:hover td { background: var(--bg-surface-1); }
+.ua-badge-free { display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:11px;background:var(--emerald-surface);color:#34d399; }
+.ua-badge-general { display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:11px;background:var(--primary-surface);color:var(--primary); }
+.ua-tag { display:inline-block;padding:1px 7px;border-radius:var(--radius-full);font-size:11px;background:var(--bg-surface-3);color:var(--text-muted);margin:1px 2px; }
+.ua-action-btn { padding:3px 10px;border-radius:var(--radius-sm);font-size:11.5px;border:1px solid var(--border-card);background:transparent;color:var(--text-muted);cursor:pointer; }
+.ua-action-btn:hover { background:var(--bg-surface-3);color:var(--text-main); }
+.ua-action-btn.danger:hover { background:var(--rose-surface);color:var(--rose);border-color:var(--rose); }
+
+/* ---- 项目卡片内嵌用户抽屉 ---- */
+.project-item-group { display: flex; flex-direction: column; width: 100%; }
+.project-users-drawer {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-card);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 14px 20px;
+  margin-top: -3px;
+  margin-bottom: 6px;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.35);
+  animation: slideDown 0.22s var(--ease-spring);
+}
+.pud-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.pud-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-pure);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pud-title code {
+  color: var(--primary);
+  background: var(--primary-surface);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+.pud-search {
+  flex: 1;
+  max-width: 260px;
+  padding: 5px 11px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 12px;
+}
+.pud-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
 </style>
 </head>
 <body>
@@ -583,6 +652,10 @@ input:checked + .slider:before {
       <button class="nav-pill" data-view="plugins">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         插件管理 <span class="pill-count" id="nav-plugins">0</span>
+      </button>
+      <button class="nav-pill" data-view="useradmin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        用户管理
       </button>
       <button class="nav-pill" data-view="diagnostics">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -698,6 +771,8 @@ input:checked + .slider:before {
       <select class="filter-select" id="pm-filter-tag" onchange="renderProjects()"><option value="">全部标签</option></select>
       <label class="filter-label"><input type="checkbox" id="pm-filter-my" onchange="renderProjects()"> 仅看我的常用</label>
       <button class="btn btn-sm" id="pm-batch-toggle" onclick="toggleBatchMode()">批量管理</button>
+      <button class="btn btn-sm btn-primary" onclick="openCreateProjectModal()">✨ 新建工程</button>
+      <button class="btn btn-sm btn-danger-ghost" onclick="openDecommissionProjectModal()">🛡️ 下线工程</button>
       <button class="btn btn-ghost btn-sm" onclick="rescanAll()">⟳ 刷新重扫</button>
     </div>
     <div class="projects-container" id="pm-list"><div class="empty-state"><span class="spinner"></span>正在加载项目列表…</div></div>
@@ -841,6 +916,42 @@ input:checked + .slider:before {
           <button class="btn btn-ghost btn-sm" onclick="diagnoseAll()">🩺 诊断所有路径库</button>
         </div>
       </div>
+
+      <!-- 6. E3D 项目规范化优雅新建向导 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#10b981">✨</span> E3D 项目规范化优雅新建
+            </div>
+            <span class="badge" style="background:var(--emerald-surface);color:#34d399">向导</span>
+          </div>
+          <div class="tool-card-desc">
+            遵循 AVEVA 标准 3 位代号派生工程骨架，自动建立 6~13 大子目录；支持从已有工程克隆等级库与 000 库，自动配置 <code>evars.bat</code> 并注册到 <code>ProjectInfo.xml</code>。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-primary btn-sm" onclick="openCreateProjectModal()">✨ 立即新建工程</button>
+        </div>
+      </div>
+
+      <!-- 7. E3D 项目安全下线与冷备归档 -->
+      <div class="tool-card">
+        <div>
+          <div class="tool-card-head">
+            <div class="tool-card-title">
+              <span style="color:#f43f5e">🛡️</span> E3D 项目优雅下线与冷备归档
+            </div>
+            <span class="badge" style="background:rgba(244,63,94,0.12);color:#fda4af">安全守护</span>
+          </div>
+          <div class="tool-card-desc">
+            DABACON 数据库锁文件（<code>*.lck</code> / <code>*.lok</code>）自动检测拦截，支持自动压缩为时间戳 ZIP 冷备，从 <code>ProjectInfo.xml</code> 与 <code>projects.ini</code> 注销，彻底告别幽灵工程残留。
+          </div>
+        </div>
+        <div class="tool-card-action">
+          <button class="btn btn-danger-ghost btn-sm" onclick="openDecommissionProjectModal()">🛡️ 下线/归档工程</button>
+        </div>
+      </div>
     </div>
 
     <!-- E3D 体检详情卡片 -->
@@ -897,6 +1008,73 @@ input:checked + .slider:before {
         <div class="field-note">用于静默调起 E3D，支持桌面与开始菜单自动识别解析。</div>
         <div class="field-group"><label></label><div><button class="btn btn-primary" onclick="saveSettings()">保存配置修改</button></div></div>
       </div>
+    </div>
+  </section>
+
+  <!-- 用户与团队管理视图 -->
+  <section class="view-section" id="view-useradmin">
+    <div style="max-width:1200px;margin:0 auto;padding:0 4px">
+
+      <!-- 顶部工具栏 -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+        <div style="font-size:16px;font-weight:600;color:var(--text-pure)">用户与团队管理</div>
+        <div style="flex:1"></div>
+        <!-- 项目选择 -->
+        <select id="ua-project-select" class="filter-select" style="min-width:140px" onchange="uaOnProjectChange()">
+          <option value="">-- 选择项目 --</option>
+        </select>
+        <!-- 凭证配置折叠按钮 -->
+        <button class="btn btn-sm" onclick="uaToggleCreds()" id="ua-creds-btn" title="配置管理员凭证">🔑 凭证</button>
+      </div>
+
+      <!-- 凭证配置面板（默认折叠） -->
+      <div id="ua-creds-panel" style="display:none;background:var(--bg-surface-2);border:1px solid var(--border-card);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">管理员凭证（仅保存到本机，不上传）</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">管理员用户名</div>
+            <input id="ua-creds-user" type="text" placeholder="SYSTEM" style="width:140px;padding:6px 10px;background:var(--bg-input);border:1px solid var(--border-card);border-radius:var(--radius-sm);color:var(--text-main);font-size:13px">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">密码</div>
+            <input id="ua-creds-pass" type="password" placeholder="••••••" style="width:160px;padding:6px 10px;background:var(--bg-input);border:1px solid var(--border-card);border-radius:var(--radius-sm);color:var(--text-main);font-size:13px">
+          </div>
+          <button class="btn btn-sm" onclick="uaSaveCreds()" style="background:var(--emerald);color:#fff;border-color:var(--emerald)">保存凭证</button>
+          <span id="ua-creds-status" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+
+      <!-- 子面板 Tab -->
+      <div style="display:flex;gap:2px;border-bottom:1px solid var(--border-card);margin-bottom:18px">
+        <button class="ua-subtab active" id="ua-tab-users" onclick="uaSwitchTab('users')">👤 用户列表</button>
+        <button class="ua-subtab" id="ua-tab-teams" onclick="uaSwitchTab('teams')">🏷️ 团队列表</button>
+      </div>
+
+      <!-- 用户子面板 -->
+      <div id="ua-panel-users">
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+          <button class="btn btn-sm" onclick="uaLoadUsers()" id="ua-refresh-users">↻ 刷新</button>
+          <button class="btn btn-sm" style="background:var(--emerald);color:#fff;border-color:var(--emerald)" onclick="uaOpenAddUser()">+ 添加用户</button>
+          <input id="ua-user-search" type="text" placeholder="过滤用户名…" oninput="uaFilterUsers()" style="margin-left:auto;width:200px;padding:5px 10px;background:var(--bg-input);border:1px solid var(--border-card);border-radius:var(--radius-sm);color:var(--text-main);font-size:12px">
+        </div>
+        <div id="ua-users-status" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></div>
+        <div id="ua-users-container">
+          <div class="empty-state">请先选择项目，然后点击"刷新"加载用户列表。</div>
+        </div>
+      </div>
+
+      <!-- 团队子面板 -->
+      <div id="ua-panel-teams" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+          <button class="btn btn-sm" onclick="uaLoadTeams()" id="ua-refresh-teams">↻ 刷新</button>
+          <input id="ua-team-search" type="text" placeholder="过滤团队名…" oninput="uaFilterTeams()" style="margin-left:auto;width:200px;padding:5px 10px;background:var(--bg-input);border:1px solid var(--border-card);border-radius:var(--radius-sm);color:var(--text-main);font-size:12px">
+        </div>
+        <div id="ua-teams-status" style="font-size:12px;color:var(--text-muted);margin-bottom:8px"></div>
+        <div id="ua-teams-container">
+          <div class="empty-state">请先选择项目，然后点击"刷新"加载团队列表。</div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -1058,6 +1236,102 @@ input:checked + .slider:before {
   </div>
 </div>
 
+<!-- 新建工程弹窗 -->
+<div class="modal-backdrop" id="modal-project-create" hidden>
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:#34d399;font-size:20px">✨</span>
+        <h3>AVEVA E3D 规范化新建项目</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-project-create')">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:12px;margin-bottom:12px">
+      <div class="field-group">
+        <label>项目代号 (3~5位大写英数字)</label>
+        <input type="text" id="npc-code" maxlength="5" placeholder="如 PRJ" autocomplete="off" spellcheck="false" style="font-weight:700;text-align:center;letter-spacing:1.5px;font-family:var(--font-mono, monospace)">
+      </div>
+      <div class="field-group">
+        <label>项目全称 / 描述</label>
+        <input type="text" id="npc-name" placeholder="如 某化工厂20万吨乙烯装置">
+      </div>
+    </div>
+    <div class="field-group">
+      <label>项目存储根目录</label>
+      <input type="text" id="npc-root" placeholder="D:\AVEVA\Projects\E3D3.1">
+    </div>
+    <div class="field-group">
+      <label>模板派生模式</label>
+      <select id="npc-template-mode" onchange="toggleTemplateSelect()">
+        <option value="clone">从已有工程克隆配置 (等级库/000系统库/出图样式)</option>
+        <option value="clean">纯净标准骨架 (仅生成标准子目录与 evars.bat)</option>
+      </select>
+    </div>
+    <div class="field-group" id="npc-template-box">
+      <label>选择克隆源工程</label>
+      <select id="npc-template-src"></select>
+    </div>
+    <div class="field-note" style="margin-top:10px">
+      创建后将自动生成 <code>000/ISO/DWG/MAC/PIC/DFLTS</code> 等子目录、<code>evars.bat</code>，并同步注册到 <code>ProjectInfo.xml</code> 与 <code>projects.ini</code>。
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-project-create')">取消</button>
+      <button class="btn btn-primary" onclick="submitCreateProject()">立即优雅创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 下线工程弹窗 -->
+<div class="modal-backdrop" id="modal-project-decommission" hidden>
+  <div class="modal-box" style="max-width:660px">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:#f43f5e;font-size:20px">🛡️</span>
+        <h3>AVEVA E3D 项目优雅下线与归档</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-project-decommission')">×</button>
+    </div>
+    <div class="field-group">
+      <label>选择要下线的项目</label>
+      <select id="npd-project-select" onchange="onDecommProjectSelected()"></select>
+    </div>
+    <div id="npd-inspect-card" style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:6px;padding:12px;margin:12px 0">
+      <div style="display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center">
+        <div>
+          <div style="font-size:11px;color:var(--text-dim)">物理路径</div>
+          <div id="npd-path" style="font-family:var(--font-mono);font-size:12px;color:var(--text-main);word-break:break-all">正在检测…</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-dim)">项目大小</div>
+          <div id="npd-size" style="font-weight:700;color:var(--text-pure)">-</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-dim)">锁文件 (*.lck)</div>
+          <div id="npd-lock" style="font-weight:700;color:#34d399">检测中</div>
+        </div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>归档冷备保存目录</label>
+      <input type="text" id="npd-archive-dir" value="D:\AVEVA\Archive">
+    </div>
+    <div class="field-group">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label class="filter-label"><input type="checkbox" id="npd-chk-archive" checked> 执行前自动压缩冷备 (时间戳 ZIP 备份)</label>
+        <label class="filter-label"><input type="checkbox" id="npd-chk-unregister" checked> 从系统注销 (剔除 ProjectInfo.xml / custom_evars / projects.ini 幽灵记录)</label>
+        <label class="filter-label"><input type="checkbox" id="npd-chk-delete" checked> 彻底删除物理文件夹</label>
+      </div>
+    </div>
+    <div id="npd-warn-box" style="display:none;color:#fda4af;background:rgba(244,63,94,0.08);padding:8px 12px;border-radius:6px;border:1px solid rgba(244,63,94,0.2);margin-top:10px;font-size:12px">
+      ⚠️ 检测到活跃的 .lck 锁文件，可能有用户正在编辑该工程或服务挂载，请确保所有人员下线！
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-project-decommission')">取消</button>
+      <button class="btn btn-danger" id="npd-btn-submit" onclick="submitDecommissionProject()">执行优雅下线</button>
+    </div>
+  </div>
+</div>
+
 <!-- 实时连接数详情弹窗 -->
 <div class="modal-backdrop" id="modal-session-detail" hidden>
   <div class="modal-box" style="max-width:680px">
@@ -1137,6 +1411,90 @@ input:checked + .slider:before {
 
 <datalist id="tag-datalist"></datalist>
 <div class="toast-bar" id="toast"></div>
+
+<!-- 用户管理 - 添加用户弹窗 -->
+<div class="modal-backdrop" id="modal-ua-add-user" hidden>
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header"><h3>添加 AVEVA 用户</h3><button class="modal-close" onclick="closeModal('modal-ua-add-user')">×</button></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">在项目 <strong id="ua-add-project-label"></strong> 中新建 AVEVA 用户</div>
+    <div class="field-group"><label>用户名 *</label><input type="text" id="ua-add-username" placeholder="如 ZHANG_SAN（大写字母+数字）" style="text-transform:uppercase"></div>
+    <div class="field-group"><label>初始团队 *</label>
+      <select id="ua-add-team">
+        <option value="">-- 先点刷新加载团队 --</option>
+      </select>
+    </div>
+    <div class="field-group"><label>安全级别</label>
+      <select id="ua-add-security">
+        <option value="General">General（普通用户）</option>
+        <option value="Free">Free（管理级，慎选）</option>
+      </select>
+    </div>
+    <div class="field-group"><label>描述（可选）</label><input type="text" id="ua-add-desc" placeholder="如 设计工程师 · 管道专业"></div>
+    <div class="field-group"><label>初始密码（可选，不填则无密码）</label><input type="password" id="ua-add-password" placeholder="留空则无初始密码"></div>
+    <div id="ua-add-error" style="color:var(--rose);font-size:12px;min-height:18px;margin-top:4px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ua-add-user')">取消</button>
+      <button class="btn btn-primary" onclick="uaDoAddUser()" id="ua-add-submit-btn">创建用户</button>
+    </div>
+  </div>
+</div>
+
+<!-- 用户管理 - 删除用户确认弹窗 -->
+<div class="modal-backdrop" id="modal-ua-delete-user" hidden>
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><h3>确认删除用户</h3><button class="modal-close" onclick="closeModal('modal-ua-delete-user')">×</button></div>
+    <div style="background:var(--rose-surface);border:1px solid var(--rose);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--rose)">
+      ⚠️ 此操作不可逆！用户及其在所有团队中的成员关系将被永久删除。
+    </div>
+    <div style="font-size:13px;color:var(--text-main);margin-bottom:8px">即将从项目 <strong id="ua-del-project-label"></strong> 删除用户：</div>
+    <div style="font-size:16px;font-weight:700;color:var(--text-pure);padding:8px 0;font-family:var(--font-mono)" id="ua-del-username-label"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ua-delete-user')">取消</button>
+      <button class="btn" style="background:var(--rose);color:#fff;border-color:var(--rose)" onclick="uaDoDeleteUser()" id="ua-del-submit-btn">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 用户管理 - 加入团队弹窗 -->
+<div class="modal-backdrop" id="modal-ua-add-to-team" hidden>
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><h3>将用户加入团队</h3><button class="modal-close" onclick="closeModal('modal-ua-add-to-team')">×</button></div>
+    <div style="font-size:13px;color:var(--text-main);margin-bottom:14px">为用户 <strong id="ua-att-username-label" style="font-family:var(--font-mono)"></strong> 添加团队归属</div>
+    <div class="field-group"><label>选择目标团队</label>
+      <select id="ua-att-team-select">
+        <option value="">-- 选择团队 --</option>
+      </select>
+    </div>
+    <div id="ua-att-error" style="color:var(--rose);font-size:12px;min-height:18px;margin-top:4px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ua-add-to-team')">取消</button>
+      <button class="btn btn-primary" onclick="uaDoAddToTeam()" id="ua-att-submit-btn">加入团队</button>
+    </div>
+  </div>
+</div>
+
+<!-- 用户管理 - 工程管理员凭证配置弹窗 -->
+<div class="modal-backdrop" id="modal-ua-creds" hidden>
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header"><h3>🔐 配置工程管理员凭证</h3><button class="modal-close" onclick="closeModal('modal-ua-creds')">×</button></div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">
+      为工程 <strong id="ua-modal-creds-project" style="font-family:var(--font-mono);color:var(--primary)"></strong> 配置 AVEVA Administration 登录账号与密码（保存在本机，不上传）。
+    </div>
+    <div class="field-group">
+      <label>管理员用户名</label>
+      <input type="text" id="ua-modal-creds-user" placeholder="SYSTEM 或 ADMIN" value="SYSTEM">
+    </div>
+    <div class="field-group" style="margin-top:10px">
+      <label>管理员密码</label>
+      <input type="password" id="ua-modal-creds-pass" placeholder="输入项目管理员密码">
+    </div>
+    <div id="ua-modal-creds-error" style="color:var(--rose);font-size:12px;min-height:18px;margin-top:6px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ua-creds')">取消</button>
+      <button class="btn btn-primary" onclick="uaDoSaveModalCreds()" id="ua-modal-creds-btn">保存并重试</button>
+    </div>
+  </div>
+</div>
 
 <script>
 let state = null;
@@ -1430,11 +1788,13 @@ function renderProjects(){
       ? `<button class="btn btn-success btn-sm" data-act="launch" data-id="${esc(p.id)}">⚡ 启动</button>
          <button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时</button>
          <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>
-         <button class="btn btn-danger-ghost btn-sm" data-act="rm-my" data-id="${esc(p.id)}">移出常用</button>`
+         <button class="btn btn-danger-ghost btn-sm" data-act="rm-my" data-id="${esc(p.id)}">移出常用</button>
+         <button class="btn btn-ghost btn-sm" data-act="decomm" data-id="${esc(p.id)}" title="下线与归档该工程" style="color:#f43f5e">下线</button>`
       : `<button class="btn btn-sm" data-act="add-my" data-id="${esc(p.id)}">+ 加为常用</button>
          <button class="btn btn-primary btn-sm" data-act="launch" data-id="${esc(p.id)}">⚡ 启动</button>
          <button class="btn btn-sm" data-act="temp" data-id="${esc(p.id)}">临时</button>
-         <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>`;
+         <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${esc(p.id)}">编辑</button>
+         <button class="btn btn-ghost btn-sm" data-act="decomm" data-id="${esc(p.id)}" title="下线与归档该工程" style="color:#f43f5e">下线</button>`;
 
     const meta = [
       catBadge(p.category_id),
@@ -1449,22 +1809,30 @@ function renderProjects(){
       ? buildConnBadge(ses)
       : `<span class="conn-badge conn-unknown" data-pid="${esc(p.id)}" data-bat="${esc(p.bat_path)}" title="点击查询实时连接">👥 —</span>`;
 
+    const code = uaExtractCode(p.bat_path);
+    const userBtn = code ? `<button class="btn btn-sm btn-ghost" onclick="uaToggleProjectInlineUsers('${esc(p.id)}', '${esc(code)}')" title="展开/收起该项目用户名单">👥 用户 <span id="pub-arrow-${esc(p.id)}">▾</span></button>` : '';
+
     return `
-      <div class="project-card ${isMy?'is-favorite':''}" style="--card-accent:${pal.color}">
-        ${chk}
-        <div class="project-avatar" style="background:${pal.bg}">${acronym}</div>
-        <div class="project-details">
-          <div class="project-title-row">
-            <span class="project-name">${esc(p.name)}</span>
-            ${isMy ? '<span class="badge badge-favorite">★ 常用项目</span>' : ''}
-            ${connBadge}
+      <div class="project-item-group" id="pig-${esc(p.id)}">
+        <div class="project-card ${isMy?'is-favorite':''}" id="pc-${esc(p.id)}" style="--card-accent:${pal.color}">
+          ${chk}
+          <div class="project-avatar" style="background:${pal.bg}">${acronym}</div>
+          <div class="project-details">
+            <div class="project-title-row">
+              <span class="project-name">${esc(p.name)}</span>
+              ${isMy ? '<span class="badge badge-favorite">★ 常用项目</span>' : ''}
+              ${connBadge}
+            </div>
+            <div class="project-path">
+              <code>${esc(p.bat_path)}</code>
+            </div>
+            ${meta ? `<div class="project-meta-row">${meta}</div>` : ''}
           </div>
-          <div class="project-path">
-            <code>${esc(p.bat_path)}</code>
-          </div>
-          ${meta ? `<div class="project-meta-row">${meta}</div>` : ''}
+          <div class="project-actions">${userBtn} ${actions}</div>
         </div>
-        <div class="project-actions">${actions}</div>
+        ${code ? `<div class="project-users-drawer" id="pud-${esc(p.id)}" style="display:none">
+          <div class="pud-content" id="pud-content-${esc(p.id)}"></div>
+        </div>` : ''}
       </div>
     `;
   }).join('');
@@ -1500,18 +1868,27 @@ function renderMy(){
     const ses = sessionCache[p.id];
     const connBadge = ses ? buildConnBadge(ses) : `<span class="conn-badge conn-unknown" data-pid="${esc(p.id)}" data-bat="${esc(p.bat_path)}" title="点击查询实时连接">👥 —</span>`;
 
+    const code = uaExtractCode(p.bat_path);
+    const userBtn = code ? `<button class="btn btn-sm btn-ghost" onclick="uaToggleProjectInlineUsers('${esc(p.id)}', '${esc(code)}')" title="展开/收起该项目用户名单">👥 用户 <span id="pub-arrow-${esc(p.id)}">▾</span></button>` : '';
+
     return `
-      <div class="project-card is-favorite" style="--card-accent:${pal.color}">
-        ${chk}
-        <div class="project-avatar" style="background:${pal.bg}">${acronym}</div>
-        <div class="project-details">
-          <div class="project-title-row"><span class="project-name">${esc(p.name)}</span>${connBadge}</div>
-          <div class="project-path"><code>${esc(p.bat_path)}</code></div>
-          ${meta ? `<div class="project-meta-row">${meta}</div>` : ''}
+      <div class="project-item-group" id="my-pig-${esc(p.id)}">
+        <div class="project-card is-favorite" id="my-pc-${esc(p.id)}" style="--card-accent:${pal.color}">
+          ${chk}
+          <div class="project-avatar" style="background:${pal.bg}">${acronym}</div>
+          <div class="project-details">
+            <div class="project-title-row"><span class="project-name">${esc(p.name)}</span>${connBadge}</div>
+            <div class="project-path"><code>${esc(p.bat_path)}</code></div>
+            ${meta ? `<div class="project-meta-row">${meta}</div>` : ''}
+          </div>
+          <div class="project-actions">${userBtn} ${actions}</div>
         </div>
-        <div class="project-actions">${actions}</div>
+        ${code ? `<div class="project-users-drawer" id="pud-${esc(p.id)}" style="display:none">
+          <div class="pud-content" id="pud-content-${esc(p.id)}"></div>
+        </div>` : ''}
       </div>
     `;
+
   }).join('');
 }
 
@@ -1707,6 +2084,15 @@ document.addEventListener('click', async e => {
   else if(act === 'edit'){
     openProjectModal(id);
   }
+  else if(act === 'decomm'){
+    const proj = (state.all_projects || []).find(p => p.id === id) || (state.my_projects || []).find(p => p.id === id);
+    if(proj){
+      const dir = proj.project_dir || (proj.bat_path ? proj.bat_path.replace(/[\\\/][^\\\/]+\.bat$/i, '') : '');
+      openDecommissionProjectModal(dir);
+    } else {
+      openDecommissionProjectModal();
+    }
+  }
   else if(act === 'rescan'){
     btn.disabled = true;
     const res = await api('/api/library/rescan', {id:id});
@@ -1835,6 +2221,12 @@ async function loadDevicePaths(){
   }
 
   const drivesPills = (res.available_drives || []).map(d => `<span class="badge" style="font-family:var(--font-mono);background:rgba(255,255,255,0.06);color:#fff">${esc(d)}</span>`).join('');
+  const devicePaths = res.paths || [];
+  const readyCount = devicePaths.filter(p => p.exists).length;
+  const allReady = devicePaths.length > 0 && readyCount === devicePaths.length;
+  const healthBadge = allReady
+    ? `<span class="badge" style="background:var(--emerald-surface);color:#34d399">✓ ${readyCount}/${devicePaths.length} 核心路径正常</span>`
+    : `<span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">⚠ ${readyCount}/${devicePaths.length} 核心路径正常</span>`;
 
   box.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:10px">
@@ -1842,7 +2234,7 @@ async function loadDevicePaths(){
         <span>当前设备: <strong style="color:#58a6ff">${esc(res.computer_name)}</strong></span>
         <span style="margin-left:14px">可用驱动器: ${drivesPills}</span>
       </div>
-      <span class="badge" style="background:var(--emerald-surface);color:#34d399">✓ 智能自愈定位中</span>
+      ${healthBadge}
     </div>
     <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
       <table style="width:100%;font-size:12px;border-collapse:collapse;text-align:left">
@@ -1850,7 +2242,7 @@ async function loadDevicePaths(){
           <th style="padding:8px 12px">核心系统目录</th><th style="padding:8px 12px">本设备实际解析路径</th><th style="padding:8px 12px">状态</th>
         </tr></thead>
         <tbody>
-          ${(res.paths || []).map(p => `
+          ${devicePaths.map(p => `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
               <td style="padding:8px 12px;font-weight:600;color:#fff">${esc(p.name)}</td>
               <td style="padding:8px 12px;font-family:var(--font-mono);color:var(--text-main)"><code style="color:#58a6ff">${esc(p.path||'未定位')}</code></td>
@@ -2110,8 +2502,31 @@ async function applyFix(fixId, path){
   else toast('✓ ' + (res.result.message || '修复完成'), true);
 }
 
-function openModal(id){ document.getElementById(id).hidden = false; }
-function closeModal(id){ document.getElementById(id).hidden = true; }
+function openModal(id){
+  const el = document.getElementById(id);
+  if (el) el.hidden = false;
+}
+function closeModal(id){
+  const el = document.getElementById(id);
+  if (el) el.hidden = true;
+}
+
+// 支持 ESC 键关闭最顶层活动弹窗，以及点击遮罩背景关闭弹窗
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    const activeModals = Array.from(document.querySelectorAll('.modal-backdrop:not([hidden])'));
+    if (activeModals.length > 0) {
+      const topModal = activeModals[activeModals.length - 1];
+      topModal.hidden = true;
+    }
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-backdrop')) {
+    e.target.hidden = true;
+  }
+});
 
 // ==================== 插件管理 (Plugins & Deep Inspection) ====================
 let pluginsData = [];
@@ -2818,6 +3233,216 @@ async function runFixCadFonts(){
   }
 }
 
+// ==================== 项目生命周期 (新建与下线) ====================
+
+let availableTemplates = [];
+
+let isNpcCodeComposing = false;
+function initNpcCodeInput(){
+  const codeEl = document.getElementById('npc-code');
+  if(!codeEl || codeEl._hasImeBound) return;
+  codeEl._hasImeBound = true;
+
+  const formatCode = () => {
+    if(isNpcCodeComposing) return;
+    const start = codeEl.selectionStart;
+    const end = codeEl.selectionEnd;
+    const oldVal = codeEl.value;
+    const newVal = oldVal.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    if(oldVal !== newVal){
+      codeEl.value = newVal;
+      try { codeEl.setSelectionRange(start, end); } catch(e) {}
+    }
+  };
+
+  codeEl.addEventListener('compositionstart', () => { isNpcCodeComposing = true; });
+  codeEl.addEventListener('compositionend', () => {
+    isNpcCodeComposing = false;
+    formatCode();
+  });
+  codeEl.addEventListener('input', formatCode);
+  codeEl.addEventListener('paste', () => setTimeout(formatCode, 0));
+  codeEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const nameEl = document.getElementById('npc-name');
+      if(nameEl) nameEl.focus();
+    }
+  });
+
+  const nameEl = document.getElementById('npc-name');
+  if(nameEl && !nameEl._hasEnterBound){
+    nameEl._hasEnterBound = true;
+    nameEl.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        submitCreateProject();
+      }
+    });
+  }
+}
+
+async function openCreateProjectModal(){
+  openModal('modal-project-create');
+  const codeEl = document.getElementById('npc-code');
+  const nameEl = document.getElementById('npc-name');
+  if(codeEl) codeEl.value = '';
+  if(nameEl) nameEl.value = '';
+  
+  initNpcCodeInput();
+  setTimeout(() => { if(codeEl) codeEl.focus(); }, 100);
+
+  const res = await api('/api/project/templates', {});
+  if(res.ok){
+    if(res.default_dir) document.getElementById('npc-root').value = res.default_dir;
+    availableTemplates = res.templates || [];
+    const sel = document.getElementById('npc-template-src');
+    sel.innerHTML = availableTemplates.map(t => `<option value="${esc(t.path)}">${esc(t.name)} (${esc(t.path)})</option>`).join('');
+    if(availableTemplates.length === 0){
+      sel.innerHTML = '<option value="">未找到模板工程</option>';
+    }
+  }
+  toggleTemplateSelect();
+}
+
+function toggleTemplateSelect(){
+  const mode = document.getElementById('npc-template-mode').value;
+  document.getElementById('npc-template-box').style.display = (mode === 'clone') ? 'block' : 'none';
+}
+
+async function submitCreateProject(){
+  const codeEl = document.getElementById('npc-code');
+  const nameEl = document.getElementById('npc-name');
+  const code = (codeEl.value || '').trim().toUpperCase();
+  const name = (nameEl.value || '').trim();
+  const root_dir = (document.getElementById('npc-root').value || '').trim();
+  const mode = document.getElementById('npc-template-mode').value;
+  const template_dir = (mode === 'clone') ? (document.getElementById('npc-template-src').value || '') : '';
+
+  if(!code || code.length < 2 || code.length > 5 || !/^[A-Z0-9]+$/.test(code)){
+    toast('项目代号必须为 2~5 位英文字母或数字 (如 PRJ, M01, DEMO)', false);
+    if(codeEl) codeEl.focus();
+    return;
+  }
+  if(!name){
+    toast('请输入项目全称或描述', false);
+    if(nameEl) nameEl.focus();
+    return;
+  }
+
+  toast(`正在优雅创建 E3D 项目 [${code}] 并配置系统注册表…`, true);
+  const res = await api('/api/project/create', { code, name, root_dir, template_dir });
+  if(res.error){
+    toast('创建失败: ' + res.error, false);
+  } else {
+    toast(`✓ ${res.message || '项目创建成功'}`, true);
+    closeModal('modal-project-create');
+    await rescanAll();
+  }
+}
+
+let decommTargetList = [];
+
+async function openDecommissionProjectModal(targetPath){
+  openModal('modal-project-decommission');
+  const sel = document.getElementById('npd-project-select');
+  
+  decommTargetList = [];
+  const allProjs = (state && state.all_projects) ? state.all_projects : [];
+  allProjs.forEach(p => {
+    let dir = p.project_dir || (p.bat_path ? p.bat_path.replace(/[\\\/][^\\\/]+\.bat$/i, '') : '');
+    if(dir && !decommTargetList.some(x => x.path.toLowerCase() === dir.toLowerCase())){
+      decommTargetList.push({
+        id: p.id,
+        name: p.name,
+        code: p.name.substring(0, 3).toUpperCase(),
+        path: dir
+      });
+    }
+  });
+
+  if(decommTargetList.length === 0){
+    const tmplRes = await api('/api/project/templates', {});
+    if(tmplRes.ok && tmplRes.templates){
+      tmplRes.templates.forEach(t => {
+        if(!decommTargetList.some(x => x.path.toLowerCase() === t.path.toLowerCase())){
+          decommTargetList.push({
+            name: t.name,
+            code: t.name.substring(0, 3).toUpperCase(),
+            path: t.path
+          });
+        }
+      });
+    }
+  }
+
+  sel.innerHTML = decommTargetList.map(item => `
+    <option value="${esc(item.path)}">${esc(item.name)} — ${esc(item.path)}</option>
+  `).join('');
+
+  if(targetPath){
+    sel.value = targetPath;
+  }
+  onDecommProjectSelected();
+}
+
+async function onDecommProjectSelected(){
+  const path = document.getElementById('npd-project-select').value;
+  if(!path) return;
+  document.getElementById('npd-path').textContent = path;
+  document.getElementById('npd-size').textContent = '计算中…';
+  document.getElementById('npd-lock').textContent = '检测中…';
+  document.getElementById('npd-lock').style.color = 'var(--text-dim)';
+  document.getElementById('npd-warn-box').style.display = 'none';
+  document.getElementById('npd-btn-submit').disabled = false;
+
+  const res = await api('/api/project/inspect', { path });
+  if(res.ok && res.info){
+    const info = res.info;
+    document.getElementById('npd-size').textContent = info.size_human;
+    if(info.is_locked){
+      document.getElementById('npd-lock').textContent = `🚨 发现 ${info.lock_files.length} 个锁文件`;
+      document.getElementById('npd-lock').style.color = '#fda4af';
+      document.getElementById('npd-warn-box').style.display = 'block';
+      document.getElementById('npd-warn-box').textContent = `⚠️ 检测到活跃的 .lck 锁文件 (${info.lock_files.map(f=>f.split(/[\\\\/]/).pop()).slice(0,3).join(', ')})，可能有用户正在使用，操作已拦截！`;
+      document.getElementById('npd-btn-submit').disabled = true;
+    } else {
+      document.getElementById('npd-lock').textContent = '✔ 无锁占用 (正常)';
+      document.getElementById('npd-lock').style.color = '#34d399';
+    }
+  }
+}
+
+async function submitDecommissionProject(){
+  const path = document.getElementById('npd-project-select').value;
+  const archive_dir = (document.getElementById('npd-archive-dir').value || '').trim();
+  const do_archive = document.getElementById('npd-chk-archive').checked;
+  const do_unregister = document.getElementById('npd-chk-unregister').checked;
+  const do_delete = document.getElementById('npd-chk-delete').checked;
+
+  if(!path){
+    toast('请选择要下线的项目', false);
+    return;
+  }
+
+  if(!confirm(`⚠️ 警告：确定要执行对工程的下线清理吗？\n\n路径: ${path}\n注销与删除操作不可逆！`)){
+    return;
+  }
+
+  toast('正在执行优雅下线、打包备份与系统注销…', true);
+  const res = await api('/api/project/decommission', {
+    path, archive_dir, do_archive, do_unregister, do_delete
+  });
+
+  if(res.error){
+    toast('下线失败: ' + res.error, false);
+  } else {
+    toast(`✓ ${res.message || '项目下线成功'}`, true);
+    closeModal('modal-project-decommission');
+    await rescanAll();
+  }
+}
+
 // 诊断面板按钮：通过事件委托读取 data-*，避免把路径/命令拼进内联 JS
 document.addEventListener('click', function(ev){
   const copyBtn = ev.target.closest('[data-copy-cmd]');
@@ -2843,6 +3468,14 @@ window.addEventListener('DOMContentLoaded', loadStatus);
 // ============================================================
 let sessionCache = {};     // { [project_id]: {online_count, sessions, has_locks, ...} }
 let _sessPollTimer = null;
+
+function formatSessionSource(src){
+  if(src === 'sep' || src === 'local_sep') return '<span class="badge" style="background:rgba(99,102,241,0.15);color:#818cf8;border-color:rgba(99,102,241,0.3)">SEP心跳</span>';
+  if(src === 'smb') return '<span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.3)">SMB网络</span>';
+  if(src === 'local_e3d') return '<span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399;border-color:rgba(52,211,153,0.3)">本机进程</span>';
+  if(src === 'lock') return '<span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24;border-color:rgba(245,158,11,0.3)">DABACON锁</span>';
+  return '<span class="badge">在线</span>';
+}
 
 function buildConnBadge(ses){
   if(!ses) return '';
@@ -2936,39 +3569,63 @@ function showSessionDetail(pid){
   if(!ses) return;
   const n = ses.online_count || 0;
   const rows = (ses.sessions || []).map(s => `
-    <tr>
-      <td style="padding:6px 10px">${esc(s.computer_name)}</td>
-      <td style="padding:6px 10px">${esc(s.user_name)}</td>
-      <td style="padding:6px 10px">${esc(s.project_name||'')}</td>
-      <td style="padding:6px 10px;color:${s.is_current_device?'#34d399':'#94a3b8'}">${s.is_current_device?'本机':'远端'}</td>
-      <td style="padding:6px 10px;font-size:11px;color:var(--text-dim)">${esc(s.last_heartbeat||s.started_at||'')}</td>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+      <td style="padding:8px 10px;font-family:var(--font-mono)">${esc(s.computer_name || '—')}</td>
+      <td style="padding:8px 10px;font-weight:600;color:#f8fafc">${esc(s.user_name || '—')}</td>
+      <td style="padding:8px 10px">${esc(s.project_name || ses.project_code || '—')}</td>
+      <td style="padding:8px 10px">${formatSessionSource(s.source)}</td>
+      <td style="padding:8px 10px;color:${s.is_current_device?'#34d399':'#94a3b8'}">${s.is_current_device?'<span style="color:#34d399;font-weight:600">● 本机</span>':'远端'}</td>
+      <td style="padding:8px 10px;font-size:11px;color:var(--text-dim)">${esc(s.last_heartbeat || s.started_at || '刚刚')}</td>
     </tr>
   `).join('');
+
+  const sourcesBadge = (ses.detection_sources || []).map(src => {
+    if(src === 'sep_heartbeat') return '<span class="tag-pill" style="color:#818cf8;border-color:rgba(99,102,241,0.3)">SEP协同心跳</span>';
+    if(src === 'smb_server') return '<span class="tag-pill" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">SMB网络共享</span>';
+    if(src === 'dabacon_lock') return '<span class="tag-pill" style="color:#fbbf24;border-color:rgba(245,158,11,0.3)">DABACON文件锁</span>';
+    if(src === 'local_process') return '<span class="tag-pill" style="color:#34d399;border-color:rgba(52,211,153,0.3)">本机E3D进程</span>';
+    if(src === 'db_write') return '<span class="tag-pill" style="color:#a78bfa;border-color:rgba(167,139,250,0.3)">近期数据库写入</span>';
+    return `<span class="tag-pill">${esc(src)}</span>`;
+  }).join(' ');
+
   const lockHtml = ses.lock_files && ses.lock_files.length
-    ? `<div style="margin-top:10px;color:#f59e0b;font-size:12px">🔒 检测到文件锁: ${ses.lock_files.map(f=>`<code>${esc(f)}</code>`).join(' ')}</div>`
+    ? `<div style="margin-top:12px;padding:8px 12px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:6px;color:#fbbf24;font-size:12px">
+        🔒 <strong>检测到 DABACON 文件锁 (${ses.lock_files.length} 个):</strong>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">
+          ${ses.lock_files.map(f=>`<code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:3px">${esc(f)}</code>`).join('')}
+        </div>
+      </div>`
     : '';
-  const dbHtml = ses.last_db_write_time
-    ? `<div style="margin-top:6px;font-size:12px;color:var(--text-dim)">最近数据库写入: ${esc(ses.last_db_write_time)} ${ses.is_active_recently?'<span style="color:#34d399">（近期活跃）</span>':''}</div>`
+
+  const dbHtml = ses.db_dir
+    ? `<div style="margin-top:8px;font-size:11.5px;color:var(--text-dim)">
+        数据库目录: <code>${esc(ses.db_dir)}</code>
+        ${ses.last_db_write_time ? `&nbsp;|&nbsp; 最近写入: <strong>${esc(ses.last_db_write_time)}</strong> ${ses.is_active_recently?'<span style="color:#34d399">（近期活跃）</span>':''}` : ''}
+      </div>`
     : '';
 
   document.getElementById('sess-modal-body').innerHTML = `
-    <div style="margin-bottom:12px">
-      <span class="badge" style="font-size:13px;background:${n>0?'rgba(52,211,153,0.15)':'rgba(100,116,139,0.1)'}">
-        👥 在线连接数: <strong>${n}</strong>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="badge" style="font-size:13px;padding:4px 10px;background:${n>0?'rgba(52,211,153,0.15)':'rgba(100,116,139,0.1)'}">
+        👥 在线连接数: <strong style="font-size:15px;color:${n>0?'#34d399':'#94a3b8'}">${n}</strong> 人
       </span>
+      ${sourcesBadge ? `<div style="display:flex;gap:6px;align-items:center">${sourcesBadge}</div>` : ''}
     </div>
     ${n > 0 ? `
       <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;overflow:hidden">
         <table style="width:100%;font-size:12px;border-collapse:collapse">
-          <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d">
-            <th style="padding:6px 10px">计算机名</th><th style="padding:6px 10px">用户</th>
-            <th style="padding:6px 10px">项目</th><th style="padding:6px 10px">来源</th>
-            <th style="padding:6px 10px">最近心跳</th>
+          <thead><tr style="background:rgba(255,255,255,0.03);color:var(--text-dim);border-bottom:1px solid #30363d;text-align:left">
+            <th style="padding:8px 10px">计算机名</th>
+            <th style="padding:8px 10px">用户名</th>
+            <th style="padding:8px 10px">项目</th>
+            <th style="padding:8px 10px">探测通道</th>
+            <th style="padding:8px 10px">来源</th>
+            <th style="padding:8px 10px">活跃时间</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
-    ` : '<div style="color:var(--text-dim);font-size:13px">当前无活跃在线会话</div>'}
+    ` : '<div style="color:var(--text-dim);font-size:13px;padding:12px;text-align:center;background:rgba(255,255,255,0.02);border-radius:6px;border:1px dashed var(--border-subtle)">当前无活跃在线会话</div>'}
     ${lockHtml}
     ${dbHtml}
   `;
@@ -2981,12 +3638,727 @@ function startSessionPolling(){
   _sessPollTimer = setInterval(pollSessions, 30000); // 每 30 秒刷新
 }
 
-// 在 loadStatus 完成后启动轮询
+// 在 loadStatus 完成后启动轮询并同步用户缓存
+const uaUserCache = {};
+
 const _origLoadStatus = loadStatus;
 loadStatus = async function(){
   await _origLoadStatus.apply(this, arguments);
   startSessionPolling();
+  uaPopulateProjectDropdown();
+  if (state && state.user_cache) {
+    for (const [k, v] of Object.entries(state.user_cache)) {
+      if (v && v.users) uaUserCache[k.toUpperCase()] = v.users;
+    }
+  }
 };
+
+// ========================================================================
+// ---- 用户与团队管理模块 (User Admin Module) ----
+// ========================================================================
+
+const _ua = {
+  project: '',           // 当前选中的项目代号（如 "APS"）
+  activePid: '',         // 当前操作的内嵌项目 ID（如果有）
+  users: [],             // 上次加载的用户列表
+  teams: [],             // 上次加载的团队列表
+  pendingDeleteUser: '', // 待删除用户名
+  pendingAttUser: '',    // 待加入团队的用户名
+};
+
+
+/** 从 bat_path 提取项目代号（evarsXXX.bat → XXX） */
+function uaExtractCode(batPath) {
+  if (!batPath) return '';
+  const m = batPath.match(/evars([A-Za-z0-9_.]+)\.bat$/i);
+  let code = m ? m[1].toUpperCase() : '';
+  if (code === 'AVEVAPLANTSAMPLE') return 'APS';
+  if (code === 'AVEVACATALOGUE') return 'ACP';
+  if (code === 'AVEVAMARINESAMPLE') return 'AMS';
+  if (code.startsWith('HGT21629')) return 'FHG';
+  if (code.startsWith('SOLIDSUPPORT')) return 'SST';
+  return code;
+}
+
+/** 填充项目下拉框（从 state.all_projects 中取） */
+function uaPopulateProjectDropdown() {
+  const sel = document.getElementById('ua-project-select');
+  if (!sel || !state) return;
+  const projects = (state.all_projects || []).filter(p => uaExtractCode(p.bat_path));
+  const existing = new Set(Array.from(sel.options).map(o => o.value));
+  projects.forEach(p => {
+    const code = uaExtractCode(p.bat_path);
+    if (!existing.has(code)) {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `${code}  —  ${p.name || code}`;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+/** 项目切换时重置 */
+function uaOnProjectChange() {
+  const sel = document.getElementById('ua-project-select');
+  _ua.project = sel ? sel.value : '';
+  _ua.users = [];
+  _ua.teams = [];
+  document.getElementById('ua-users-container').innerHTML = '<div class="empty-state">点击「刷新」加载用户列表</div>';
+  document.getElementById('ua-teams-container').innerHTML = '<div class="empty-state">点击「刷新」加载团队列表</div>';
+  document.getElementById('ua-users-status').textContent = '';
+  document.getElementById('ua-teams-status').textContent = '';
+  // 加载已保存的管理员用户名（不加载密码）
+  if (_ua.project) {
+    uaLoadSavedCreds();
+  }
+}
+
+/** 切换凭证面板显示/隐藏 */
+function uaToggleCreds() {
+  const p = document.getElementById('ua-creds-panel');
+  p.style.display = p.style.display === 'none' ? '' : 'none';
+}
+
+/** 加载已保存凭证中的用户名 */
+async function uaLoadSavedCreds() {
+  if (!_ua.project) return;
+  try {
+    const res = await api('/api/admin/config/get', { project: _ua.project });
+    if (res.ok && res.admin_user) {
+      document.getElementById('ua-creds-user').value = res.admin_user;
+    }
+  } catch(e) { /* silent */ }
+}
+
+/** 保存凭证 */
+async function uaSaveCreds() {
+  const project = _ua.project;
+  const adminUser = (document.getElementById('ua-creds-user').value || '').trim();
+  const adminPass = (document.getElementById('ua-creds-pass').value || '').trim();
+  const status = document.getElementById('ua-creds-status');
+  if (!project) { status.textContent = '请先选择项目'; status.style.color = 'var(--rose)'; return; }
+  if (!adminUser || !adminPass) { status.textContent = '用户名和密码不能为空'; status.style.color = 'var(--rose)'; return; }
+  status.textContent = '保存中…';
+  try {
+    const res = await api('/api/admin/config/set', { project, admin_user: adminUser, admin_password: adminPass });
+    if (res.ok) {
+      status.textContent = '✓ 凭证已保存';
+      status.style.color = '#34d399';
+      // Clear password field for security
+      document.getElementById('ua-creds-pass').value = '';
+    } else {
+      status.textContent = res.error || '保存失败';
+      status.style.color = 'var(--rose)';
+    }
+  } catch(e) {
+    status.textContent = '保存失败: ' + e.message;
+    status.style.color = 'var(--rose)';
+  }
+}
+
+/** 切换子面板 */
+function uaSwitchTab(tab) {
+  document.getElementById('ua-panel-users').style.display = tab === 'users' ? '' : 'none';
+  document.getElementById('ua-panel-teams').style.display = tab === 'teams' ? '' : 'none';
+  document.getElementById('ua-tab-users').classList.toggle('active', tab === 'users');
+  document.getElementById('ua-tab-teams').classList.toggle('active', tab === 'teams');
+}
+
+// ---- 用户相关 ----
+
+/** 加载用户列表 */
+async function uaLoadUsers() {
+  if (!_ua.project) { toast('请先选择项目', false); return; }
+  const container = document.getElementById('ua-users-container');
+  const status = document.getElementById('ua-users-status');
+  container.innerHTML = '<div class="empty-state"><span class="spinner"></span>正在连接 AVEVA Administration…</div>';
+  status.textContent = '';
+  try {
+    const res = await api('/api/admin/users/list', { project: _ua.project });
+    if (!res.ok) throw new Error(res.error || '加载失败');
+    _ua.users = res.users || [];
+    status.textContent = `共 ${_ua.users.length} 个用户`;
+    uaRenderUsers(_ua.users);
+    // 同步加载团队以备弹窗使用
+    uaLoadTeamsSilent();
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--rose)">❌ ${e.message}</div>`;
+    status.textContent = '';
+  }
+}
+
+/** 静默加载团队（不更新 UI，仅供弹窗下拉使用） */
+async function uaLoadTeamsSilent() {
+  if (!_ua.project) return;
+  try {
+    const res = await api('/api/admin/teams/list', { project: _ua.project });
+    if (res.ok) _ua.teams = res.teams || [];
+  } catch(e) { /* silent */ }
+}
+
+/** 渲染用户表格 */
+function uaRenderUsers(users) {
+  const container = document.getElementById('ua-users-container');
+  if (!users.length) {
+    container.innerHTML = '<div class="empty-state">该项目暂无用户</div>';
+    return;
+  }
+  const rows = users.map(u => {
+    const badge = u.security && u.security.toUpperCase() === 'FREE'
+      ? `<span class="ua-badge-free">FREE</span>`
+      : `<span class="ua-badge-general">GENERAL</span>`;
+    const teams = (u.teams || []).map(t => `<span class="ua-tag">${esc(t)}</span>`).join('') || '<span style="color:var(--text-dim)">无</span>';
+    const isSystem = u.name === 'SYSTEM';
+    const delBtn = isSystem
+      ? `<button class="ua-action-btn danger" disabled title="SYSTEM 用户不可删除" style="opacity:0.4">删除</button>`
+      : `<button class="ua-action-btn danger" onclick="uaOpenDeleteUser('${esc(u.name)}')">删除</button>`;
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-weight:600">${esc(u.name)}</td>
+      <td>${badge}</td>
+      <td style="max-width:320px;word-break:break-word">${teams}</td>
+      <td style="color:var(--text-muted)">${esc(u.description || '')}</td>
+      <td style="white-space:nowrap">
+        <button class="ua-action-btn" onclick="uaOpenAddToTeam('${esc(u.name)}')" style="margin-right:4px">+ 加入团队</button>
+        ${delBtn}
+      </td>
+    </tr>`;
+  }).join('');
+  container.innerHTML = `<table class="ua-table">
+    <thead><tr>
+      <th>用户名</th><th>安全级别</th><th>所属团队</th><th>描述</th><th>操作</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/** 过滤用户表格 */
+function uaFilterUsers() {
+  const q = (document.getElementById('ua-user-search').value || '').toLowerCase();
+  const filtered = q ? _ua.users.filter(u =>
+    u.name.toLowerCase().includes(q) ||
+    (u.description || '').toLowerCase().includes(q) ||
+    (u.teams || []).some(t => t.toLowerCase().includes(q))
+  ) : _ua.users;
+  uaRenderUsers(filtered);
+}
+
+// ---- 团队相关 ----
+
+/** 加载团队列表 */
+async function uaLoadTeams() {
+  if (!_ua.project) { toast('请先选择项目', false); return; }
+  const container = document.getElementById('ua-teams-container');
+  const status = document.getElementById('ua-teams-status');
+  container.innerHTML = '<div class="empty-state"><span class="spinner"></span>正在连接 AVEVA Administration…</div>';
+  status.textContent = '';
+  try {
+    const res = await api('/api/admin/teams/list', { project: _ua.project });
+    if (!res.ok) throw new Error(res.error || '加载失败');
+    _ua.teams = res.teams || [];
+    status.textContent = `共 ${_ua.teams.length} 个团队`;
+    uaRenderTeams(_ua.teams);
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--rose)">❌ ${e.message}</div>`;
+    status.textContent = '';
+  }
+}
+
+/** 渲染团队表格 */
+function uaRenderTeams(teams) {
+  const container = document.getElementById('ua-teams-container');
+  if (!teams.length) {
+    container.innerHTML = '<div class="empty-state">该项目暂无团队</div>';
+    return;
+  }
+  const rows = teams.map(t => {
+    const members = (t.users || []).map(u => `<span class="ua-tag">${esc(u)}</span>`).join('') || '<span style="color:var(--text-dim)">空团队</span>';
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-weight:600">${esc(t.name)}</td>
+      <td style="text-align:center">${t.member_count}</td>
+      <td style="max-width:500px;word-break:break-word">${members}</td>
+    </tr>`;
+  }).join('');
+  container.innerHTML = `<table class="ua-table">
+    <thead><tr>
+      <th>团队名</th><th style="text-align:center;width:80px">成员数</th><th>成员</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+/** 过滤团队表格 */
+function uaFilterTeams() {
+  const q = (document.getElementById('ua-team-search').value || '').toLowerCase();
+  const filtered = q ? _ua.teams.filter(t =>
+    t.name.toLowerCase().includes(q) ||
+    (t.users || []).some(u => u.toLowerCase().includes(q))
+  ) : _ua.teams;
+  uaRenderTeams(filtered);
+}
+
+// ---- 添加用户弹窗 ----
+
+function uaOpenAddUser() {
+  if (!_ua.project) { toast('请先选择项目并刷新用户列表', false); return; }
+  document.getElementById('ua-add-project-label').textContent = _ua.project;
+  document.getElementById('ua-add-username').value = '';
+  document.getElementById('ua-add-desc').value = '';
+  document.getElementById('ua-add-password').value = '';
+  document.getElementById('ua-add-security').value = 'General';
+  document.getElementById('ua-add-error').textContent = '';
+  // 填充团队下拉
+  const teamSel = document.getElementById('ua-add-team');
+  teamSel.innerHTML = _ua.teams.length
+    ? _ua.teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')
+    : '<option value="">（请先在团队面板点击刷新）</option>';
+  openModal('modal-ua-add-user');
+}
+
+async function uaDoAddUser() {
+  const username = document.getElementById('ua-add-username').value.trim().toUpperCase();
+  const team = document.getElementById('ua-add-team').value;
+  const security = document.getElementById('ua-add-security').value;
+  const desc = document.getElementById('ua-add-desc').value.trim();
+  const pwd = document.getElementById('ua-add-password').value;
+  const errEl = document.getElementById('ua-add-error');
+  const btn = document.getElementById('ua-add-submit-btn');
+  errEl.textContent = '';
+  if (!username) { errEl.textContent = '用户名不能为空'; return; }
+  if (!team) { errEl.textContent = '必须选择初始团队'; return; }
+  btn.disabled = true;
+  btn.textContent = '创建中…';
+  try {
+    const res = await api('/api/admin/users/add', {
+      project: _ua.project, username, team, security,
+      description: desc || undefined,
+      password: pwd || undefined,
+    });
+    if (!res.ok) throw new Error(res.error || '创建失败');
+    closeModal('modal-ua-add-user');
+    toast(`✓ 用户 ${username} 创建成功`, true);
+
+    // 增量同步前端缓存
+    const c = _ua.project.toUpperCase();
+    if (!uaUserCache[c]) uaUserCache[c] = [];
+    const tFull = team.startsWith('*') ? team : '*' + team;
+    uaUserCache[c] = uaUserCache[c].filter(u => u.name !== username);
+    uaUserCache[c].push({
+      name: username,
+      security: security,
+      description: desc || '',
+      teams: [tFull]
+    });
+    uaUserCache[c].sort((a,b) => a.name.localeCompare(b.name));
+
+    // 若从内嵌抽屉打开，实时更新抽屉
+    if (_ua.activePid) {
+      uaRenderInlineUsers(_ua.activePid, c, uaUserCache[c]);
+    }
+    // 若在独立用户管理视图，重新加载
+    const uv = document.getElementById('view-useradmin');
+    if (uv && uv.classList.contains('active')) {
+      uaLoadUsers();
+    }
+  } catch(e) {
+    errEl.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '创建用户';
+  }
+}
+
+// ---- 删除用户弹窗 ----
+
+function uaOpenDeleteUser(username) {
+  _ua.pendingDeleteUser = username;
+  document.getElementById('ua-del-project-label').textContent = _ua.project;
+  document.getElementById('ua-del-username-label').textContent = username;
+  openModal('modal-ua-delete-user');
+}
+
+async function uaDoDeleteUser() {
+  const username = _ua.pendingDeleteUser;
+  const btn = document.getElementById('ua-del-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '删除中…';
+  try {
+    const res = await api('/api/admin/users/delete', { project: _ua.project, username });
+    if (!res.ok) throw new Error(res.error || '删除失败');
+    closeModal('modal-ua-delete-user');
+    toast(`✓ 用户 ${username} 已删除`, true);
+
+    // 增量同步前端缓存
+    const c = _ua.project.toUpperCase();
+    if (uaUserCache[c]) {
+      uaUserCache[c] = uaUserCache[c].filter(u => u.name !== username);
+    }
+    if (_ua.activePid) {
+      uaRenderInlineUsers(_ua.activePid, c, uaUserCache[c]);
+    }
+    const uv = document.getElementById('view-useradmin');
+    if (uv && uv.classList.contains('active')) {
+      uaLoadUsers();
+    }
+  } catch(e) {
+    toast('❌ ' + e.message, false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '确认删除';
+  }
+}
+
+// ---- 加入团队弹窗 ----
+
+function uaOpenAddToTeam(username) {
+  _ua.pendingAttUser = username;
+  document.getElementById('ua-att-username-label').textContent = username;
+  document.getElementById('ua-att-error').textContent = '';
+  const teamSel = document.getElementById('ua-att-team-select');
+  teamSel.innerHTML = _ua.teams.length
+    ? '<option value="">-- 选择团队 --</option>' + _ua.teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')
+    : '<option value="">（请先刷新团队列表）</option>';
+  openModal('modal-ua-add-to-team');
+}
+
+async function uaDoAddToTeam() {
+  const username = _ua.pendingAttUser;
+  const team = document.getElementById('ua-att-team-select').value;
+  const errEl = document.getElementById('ua-att-error');
+  const btn = document.getElementById('ua-att-submit-btn');
+  errEl.textContent = '';
+  if (!team) { errEl.textContent = '请选择一个团队'; return; }
+  btn.disabled = true;
+  btn.textContent = '操作中…';
+  try {
+    const res = await api('/api/admin/teams/add-user', {
+      project: _ua.project, team, username,
+    });
+    if (!res.ok) throw new Error(res.error || '操作失败');
+    closeModal('modal-ua-add-to-team');
+    toast(`✓ 用户 ${username} 已加入团队 ${team}`, true);
+
+    // 增量同步前端缓存
+    const c = _ua.project.toUpperCase();
+    if (uaUserCache[c]) {
+      const u = uaUserCache[c].find(x => x.name === username);
+      if (u) {
+        u.teams = u.teams || [];
+        const tFull = team.startsWith('*') ? team : '*' + team;
+        if (!u.teams.includes(tFull) && !u.teams.includes(team)) u.teams.push(tFull);
+      }
+    }
+    if (_ua.activePid) {
+      uaRenderInlineUsers(_ua.activePid, c, uaUserCache[c]);
+    }
+    const uv = document.getElementById('view-useradmin');
+    if (uv && uv.classList.contains('active')) {
+      uaLoadUsers();
+    }
+  } catch(e) {
+    errEl.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '加入团队';
+  }
+}
+
+// ---- 项目卡片内嵌用户手风琴交互 ----
+
+async function uaToggleProjectInlineUsers(pid, code) {
+  const drawer = document.getElementById('pud-' + pid);
+  const arrow = document.getElementById('pub-arrow-' + pid);
+  const card = document.getElementById('pc-' + pid) || document.getElementById('my-pc-' + pid);
+  if (!drawer) return;
+
+  const isHidden = drawer.style.display === 'none';
+  if (!isHidden) {
+    drawer.style.display = 'none';
+    if (arrow) arrow.textContent = '▾';
+    if (card) {
+      card.style.borderBottomLeftRadius = '';
+      card.style.borderBottomRightRadius = '';
+    }
+    return;
+  }
+
+  drawer.style.display = 'block';
+  if (arrow) arrow.textContent = '▴';
+  if (card) {
+    card.style.borderBottomLeftRadius = '0';
+    card.style.borderBottomRightRadius = '0';
+  }
+
+  const c = code.toUpperCase();
+  _ua.project = c;
+  _ua.activePid = pid;
+
+  // 1. 若本地内存有缓存：0ms 极速呈现！
+  if (uaUserCache[c]) {
+    uaRenderInlineUsers(pid, c, uaUserCache[c]);
+    return;
+  }
+
+  // 2. 若无缓存：展示加载状态并异步拉取
+  const content = document.getElementById('pud-content-' + pid);
+  if (content) {
+    content.innerHTML = '<div class="empty-state" style="padding:16px 0"><span class="spinner"></span> 正在连接 AVEVA 查询工程 ' + esc(c) + ' 用户列表（初次扫描约需数秒，之后秒开）…</div>';
+  }
+
+  try {
+    const res = await api('/api/admin/users/list', { project: c, force_refresh: false });
+    if (!res.ok) throw new Error(res.error || '查询失败');
+    uaUserCache[c] = res.users || [];
+    uaRenderInlineUsers(pid, c, uaUserCache[c]);
+  } catch (err) {
+    if (content) {
+      content.innerHTML = `<div class="empty-state" style="color:var(--rose);padding:14px 0">
+        ❌ 查询失败: ${esc(err.message)}
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:var(--primary);color:#fff;border-color:var(--primary)" onclick="uaOpenInlineCreds('${esc(pid)}', '${esc(c)}')">🔑 设置该工程管理员凭证</button>
+          <button class="btn btn-sm btn-ghost" onclick="uaRefreshInlineUsers('${esc(pid)}', '${esc(c)}')">↻ 重试</button>
+        </div>
+      </div>`;
+    }
+  }
+}
+
+function uaRenderInlineUsers(pid, code, users) {
+  const content = document.getElementById('pud-content-' + pid);
+  if (!content) return;
+
+  const rows = (users || []).map(u => {
+    const badge = (u.security && u.security.toUpperCase() === 'FREE')
+      ? '<span class="ua-badge-free">FREE</span>'
+      : '<span class="ua-badge-general">GENERAL</span>';
+    const teams = (u.teams || []).map(t => `<span class="ua-tag">${esc(t)}</span>`).join('') || '<span style="color:var(--text-dim)">无</span>';
+    const isSystem = u.name === 'SYSTEM';
+    const delBtn = isSystem
+      ? `<button class="ua-action-btn danger" disabled title="SYSTEM 不可删除" style="opacity:0.35">删除</button>`
+      : `<button class="ua-action-btn danger" onclick="uaOpenDeleteUserForProject('${esc(code)}', '${esc(pid)}', '${esc(u.name)}')">删除</button>`;
+
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-weight:700">${esc(u.name)}</td>
+      <td>${badge}</td>
+      <td style="max-width:320px;word-break:break-word">${teams}</td>
+      <td style="color:var(--text-muted);font-size:12px">${esc(u.description || '')}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="ua-action-btn" onclick="uaOpenAddToTeamForProject('${esc(code)}', '${esc(pid)}', '${esc(u.name)}')" style="margin-right:4px">+ 团队</button>
+        ${delBtn}
+      </td>
+    </tr>`;
+  }).join('');
+
+  const tableHtml = (users && users.length) ? `
+    <table class="ua-table">
+      <thead>
+        <tr>
+          <th style="width:130px">用户名</th>
+          <th style="width:90px">安全级别</th>
+          <th>所属团队</th>
+          <th>描述</th>
+          <th style="width:160px;text-align:right">操作</th>
+        </tr>
+      </thead>
+      <tbody id="pud-tbody-${esc(pid)}">${rows}</tbody>
+    </table>
+  ` : '<div class="empty-state" style="padding:14px 0">该项目暂未发现已配置用户</div>';
+
+  content.innerHTML = `
+    <div class="pud-header">
+      <div class="pud-title">
+        <span>👥 工程 <code>${esc(code)}</code> 用户名单</span>
+        <span class="pill-count" id="pud-count-${esc(pid)}">${users ? users.length : 0}</span>
+      </div>
+      <input type="text" class="pud-search" placeholder="🔍 搜索用户名 / 团队 / 描述..."
+             oninput="uaFilterInlineDrawerUsers('${esc(pid)}', '${esc(code)}', this.value)">
+      <div class="pud-actions">
+        <button class="btn btn-sm" style="background:var(--emerald);color:#fff;border-color:var(--emerald)"
+                onclick="uaOpenAddUserForProject('${esc(code)}', '${esc(pid)}')">+ 新建用户</button>
+        <button class="btn btn-sm btn-ghost" onclick="uaRefreshInlineUsers('${esc(pid)}', '${esc(code)}')" title="从 AVEVA 底层重新扫描">↻ 实时刷新</button>
+      </div>
+    </div>
+    <div id="pud-table-box-${esc(pid)}">${tableHtml}</div>
+  `;
+}
+
+function uaFilterInlineDrawerUsers(pid, code, query) {
+  const users = uaUserCache[code.toUpperCase()] || [];
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q ? users.filter(u =>
+    (u.name || '').toLowerCase().includes(q) ||
+    (u.description || '').toLowerCase().includes(q) ||
+    (u.teams || []).some(t => t.toLowerCase().includes(q))
+  ) : users;
+
+  const tbody = document.getElementById('pud-tbody-' + pid);
+  if (!tbody) return;
+  tbody.innerHTML = filtered.map(u => {
+    const badge = (u.security && u.security.toUpperCase() === 'FREE')
+      ? '<span class="ua-badge-free">FREE</span>'
+      : '<span class="ua-badge-general">GENERAL</span>';
+    const teams = (u.teams || []).map(t => `<span class="ua-tag">${esc(t)}</span>`).join('') || '<span style="color:var(--text-dim)">无</span>';
+    const isSystem = u.name === 'SYSTEM';
+    const delBtn = isSystem
+      ? `<button class="ua-action-btn danger" disabled style="opacity:0.35">删除</button>`
+      : `<button class="ua-action-btn danger" onclick="uaOpenDeleteUserForProject('${esc(code)}', '${esc(pid)}', '${esc(u.name)}')">删除</button>`;
+
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-weight:700">${esc(u.name)}</td>
+      <td>${badge}</td>
+      <td style="max-width:320px;word-break:break-word">${teams}</td>
+      <td style="color:var(--text-muted);font-size:12px">${esc(u.description || '')}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="ua-action-btn" onclick="uaOpenAddToTeamForProject('${esc(code)}', '${esc(pid)}', '${esc(u.name)}')" style="margin-right:4px">+ 团队</button>
+        ${delBtn}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function uaRefreshInlineUsers(pid, code) {
+  const box = document.getElementById('pud-table-box-' + pid);
+  if (box) {
+    box.innerHTML = '<div class="empty-state" style="padding:16px 0"><span class="spinner"></span> 正在从 AVEVA 重新扫描底层数据…</div>';
+  }
+  const c = code.toUpperCase();
+  try {
+    const res = await api('/api/admin/users/list', { project: c, force_refresh: true });
+    if (!res.ok) throw new Error(res.error || '刷新失败');
+    uaUserCache[c] = res.users || [];
+    uaRenderInlineUsers(pid, c, uaUserCache[c]);
+    toast(`✓ 工程 ${c} 用户已实时更新 (共 ${uaUserCache[c].length} 人)`, true);
+  } catch (err) {
+    if (box) {
+      box.innerHTML = `<div class="empty-state" style="color:var(--rose);padding:14px 0">
+        ❌ 刷新失败: ${esc(err.message)}
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:var(--primary);color:#fff;border-color:var(--primary)" onclick="uaOpenInlineCreds('${esc(pid)}', '${esc(c)}')">🔑 设置该工程管理员凭证</button>
+          <button class="btn btn-sm btn-ghost" onclick="uaRefreshInlineUsers('${esc(pid)}', '${esc(c)}')">↻ 重试</button>
+        </div>
+      </div>`;
+    }
+  }
+}
+
+let _uaPendingCreds = { pid: '', code: '' };
+
+function uaOpenInlineCreds(pid, code) {
+  _uaPendingCreds = { pid, code };
+  const c = code.toUpperCase();
+  document.getElementById('ua-modal-creds-project').textContent = c;
+  document.getElementById('ua-modal-creds-user').value = 'SYSTEM';
+  document.getElementById('ua-modal-creds-pass').value = '';
+  document.getElementById('ua-modal-creds-error').textContent = '';
+  api('/api/admin/config/get', { project: c }).then(res => {
+    if (res && res.ok && res.admin_user) {
+      document.getElementById('ua-modal-creds-user').value = res.admin_user;
+    }
+  }).catch(() => {});
+  openModal('modal-ua-creds');
+}
+
+async function uaDoSaveModalCreds() {
+  const user = (document.getElementById('ua-modal-creds-user').value || '').trim();
+  const pass = (document.getElementById('ua-modal-creds-pass').value || '').trim();
+  const errBox = document.getElementById('ua-modal-creds-error');
+  if (!user || !pass) {
+    errBox.textContent = '请输入管理员用户名与密码';
+    return;
+  }
+  const btn = document.getElementById('ua-modal-creds-btn');
+  btn.disabled = true;
+  btn.textContent = '保存中…';
+  try {
+    const res = await api('/api/admin/config/set', {
+      project: _uaPendingCreds.code,
+      admin_user: user,
+      admin_password: pass
+    });
+    if (!res.ok) throw new Error(res.error || '保存凭证失败');
+    closeModal('modal-ua-creds');
+    toast(`✓ 工程 ${_uaPendingCreds.code} 管理凭证已配置并保存`, true);
+    if (_uaPendingCreds.pid) {
+      uaRefreshInlineUsers(_uaPendingCreds.pid, _uaPendingCreds.code);
+    }
+  } catch (err) {
+    errBox.textContent = '保存失败: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '保存并重试';
+  }
+}
+
+async function uaOpenAddUserForProject(code, pid) {
+  _ua.project = code.toUpperCase();
+  _ua.activePid = pid;
+  document.getElementById('ua-add-project-label').textContent = _ua.project;
+  document.getElementById('ua-add-username').value = '';
+  document.getElementById('ua-add-desc').value = '';
+  document.getElementById('ua-add-password').value = '';
+  document.getElementById('ua-add-security').value = 'General';
+  document.getElementById('ua-add-error').textContent = '';
+
+  const teamSel = document.getElementById('ua-add-team');
+  teamSel.innerHTML = '<option value="">加载团队中…</option>';
+  openModal('modal-ua-add-user');
+
+  try {
+    const res = await api('/api/admin/teams/list', { project: _ua.project });
+    if (res.ok && res.teams && res.teams.length) {
+      _ua.teams = res.teams;
+      teamSel.innerHTML = res.teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+    } else {
+      teamSel.innerHTML = '<option value="*MASTER">*MASTER</option>';
+    }
+  } catch(e) {
+    teamSel.innerHTML = '<option value="*MASTER">*MASTER</option>';
+  }
+}
+
+function uaOpenDeleteUserForProject(code, pid, username) {
+  _ua.project = code.toUpperCase();
+  _ua.activePid = pid;
+  _ua.pendingDeleteUser = username;
+  document.getElementById('ua-del-project-label').textContent = _ua.project;
+  document.getElementById('ua-del-username-label').textContent = username;
+  openModal('modal-ua-delete-user');
+}
+
+async function uaOpenAddToTeamForProject(code, pid, username) {
+  _ua.project = code.toUpperCase();
+  _ua.activePid = pid;
+  _ua.pendingAttUser = username;
+  document.getElementById('ua-att-username-label').textContent = username;
+  document.getElementById('ua-att-error').textContent = '';
+  const teamSel = document.getElementById('ua-att-team-select');
+  teamSel.innerHTML = '<option value="">加载团队中…</option>';
+  openModal('modal-ua-add-to-team');
+
+  try {
+    const res = await api('/api/admin/teams/list', { project: _ua.project });
+    if (res.ok && res.teams && res.teams.length) {
+      _ua.teams = res.teams;
+      teamSel.innerHTML = '<option value="">-- 选择团队 --</option>' + res.teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+    } else {
+      teamSel.innerHTML = '<option value="*MASTER">*MASTER</option>';
+    }
+  } catch(e) {
+    teamSel.innerHTML = '<option value="*MASTER">*MASTER</option>';
+  }
+}
+
+
+// 切换到 useradmin 视图时自动填充项目下拉
+const _origSwitchView = switchView;
+switchView = function(v) {
+  _origSwitchView(v);
+  if (v === 'useradmin') uaPopulateProjectDropdown();
+};
+
+/** HTML 转义辅助 */
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>

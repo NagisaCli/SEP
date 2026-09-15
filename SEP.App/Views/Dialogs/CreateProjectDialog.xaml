@@ -1,0 +1,80 @@
+<Window x:Class="SEP.App.Views.Dialogs.CreateProjectDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="规范化新建工程"
+        Width="540" Height="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0D1117" Foreground="#FFFFFF">
+
+    <Border Padding="24" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Margin="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="✨" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <TextBlock Text="AVEVA E3D 规范化新建工程" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Error Banner -->
+            <Border Grid.Row="1" Background="#7F1D1D" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,12"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FECACA" FontSize="12" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Form Content -->
+            <StackPanel Grid.Row="2">
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Code -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="项目代号 (2~5位)" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" MaxLength="5"
+                                    FontFamily="Cascadia Code, Consolas" FontWeight="Bold" HorizontalContentAlignment="Center"
+                                    PlaceholderText="如 PRJ" FontSize="15" />
+                    </StackPanel>
+
+                    <!-- Name -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="项目全称 / 描述" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="如 某化工厂20万吨乙烯装置" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="项目存储根目录" Foreground="#8B949E" Margin="0,0,0,4" />
+                <ui:TextBox Text="{Binding RootDir, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                <!-- Clone Template -->
+                <CheckBox Content="从已有工程克隆配置 (000系统库/等级库/出图样式)" IsChecked="{Binding IsCloneMode}" Margin="0,0,0,8" Foreground="#FFFFFF" />
+
+                <ComboBox ItemsSource="{Binding AvailableTemplates}" SelectedItem="{Binding SelectedTemplate}" Margin="0,0,0,12"
+                          Visibility="{Binding IsCloneMode, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <Border Background="#0D1117" CornerRadius="4" Padding="10,8" Margin="0,4,0,0">
+                    <TextBlock Text="💡 创建后将自动生成 000/ISO/DWG/MAC/PIC/DFLTS 目录骨架与 evars.bat，并同步注册至 ProjectInfo.xml 与 projects.ini。"
+                               FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+
+            <!-- Footer Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <ui:Button Appearance="Secondary" Content="取消" Click="OnCancelClick" Margin="0,0,10,0" Width="80" />
+                <ui:Button Appearance="Primary" Content="✨ 立即规范化创建" Command="{Binding CreateCommand}" Click="OnCreateClick" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

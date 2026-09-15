@@ -14,6 +14,8 @@ SEP — E3D 插件底层管理与诊断引擎
 默认插件根目录：D:\\AVEVA\\Plugins
 """
 
+import copy
+import hashlib
 import os
 import re
 import shutil
@@ -31,6 +33,15 @@ PLUGINS_BLOCK_RE = re.compile(
 
 DEFAULT_PLUGINS_DIR = r"D:\AVEVA\Plugins"
 
+# 插件目录解析结果缓存（原实现每次调用都 load_data + 探测盘符 + 可能 makedirs，
+# 而一次插件列表请求内部会调用它十几次）。
+_PLUGINS_DIR_CACHE = util.TTLCache(ttl=15.0)
+# 插件目录深度解析缓存：目录树签名未变化时直接复用解析结果，
+# 避免每次列表请求都重新读取并正则解析所有 PML 文件。
+_INSPECT_CACHE = {}
+_INSPECT_CACHE_MAX = 64
+_MAX_PARSE_BYTES = 4 * 1024 * 1024
+
 
 # ============================================================
 # 基础路径与配置
@@ -38,6 +49,9 @@ DEFAULT_PLUGINS_DIR = r"D:\AVEVA\Plugins"
 
 def get_plugins_dir():
     """获取当前配置的插件根目录，支持跨设备自动探测、盘符重映射与自愈创建。"""
+    cached = _PLUGINS_DIR_CACHE.get('dir')
+    if cached:
+        return cached
     data = store.load_data()
     settings = data.get('settings') or {}
     configured = settings.get('plugins_dir')
@@ -50,10 +64,9 @@ def get_plugins_dir():
     ]
     # 尝试从检测到的 E3D 安装路径反推
     cache = store.read_paths_cache()
-    e3d_exe = cache.get('e3d_exe')
-    if e3d_exe:
-        parent = os.path.dirname(os.path.dirname(e3d_exe))
-        candidates.insert(1, os.path.join(parent, 'Plugins'))
+    install_dir = cache.get('install_dir') or ''
+    if install_dir:
+        candidates.insert(1, os.path.join(os.path.dirname(install_dir.rstrip('\\/')), 'Plugins'))
 
     resolved_path, was_created, notice = util.resolve_cross_device_path(
         candidates, sub_path=r'AVEVA\Plugins', default_drive_pref=('D:', 'C:', 'E:')
@@ -69,7 +82,13 @@ def get_plugins_dir():
             action_url='/api/plugins/open-dir'
         )
 
-    return resolved_path
+    return _PLUGINS_DIR_CACHE.set('dir', resolved_path)
+
+
+def invalidate_caches():
+    """设置变更 / 插件目录写入后清空缓存。"""
+    _PLUGINS_DIR_CACHE.clear()
+    _INSPECT_CACHE.clear()
 
 
 def set_plugins_dir(path):
@@ -83,7 +102,43 @@ def set_plugins_dir(path):
         data['settings'] = {}
     data['settings']['plugins_dir'] = norm
     store.save_data(data)
+    invalidate_caches()
     return norm
+
+
+def _tree_signature(folder_path):
+    """
+    计算目录树的廉价签名（相对路径 + mtime + size），用于判断插件是否有变化。
+    Windows 上 scandir 的 stat 直接来自目录项，无需逐文件 open。
+    """
+    parts = []
+    stack = [folder_path]
+    while stack:
+        cur = stack.pop()
+        try:
+            with os.scandir(cur) as it:
+                for entry in it:
+                    name = entry.name
+                    if name.startswith('.'):
+                        continue
+                    try:
+                        if entry.is_dir(follow_symlinks=False):
+                            low = name.lower()
+                            if 'backup' in low or 'bak' in low:
+                                continue
+                            stack.append(entry.path)
+                        else:
+                            st = entry.stat(follow_symlinks=False)
+                            parts.append((entry.path, st.st_mtime_ns, st.st_size))
+                    except OSError:
+                        continue
+        except OSError:
+            continue
+    parts.sort()
+    h = hashlib.blake2b(digest_size=16)
+    for p, m, s in parts:
+        h.update(f'{p}|{m}|{s}\n'.encode('utf-8', 'surrogateescape'))
+    return h.hexdigest()
 
 
 def custom_file_path(local_dir=None):
@@ -112,9 +167,13 @@ def parse_pml_file_deep(file_path):
 
     fname = os.path.basename(file_path)
     ext = os.path.splitext(fname)[1].lower()
-    sz = os.path.getsize(file_path)
-    mtime = os.path.getmtime(file_path)
-    mtime_str = util.format_iso(mtime) if hasattr(util, 'format_iso') else str(int(mtime))
+    try:
+        st = os.stat(file_path)
+    except OSError:
+        return None
+    sz = st.st_size
+    mtime = st.st_mtime
+    mtime_str = util.format_iso(mtime)
 
     meta = {
         'file': fname,
@@ -164,11 +223,16 @@ def parse_pml_file_deep(file_path):
         return meta
 
     # 3. 文本类 PML 文件 (.pmlfrm, .pmlobj, .pmlfnc, .mac, .pmlcmd)
+    if ext not in ('.pmlfrm', '.pmlobj', '.pmlfnc', '.mac', '.pmlcmd', '.pmlmac'):
+        # 非 PML 文本（图片 / 文档 / 二进制等）无需读取内容
+        return meta
+    if sz > _MAX_PARSE_BYTES:
+        meta['diagnostics'].append(f"文件过大（{meta['size_str']}），跳过符号解析")
+        return meta
     try:
         with open(file_path, 'r', encoding='latin-1', errors='ignore') as f:
-            lines = f.readlines()
-        content = ''.join(lines)
-        meta['line_count'] = len(lines)
+            content = f.read()
+        meta['line_count'] = content.count('\n') + (1 if content and not content.endswith('\n') else 0)
     except Exception as e:
         meta['diagnostics'].append(f"读取文件失败: {e}")
         return meta
@@ -233,11 +297,27 @@ def parse_pml_file_deep(file_path):
 def inspect_plugin_deep(folder_path):
     """
     深度扫描单个插件的完整文件树，按 E3D 运行层级输出全景元数据。
+    目录树签名未变化时复用缓存结果（深拷贝，调用方可放心修改）。
     """
     folder_path = util.normalize_path(folder_path)
     if not os.path.isdir(folder_path):
         return None
 
+    sig = _tree_signature(folder_path)
+    key = folder_path.lower()
+    cached = _INSPECT_CACHE.get(key)
+    if cached and cached[0] == sig:
+        return copy.deepcopy(cached[1])
+
+    tree = _inspect_plugin_uncached(folder_path)
+    if tree is not None:
+        if len(_INSPECT_CACHE) >= _INSPECT_CACHE_MAX:
+            _INSPECT_CACHE.pop(next(iter(_INSPECT_CACHE)))
+        _INSPECT_CACHE[key] = (sig, copy.deepcopy(tree))
+    return tree
+
+
+def _inspect_plugin_uncached(folder_path):
     name = os.path.basename(folder_path)
     tree = {
         'name': name,
@@ -919,14 +999,23 @@ def read_plugin_file_content(file_path, max_lines=1000):
 
     meta = parse_pml_file_deep(norm_fp)
     try:
-        text, enc = util.read_text_smart(norm_fp)
-        lines = text.splitlines(keepends=True)
-        content = ''.join(lines[:max_lines])
+        # 预览只需前 max_lines 行：大日志 / 大宏不整文件读入内存
+        enc = util.detect_encoding(norm_fp)
+        lines = []
+        truncated = False
+        with open(norm_fp, 'r', encoding=enc, errors='replace') as f:
+            for i, line in enumerate(f):
+                if i >= max_lines:
+                    truncated = True
+                    break
+                lines.append(line)
+        if meta is not None and not meta.get('line_count'):
+            meta['line_count'] = len(lines) + (1 if truncated else 0)
         return {
             'ok': True,
             'meta': meta,
-            'content': content,
-            'is_truncated': len(lines) > max_lines,
+            'content': ''.join(lines),
+            'is_truncated': truncated,
         }
     except Exception as e:
         return {'ok': False, 'error': f'读取文件失败: {e}'}

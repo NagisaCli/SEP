@@ -14,16 +14,39 @@ fix 为 None 或 {id, title, steps, commands, requires_admin}，UI 可展示修�
 也可通过 apply_fix() 尝试自动执行安全修复。
 """
 
+import glob
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
+import time
 
 import e3d_util as util
 
 
 CREATE_NO_WINDOW = 0x08000000 if sys.platform == 'win32' else 0
+
+
+def get_userdata_dir():
+    """E3D USERDATA 目录：优先取 evars 检测到的安装盘符，其次按常见盘符探测。"""
+    candidates = []
+    try:
+        import e3d_config
+        cache = e3d_config.detect_from_cache() or {}
+        install_dir = cache.get('install_dir') or ''
+        if install_dir:
+            drive = os.path.splitdrive(install_dir)[0]
+            if drive:
+                candidates.append(os.path.join(drive + '\\', 'AVEVA', 'USERDATA'))
+    except Exception:
+        pass
+    candidates += [r'D:\AVEVA\USERDATA', r'C:\AVEVA\USERDATA', r'E:\AVEVA\USERDATA']
+    for c in candidates:
+        if os.path.isdir(c):
+            return util.normalize_path(c)
+    return util.normalize_path(candidates[0])
 
 
 # Windows 常见网络错误码 -> 可读说明
@@ -96,6 +119,8 @@ def _net_use_test(share, timeout=8):
 
 
 def _net_error_detail(code):
+    if code in (-1, -2, None):
+        return '连接共享超时：服务器无响应（常见于目标主机并发连接数已达上限、防火墙拦截或 SMB 服务假死）。'
     return NET_ERRORS.get(code, f'系统错误 {code}，请根据提示进一步排查。')
 
 
@@ -233,8 +258,22 @@ def _diagnose_unc(norm, timeout=8):
     host = norm.lstrip('\\').split('\\')[0] if norm.startswith('\\\\') else ''
     share = _share_root_of(norm)
 
+    # 路径与共享根的探测并行发起（离线共享每一步都会卡满超时，串行会把总耗时叠加）
+    pool = util._io_pool()
+    fut_exists = pool.submit(os.path.exists, norm)
+    fut_share = pool.submit(os.path.isdir, share)
+    deadline = time.monotonic() + timeout
+
+    def _await(fut, default=False):
+        # 共用同一个截止时间：两个探测同时发起，不能各自再等满一个 timeout
+        try:
+            return fut.result(timeout=max(0.05, deadline - time.monotonic()))
+        except Exception:
+            fut.cancel()
+            return default
+
     # 1. 路径可达
-    exists = util.run_with_timeout(lambda: os.path.exists(norm), timeout, False)
+    exists = _await(fut_exists)
     checks.append({
         'id': 'exists',
         'name': '共享路径可达',
@@ -243,16 +282,12 @@ def _diagnose_unc(norm, timeout=8):
         'fix': None,
     })
 
-    # 2. 主机解析
+    # 2. 主机解析（带超时，避免 DNS 卡住整个诊断）
     host_ok = False
     host_detail = ''
     if host:
-        try:
-            socket.gethostbyname(host)
-            host_ok = True
-            host_detail = f'主机 {host} 可解析'
-        except OSError as e:
-            host_detail = f'主机 {host} 解析失败：{e}'
+        host_ok = util.is_host_resolvable(host, timeout=min(timeout, 3))
+        host_detail = f'主机 {host} 可解析' if host_ok else f'主机 {host} 解析失败或超时'
     else:
         host_detail = '无法从路径中解析主机名'
     checks.append({
@@ -328,7 +363,7 @@ def _diagnose_unc(norm, timeout=8):
     net_code = None
     net_out = ''
     if host_ok and port_ok:
-        share_ok = util.run_with_timeout(lambda: os.path.isdir(share), timeout, False)
+        share_ok = exists or _await(fut_share)
         if share_ok:
             share_detail = f'共享 {share} 可访问'
         else:
@@ -638,8 +673,9 @@ def diagnose_e3d_config(e3d_install_dir=None, projects_dir=None, timeout=1.5, ch
     if custom_evars and os.path.isfile(custom_evars):
         try:
             text, _enc = util.read_text_smart(custom_evars)
+            lines = text.splitlines()
             in_managed = False
-            for idx, line in enumerate(text.splitlines(), start=1):
+            for idx, line in enumerate(lines, start=1):
                 raw = line.strip()
                 if '>>> SEP MANAGED PROJECTS' in raw:
                     in_managed = True
@@ -1001,7 +1037,7 @@ def clean_userdata_cache(userdata_dir=None):
     清理 E3D USERDATA 目录中的死锁与临时文件（*.lok, *.tmp, AvevaAbaLog.txt 等）。
     """
     if not userdata_dir:
-        userdata_dir = r"D:\AVEVA\USERDATA"
+        userdata_dir = get_userdata_dir()
     userdata_dir = util.normalize_path(userdata_dir)
     if not os.path.isdir(userdata_dir):
         return {'ok': False, 'message': f'USERDATA 目录不存在: {userdata_dir}', 'cleaned': []}
@@ -1049,6 +1085,7 @@ def fix_cad_fonts_tool():
     drives = util.get_available_drives()
     font_dirs = []
     support_dirs = []
+    changes = []
 
     # 1. 扫描盘符下的 AutoCAD / Fonts / Support 目录
     for d in drives:
@@ -1160,6 +1197,12 @@ def fix_cad_fonts_tool():
             except Exception:
                 pass
 
+    if not font_dirs and not support_dirs:
+        return {
+            'ok': False,
+            'message': '未在本机检测到 AutoCAD / ZWCAD 的 Fonts 或 Support 目录，无需修复',
+            'changes': [],
+        }
     return {
         'ok': True,
         'message': f'CAD 字体修复完成（已应用 {len(changes)} 处优化）' if changes else 'CAD 字体配置已是最新状态',

@@ -1,0 +1,113 @@
+<Page x:Class="SEP.App.Views.Pages.DiagnosticsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="全景体检与锁排查"
+      Background="#0D1117" Foreground="#FFFFFF">
+
+    <Grid Margin="24,16,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Top Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="全景体检与锁排查" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,20,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#00E5FF" VerticalAlignment="Center" FontSize="13" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <ui:Button Appearance="Secondary" Content="🔄 重新体检" Command="{Binding RunDiagnosticsCommand}" Margin="0,0,10,0" />
+                <ui:Button Appearance="Danger" Content="🛡️ 一键清理所有残留锁" Command="{Binding UnlockAllCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- System Health Cards -->
+        <Border Grid.Row="1" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
+            <StackPanel>
+                <TextBlock Text="核心环境诊断指标" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,10" />
+
+                <ItemsControl ItemsSource="{Binding DiagItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,4" Padding="12,8" Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="●" Foreground="#10B981" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Detail}" Foreground="#9CA3AF" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Active Locks DataGrid / ListView -->
+        <Border Grid.Row="3" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <TextBlock Text="跨工程数据库锁文件巡检 (Active Session Locks)" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding LockItems.Count, StringFormat='检测到 {0} 个锁'}" HorizontalAlignment="Right" Foreground="#F59E0B" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </Grid>
+
+                <ListView Grid.Row="1" ItemsSource="{Binding LockItems}" BorderThickness="0" Background="Transparent">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,3" Padding="12,8" Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="160" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Project Code -->
+                                    <Border Background="#1E293B" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ProjectCode}" FontFamily="Cascadia Code" FontWeight="Bold" Foreground="#00E5FF" FontSize="12" />
+                                    </Border>
+
+                                    <!-- Lock File Name -->
+                                    <TextBlock Grid.Column="1" Text="{Binding FileName}" FontFamily="Cascadia Code" FontWeight="SemiBold" Foreground="#FBBF24" VerticalAlignment="Center" />
+
+                                    <!-- Timestamp -->
+                                    <TextBlock Grid.Column="2" Text="{Binding LockTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Foreground="#9CA3AF" FontSize="12" VerticalAlignment="Center" />
+
+                                    <!-- Path snippet -->
+                                    <TextBlock Grid.Column="3" Text="{Binding FilePath}" Foreground="#6B7280" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                    <!-- Action Button -->
+                                    <ui:Button Grid.Column="4" Appearance="Danger" Content="🔓 解锁" Padding="12,4"
+                                               Command="{Binding DataContext.UnlockSingleCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

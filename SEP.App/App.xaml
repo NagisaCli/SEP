@@ -1,0 +1,30 @@
+<Application x:Class="SEP.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:converters="clr-namespace:SEP.App.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Wpf.Ui.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/Dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
+            <converters:LockToBackgroundConverter x:Key="LockToBackgroundConverter" />
+            <converters:LockToForegroundConverter x:Key="LockToForegroundConverter" />
+            <converters:LockToTextConverter x:Key="LockToTextConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+            <!-- Palette Overrides -->
+            <SolidColorBrush x:Key="SepBrandCyanBrush" Color="#00E5FF" />
+            <SolidColorBrush x:Key="SepCardDarkBrush" Color="#161B22" />
+            <SolidColorBrush x:Key="SepCardHoverBrush" Color="#21262D" />
+            <SolidColorBrush x:Key="SepBorderSubtleBrush" Color="#253040" />
+            <SolidColorBrush x:Key="SepEmeraldBrush" Color="#10B981" />
+            <SolidColorBrush x:Key="SepAmberBrush" Color="#F59E0B" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

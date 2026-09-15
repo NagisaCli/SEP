@@ -23,6 +23,9 @@ import sys
 import e3d_store as store
 import e3d_util as util
 
+# 无控制台打包后，shell=True 的子进程默认会闪出黑窗
+CREATE_NO_WINDOW = 0x08000000 if sys.platform == 'win32' else 0
+
 
 MANAGED_START = ':: >>> SEP MANAGED PROJECTS (do not edit) >>>'
 MANAGED_END = ':: <<< SEP MANAGED PROJECTS <<<'
@@ -473,10 +476,18 @@ def write_mode(mode, payload):
     try:
         import e3d_session
         target_name = payload.get('name') or ''
-        target_bat = paths[0] if paths else ''
-        if target_bat:
-            pid = payload.get('id') or util.gen_id('prj', target_bat)
-            e3d_session.register_project_session(pid, target_name, target_bat)
+        if mode == 'all':
+            # 载入全部：为我的每个项目登记在线会话
+            for p in (data.get('my_projects') or []):
+                bp = util.normalize_path(p.get('bat_path', ''))
+                if bp:
+                    e3d_session.register_project_session(
+                        p.get('id') or util.gen_id('proj', bp), p.get('name') or '', bp)
+        else:
+            target_bat = paths[0] if paths else ''
+            if target_bat:
+                pid = payload.get('id') or util.gen_id('proj', target_bat)
+                e3d_session.register_project_session(pid, target_name, target_bat)
     except Exception:
         pass
 
@@ -535,7 +546,7 @@ def launch_e3d(lnk=''):
                     workdir = os.path.dirname(target) if target else r'D:\AVEVA\USERDATA'
                 if target and os.path.isfile(target):
                     cmd = f'"{target}" {args}' if args else f'"{target}"'
-                    subprocess.Popen(cmd, cwd=workdir, shell=True)
+                    subprocess.Popen(cmd, cwd=workdir, shell=True, creationflags=CREATE_NO_WINDOW)
                     return found
             except Exception:
                 pass
@@ -548,7 +559,7 @@ def launch_e3d(lnk=''):
             if not os.path.isdir(workdir):
                 workdir = os.path.dirname(found)
             cmd = f'"{found}" {args}' if args else f'"{found}"'
-            subprocess.Popen(cmd, cwd=workdir, shell=True)
+            subprocess.Popen(cmd, cwd=workdir, shell=True, creationflags=CREATE_NO_WINDOW)
             return found
 
         return found

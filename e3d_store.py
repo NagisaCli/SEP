@@ -90,7 +90,10 @@ def load_data(config_file=None):
 
 
 def save_data(data, config_file=None):
-    """原子写入配置并维护多版本滚动备份。自动确保父目录存在。"""
+    """
+    原子写入配置并维护多版本滚动备份。自动确保父目录存在。
+    内容未变化时直接跳过（不少接口会无条件 save），避免无意义的 3 份备份轮转与磁盘写入。
+    """
     path = config_file or util.get_config_file_path()
     parent = os.path.dirname(path)
     if parent:
@@ -98,12 +101,21 @@ def save_data(data, config_file=None):
             os.makedirs(parent, exist_ok=True)
         except OSError:
             pass
-    if os.path.isfile(path):
+    payload = json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
+    exists = os.path.isfile(path)
+    if exists:
+        try:
+            with open(path, 'rb') as f:
+                if f.read() == payload:
+                    return False
+        except OSError:
+            pass
         util.rotate_file_backups(path)
     tmp = path + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    with open(tmp, 'wb') as f:
+        f.write(payload)
     os.replace(tmp, path)
+    return True
 
 
 def read_paths_cache():

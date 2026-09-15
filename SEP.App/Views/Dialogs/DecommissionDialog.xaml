@@ -1,0 +1,67 @@
+<Window x:Class="SEP.App.Views.Dialogs.DecommissionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="工程下线与冷备归档"
+        Width="500" Height="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0D1117" Foreground="#FFFFFF">
+
+    <Border Padding="24" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Margin="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="📦" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <TextBlock Text="AVEVA E3D 工程下线与冷备归档" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Error Banner -->
+            <Border x:Name="ErrorBorder" Grid.Row="1" Background="#7F1D1D" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock x:Name="ErrorText" Foreground="#FECACA" FontSize="12" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Project Info -->
+            <StackPanel Grid.Row="2">
+                <Border Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#1F2937" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtCode" FontFamily="Cascadia Code" FontWeight="Bold" Foreground="#00E5FF" FontSize="16" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtName" FontWeight="SemiBold" Foreground="#FFFFFF" FontSize="14" />
+                            <TextBlock x:Name="TxtPath" Foreground="#8B949E" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Options -->
+                <CheckBox x:Name="ChkArchive" Content="自动将全量项目压缩打包为 ZIP 冷备归档" IsChecked="True" Foreground="#FFFFFF" Margin="0,0,0,8" />
+                <CheckBox x:Name="ChkUnregister" Content="从 ProjectInfo.xml 及 projects.ini 中注销" IsChecked="True" Foreground="#FFFFFF" Margin="0,0,0,8" />
+                <CheckBox x:Name="ChkDelete" Content="从磁盘中删除物理文件夹 (危险)" IsChecked="False" Foreground="#F87171" Margin="0,0,0,14" />
+
+                <TextBlock Text="冷备归档存放目录:" Foreground="#8B949E" Margin="0,0,0,4" />
+                <ui:TextBox x:Name="TxtArchiveDir" Text="D:\AVEVA\Projects\Archive" Margin="0,0,0,10" />
+            </StackPanel>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <ui:Button Appearance="Secondary" Content="取消" Click="OnCancelClick" Margin="0,0,10,0" Width="80" />
+                <ui:Button Appearance="Danger" Content="📦 确认安全下线" Click="OnConfirmDecommissionClick" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

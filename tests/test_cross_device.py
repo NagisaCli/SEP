@@ -47,6 +47,25 @@ class TestCrossDeviceResilience:
         assert res.lower() == util.normalize_path(real_dir).lower()
         assert not created
 
+    def test_resolve_cross_device_path_treats_candidates_as_complete_paths(self, temp_env):
+        configured = os.path.join(temp_env, "custom_plugins")
+        os.makedirs(configured, exist_ok=True)
+        res, created, _notice = util.resolve_cross_device_path(
+            [configured], sub_path=r"AVEVA\Plugins"
+        )
+        assert res.lower() == util.normalize_path(configured).lower()
+        assert not created
+
+    def test_drive_scan_builds_absolute_windows_path(self, monkeypatch):
+        expected = r"D:\AVEVA\Plugins"
+        monkeypatch.setattr(util, "get_available_drives", lambda: ["D:"])
+        monkeypatch.setattr(util.os.path, "isdir", lambda p: p == expected)
+        res, created, _notice = util.resolve_cross_device_path(
+            [r"Z:\Missing"], sub_path=r"AVEVA\Plugins"
+        )
+        assert res == expected
+        assert not created
+
     def test_resolve_cross_device_path_auto_creates(self, temp_env):
         sub = os.path.join(f"TestAutoCreate_{uuid.uuid4().hex[:8]}", "SubFolder")
         res, created, notice = util.resolve_cross_device_path([r"X:\Fake1", r"Y:\Fake2"], sub_path=sub)
@@ -79,6 +98,17 @@ class TestCrossDeviceResilience:
         store.dismiss_device_notification(notif["id"])
         active_notifs = store.get_device_notifications(only_active=True)
         assert not any(n["id"] == notif["id"] for n in active_notifs)
+
+    def test_plugins_dir_honors_existing_custom_configuration(self, temp_env, monkeypatch):
+        configured = os.path.join(temp_env, "my_plugins")
+        os.makedirs(configured, exist_ok=True)
+        monkeypatch.setattr(
+            plugin.store,
+            "load_data",
+            lambda: {"settings": {"plugins_dir": configured}},
+        )
+        monkeypatch.setattr(plugin.store, "read_paths_cache", lambda: {})
+        assert plugin.get_plugins_dir().lower() == util.normalize_path(configured).lower()
 
     def test_export_and_import_config_bundle(self, temp_env):
         data = store.load_data()

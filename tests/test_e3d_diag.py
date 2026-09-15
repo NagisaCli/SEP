@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -48,11 +49,12 @@ class TestE3DConfigDiagAndFix(unittest.TestCase):
                 ':: <<< SEP MANAGED PROJECTS <<<\r\n'
             )
 
-    def test_diagnose_e3d_config_detects_dead_paths(self):
+    @mock.patch('e3d_diag._is_unc_path_reachable', return_value=False)
+    def test_diagnose_e3d_config_detects_dead_paths(self, mock_unc):
         report = e3d_diag.diagnose_e3d_config(
             e3d_install_dir=self.install_dir,
             projects_dir=self.projects_dir,
-            timeout=1,
+            timeout=0.1,
         )
         self.assertFalse(report['ok'])
         checks = {c['id']: c for c in report['checks']}
@@ -64,11 +66,12 @@ class TestE3DConfigDiagAndFix(unittest.TestCase):
         self.assertEqual(checks['custom_evars_health']['status'], 'warn')
         self.assertGreaterEqual(len(checks['custom_evars_health']['invalid_lines']), 1)
 
-    def test_fix_e3d_config_comments_invalid_lines_and_creates_backup(self):
+    @mock.patch('e3d_diag._is_unc_path_reachable', return_value=False)
+    def test_fix_e3d_config_comments_invalid_lines_and_creates_backup(self, mock_unc):
         res = e3d_diag.fix_e3d_config(
             e3d_install_dir=self.install_dir,
             projects_dir=self.projects_dir,
-            timeout=1,
+            timeout=0.1,
         )
         self.assertTrue(res['ok'])
         self.assertGreater(len(res['changes']), 0)

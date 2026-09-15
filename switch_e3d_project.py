@@ -56,11 +56,7 @@ def _ensure_single_instance():
                     url = info.get('url', url)
                 except Exception:
                     pass
-            import webbrowser
-            try:
-                webbrowser.open(url)
-            except Exception:
-                pass
+            util.open_browser(url)
             return False
         _MUTEX_HANDLE = mutex
         return True

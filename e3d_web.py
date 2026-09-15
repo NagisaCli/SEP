@@ -20,8 +20,10 @@ import webbrowser
 import e3d_diag
 import e3d_launcher as launcher
 import e3d_plugin
+import e3d_proj_admin
 import e3d_scanner as scanner
 import e3d_store as store
+import e3d_useradmin
 import e3d_util as util
 
 
@@ -122,6 +124,10 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/category/remove': self._handle_category_remove,
             '/api/project/update': self._handle_project_update,
             '/api/projects/batch-update': self._handle_projects_batch_update,
+            '/api/project/templates': self._handle_project_templates,
+            '/api/project/inspect': self._handle_project_inspect,
+            '/api/project/create': self._handle_project_create,
+            '/api/project/decommission': self._handle_project_decommission,
             '/api/diagnose/library': self._handle_diagnose_library,
             '/api/diagnose/all': self._handle_diagnose_all,
             '/api/diagnose/fix': self._handle_diagnose_fix,
@@ -152,6 +158,14 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             '/api/launch': self._handle_launch,
             '/api/detect': self._handle_detect,
             '/api/quit': self._handle_quit,
+            # ---- 用户与团队管理 ----
+            '/api/admin/config/get': self._handle_admin_config_get,
+            '/api/admin/config/set': self._handle_admin_config_set,
+            '/api/admin/users/list': self._handle_admin_users_list,
+            '/api/admin/users/add': self._handle_admin_users_add,
+            '/api/admin/users/delete': self._handle_admin_users_delete,
+            '/api/admin/teams/list': self._handle_admin_teams_list,
+            '/api/admin/teams/add-user': self._handle_admin_teams_add_user,
         }
 
     def do_GET(self):
@@ -190,13 +204,14 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         if not self._is_authorized():
             return self._send_json({'error': 'Forbidden: Invalid or missing security token'}, 403)
 
+        body = self._read_body()
         routes = self._get_api_routes()
         fn = routes.get(self.path.split('?')[0])
         if not fn:
             return self._send_json({'error': 'not found'}, 404)
         try:
             with _LOCK:
-                fn(self._read_body())
+                fn(body)
         except Exception as e:
             try:
                 self._send_json({'error': f'服务器内部错误: {e}'}, 500)
@@ -279,7 +294,9 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             'config_path': util.get_config_file_path(),
             'data_dir': util.get_user_data_dir(),
             'is_portable': (util.get_user_data_dir() == util.SCRIPT_DIR),
+            'user_cache': e3d_useradmin.get_all_cached_users(),
         })
+
 
 
     # ---------- 路径库 ----------
@@ -342,13 +359,10 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
 
     def _handle_library_rescan_all(self, body):
         data = store.load_data()
+        libs = data.get('libraries') or []
+        rescan_results = scanner.rescan_libraries_parallel(libs, timeout=12)
         results = []
-        for lib in data['libraries']:
-            try:
-                projects, lib = scanner.rescan_library(lib, timeout=10)
-            except Exception as e:
-                lib['last_error'] = str(e)
-                projects = []
+        for projects, lib in rescan_results:
             _replace_cache(data, lib['id'], projects)
             results.append({'id': lib['id'], 'count': len(projects), 'error': lib.get('last_error')})
         store.save_data(data)
@@ -788,6 +802,64 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
         except Exception as e:
             self._send_json({'error': f'打开插件目录失败: {e}'}, 500)
 
+    # ---------- E3D 项目全生命周期管理 (创建与下线) ----------
+
+    def _handle_project_templates(self, body):
+        try:
+            templates = e3d_proj_admin.list_clone_templates()
+            default_dir = e3d_proj_admin.get_default_projects_dir()
+            self._send_json({'ok': True, 'templates': templates, 'default_dir': default_dir})
+        except Exception as e:
+            self._send_json({'error': f'获取工程模板失败: {e}'}, 500)
+
+    def _handle_project_inspect(self, body):
+        path = body.get('path') or ''
+        if not path:
+            return self._send_json({'error': '缺少项目路径'}, 400)
+        try:
+            res = e3d_proj_admin.inspect_project(path)
+            self._send_json({'ok': True, 'info': res})
+        except Exception as e:
+            self._send_json({'error': f'体检项目失败: {e}'}, 500)
+
+    def _handle_project_create(self, body):
+        code = body.get('code') or ''
+        name = body.get('name') or ''
+        root_dir = body.get('root_dir') or None
+        template_dir = body.get('template_dir') or None
+        try:
+            res = e3d_proj_admin.create_project(code, name, root_dir=root_dir, template_dir=template_dir)
+            try:
+                scanner.rescan_all()
+            except Exception:
+                pass
+            self._send_json(res)
+        except Exception as e:
+            self._send_json({'error': f'创建项目失败: {e}'}, 400)
+
+    def _handle_project_decommission(self, body):
+        path = body.get('path') or ''
+        archive_dir = body.get('archive_dir') or e3d_proj_admin.DEFAULT_ARCHIVE_DIR
+        do_archive = body.get('do_archive', True)
+        do_unregister = body.get('do_unregister', True)
+        do_delete = body.get('do_delete', True)
+        force = body.get('force', False)
+        if not path:
+            return self._send_json({'error': '缺少项目路径'}, 400)
+        try:
+            res = e3d_proj_admin.decommission_project(
+                path, archive_dir=archive_dir,
+                do_archive=do_archive, do_unregister=do_unregister,
+                do_delete=do_delete, force=force
+            )
+            try:
+                scanner.rescan_all()
+            except Exception:
+                pass
+            self._send_json(res)
+        except Exception as e:
+            self._send_json({'error': f'下线项目失败: {e}'}, 400)
+
     # ---------- 工具箱与一键维护 ----------
 
     def _handle_tools_clean_userdata(self, body):
@@ -843,7 +915,12 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             data = store.load_data()
             settings = data.get('settings') or {}
 
-            e3d_install = launcher.detect_e3d()
+            launcher.resolve_e3d(force=False, verbose=False)
+            e3d_cache = store.read_paths_cache()
+            e3d_install = util.normalize_path(
+                e3d_cache.get('install_dir')
+                or (os.path.dirname(launcher.EVARS_BAT) if launcher.EVARS_BAT else '')
+            )
             local_proj = launcher.get_local_projects_dir(data)
             plugins_dir = e3d_plugin.get_plugins_dir()
             userdata_dir = e3d_diag.get_userdata_dir()
@@ -902,22 +979,139 @@ class _WebHandler(http.server.BaseHTTPRequestHandler):
             self._send_json({'error': f'查询会话失败: {e}'}, 500)
 
     def _handle_sessions_all(self, body):
-        """批量查询一批项目的实时在线连接情况。"""
+        """批量查询所有缓存项目与常用项目的实时在线连接情况。"""
         try:
             import e3d_session
             import e3d_store as store
             data = store.load_data()
-            projects = data.get('all_projects') or []
-            # 也包括 my_projects（自定义星标项目）
+            projects = list(data.get('all_projects_cache') or [])
             my = data.get('my_projects') or []
-            seen_ids = {p['id'] for p in projects}
+            seen_ids = {p.get('id') for p in projects if p.get('id')}
             for p in my:
-                if p.get('id') not in seen_ids:
+                if p.get('id') and p.get('id') not in seen_ids:
                     projects.append(p)
+                    seen_ids.add(p.get('id'))
             res = e3d_session.batch_inspect_sessions(projects)
             self._send_json({'ok': True, 'sessions': res})
         except Exception as e:
             self._send_json({'error': f'批量查询会话失败: {e}'}, 500)
+
+    # ---------- 用户与团队管理 ----------
+
+    def _handle_admin_config_get(self, body=None):
+        """返回指定项目已保存的管理凭证（只返回用户名，不返回密码）。"""
+        project = (body or {}).get('project', '').strip().upper()
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        admin_user = e3d_useradmin.get_saved_admin_user(project)
+        self._send_json({'ok': True, 'project': project, 'admin_user': admin_user or ''})
+
+    def _handle_admin_config_set(self, body):
+        """保存项目管理凭证（本地持久化，不记录密码日志）。"""
+        project = (body.get('project') or '').strip().upper()
+        admin_user = (body.get('admin_user') or '').strip()
+        admin_password = (body.get('admin_password') or '').strip()
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        if not admin_user:
+            return self._send_json({'error': '缺少 admin_user 参数'}, 400)
+        if not admin_password:
+            return self._send_json({'error': '缺少 admin_password 参数'}, 400)
+        try:
+            e3d_useradmin.save_creds(project, admin_user, admin_password)
+            self._send_json({'ok': True, 'project': project, 'admin_user': admin_user})
+        except Exception as e:
+            self._send_json({'error': f'保存凭证失败: {e}'}, 500)
+
+    def _handle_admin_users_list(self, body):
+        """列出项目用户。POST {project, admin_user?, admin_password?, force_refresh?: bool}"""
+        project = (body.get('project') or '').strip().upper()
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        admin_user = (body.get('admin_user') or '').strip() or None
+        admin_password = (body.get('admin_password') or '').strip() or None
+        force_refresh = bool(body.get('force_refresh', False))
+        try:
+            users = e3d_useradmin.list_users(project, admin_user=admin_user, admin_password=admin_password, force_refresh=force_refresh)
+            self._send_json({'ok': True, 'project': project, 'users': users})
+        except Exception as e:
+            self._send_json({'error': str(e)}, 500)
+
+    def _handle_admin_users_add(self, body):
+        """新建用户。POST {project, username, team, security?, description?, password?}"""
+        project = (body.get('project') or '').strip().upper()
+        username = (body.get('username') or '').strip().upper()
+        team = (body.get('team') or '').strip()
+        security = (body.get('security') or 'General').strip()
+        description = (body.get('description') or '').strip() or None
+        user_password = (body.get('password') or '').strip() or None
+        admin_user = (body.get('admin_user') or '').strip() or None
+        admin_password = (body.get('admin_password') or '').strip() or None
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        if not username:
+            return self._send_json({'error': '缺少 username 参数'}, 400)
+        if not team:
+            return self._send_json({'error': '缺少 team 参数（必须指定初始团队）'}, 400)
+        try:
+            result = e3d_useradmin.add_user(
+                project, username, team,
+                security=security, description=description, password=user_password,
+                admin_user=admin_user, admin_password=admin_password,
+            )
+            self._send_json(result)
+        except Exception as e:
+            self._send_json({'error': str(e)}, 400)
+
+    def _handle_admin_users_delete(self, body):
+        """删除用户。POST {project, username, admin_user?, admin_password?}"""
+        project = (body.get('project') or '').strip().upper()
+        username = (body.get('username') or '').strip().upper()
+        admin_user = (body.get('admin_user') or '').strip() or None
+        admin_password = (body.get('admin_password') or '').strip() or None
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        if not username:
+            return self._send_json({'error': '缺少 username 参数'}, 400)
+        try:
+            result = e3d_useradmin.delete_user(project, username,
+                                                admin_user=admin_user, admin_password=admin_password)
+            self._send_json(result)
+        except Exception as e:
+            self._send_json({'error': str(e)}, 400)
+
+    def _handle_admin_teams_list(self, body):
+        """列出项目团队。POST {project, admin_user?, admin_password?}"""
+        project = (body.get('project') or '').strip().upper()
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        admin_user = (body.get('admin_user') or '').strip() or None
+        admin_password = (body.get('admin_password') or '').strip() or None
+        try:
+            teams = e3d_useradmin.list_teams(project, admin_user=admin_user, admin_password=admin_password)
+            self._send_json({'ok': True, 'project': project, 'teams': teams})
+        except Exception as e:
+            self._send_json({'error': str(e)}, 500)
+
+    def _handle_admin_teams_add_user(self, body):
+        """将用户加入团队。POST {project, team, username, admin_user?, admin_password?}"""
+        project = (body.get('project') or '').strip().upper()
+        team = (body.get('team') or '').strip()
+        username = (body.get('username') or '').strip().upper()
+        admin_user = (body.get('admin_user') or '').strip() or None
+        admin_password = (body.get('admin_password') or '').strip() or None
+        if not project:
+            return self._send_json({'error': '缺少 project 参数'}, 400)
+        if not team:
+            return self._send_json({'error': '缺少 team 参数'}, 400)
+        if not username:
+            return self._send_json({'error': '缺少 username 参数'}, 400)
+        try:
+            result = e3d_useradmin.add_user_to_team(project, team, username,
+                                                     admin_user=admin_user, admin_password=admin_password)
+            self._send_json(result)
+        except Exception as e:
+            self._send_json({'error': str(e)}, 400)
 
     def _handle_quit(self, body):
         self._send_json({'ok': True})
@@ -976,10 +1170,7 @@ def start_web_ui():
 
     print(f'\n  SEP 启动面板: {url}')
     print('  关闭面板请点击页面右上角「退出」，或按 Ctrl+C 结束。\n')
-    try:
-        webbrowser.open(url)
-    except Exception:
-        pass
+    util.open_browser(url)
 
     try:
         while True:
@@ -989,4 +1180,3 @@ def start_web_ui():
     finally:
         _clean_runtime_info()
         server.shutdown()
-

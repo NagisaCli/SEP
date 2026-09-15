@@ -16,6 +16,12 @@ e3d_projects.json
 *.swp
 switch_e3d_project.exe
 
+# .NET Build artifacts
+**/bin/
+**/obj/
+bin_publish/
+*.log
+
 # 本地生成的旧版 exe 与个人快捷方式（正式发布走 GitHub Releases）
 /SEP.exe
 /SEP.lnk
