@@ -50,7 +50,8 @@
         </ui:TitleBar>
 
         <!-- Main Navigation View -->
-        <ui:NavigationView Grid.Row="1" x:Name="RootNavigation" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed" IsPaneOpen="True" Background="#0D1117">
+        <ui:NavigationView Grid.Row="1" x:Name="RootNavigation" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed" IsPaneOpen="True" Background="#0D1117"
+                           Transition="FadeInWithSlide" TransitionDuration="220">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Content="{loc:Tr Nav_Projects}" Icon="{ui:SymbolIcon Symbol=Folder24}" TargetPageType="{x:Type pages:ProjectsPage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_UserAdmin}" Icon="{ui:SymbolIcon Symbol=People24}" TargetPageType="{x:Type pages:UserAdminPage}" />

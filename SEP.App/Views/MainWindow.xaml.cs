@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using SEP.App.ViewModels;
 using SEP.App.Views.Pages;
@@ -32,6 +33,23 @@ public partial class MainWindow : FluentWindow
         App.Log("MainWindow_Loaded enter");
         try
         {
+            // WPF-UI hosts pages in a ScrollViewer that measures them with unlimited height, so a page's own
+            // ScrollViewer never gets to scroll and long lists just run off the window with jumpy, invisible
+            // scrolling. Give pages the real viewport instead; they scroll themselves (see Behaviors/SmoothScroll).
+            if (RootNavigation.Template?.FindName("PART_NavigationViewContentPresenter", RootNavigation) is NavigationViewContentPresenter presenter)
+            {
+                void ConstrainPages()
+                {
+                    var host = FindDescendant<ScrollViewer>(presenter);
+                    if (host == null) return;
+                    host.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                    host.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                }
+                presenter.ApplyTemplate();
+                ConstrainPages();
+                presenter.Loaded += (_, _) => ConstrainPages();
+            }
+
             var page = StartPageFromArgs();
             App.Log($"RootNavigation navigating to {page.Name}");
             bool ok = RootNavigation.Navigate(page);
@@ -41,6 +59,19 @@ public partial class MainWindow : FluentWindow
         {
             App.Log($"Navigate exception: {ex}");
         }
+    }
+
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T hit) return hit;
+            var deeper = FindDescendant<T>(child);
+            if (deeper != null) return deeper;
+        }
+        return null;
     }
 
     /// <summary>

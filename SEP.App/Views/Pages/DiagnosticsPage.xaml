@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:loc="clr-namespace:SEP.App.Localization"
+      xmlns:beh="clr-namespace:SEP.App.Behaviors"
       Title="{loc:Tr Diag_PageTitle}"
       Background="#0D1117" Foreground="#FFFFFF">
 
@@ -84,7 +85,8 @@
                 </Grid>
 
                 <ListView Grid.Row="1" ItemsSource="{Binding LockItems}" BorderThickness="0" Background="Transparent"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"
+                          ScrollViewer.CanContentScroll="False" beh:SmoothScroll.IsEnabled="True">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Border Margin="0,3" Padding="12,8" Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6">

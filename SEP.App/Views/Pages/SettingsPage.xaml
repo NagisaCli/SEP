@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:loc="clr-namespace:SEP.App.Localization"
+      xmlns:beh="clr-namespace:SEP.App.Behaviors"
       Title="{loc:Tr Nav_Settings}"
       Background="#0D1117" Foreground="#FFFFFF">
 
@@ -18,7 +19,7 @@
             <TextBlock Text="{Binding StatusMessage}" Foreground="#00E5FF" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" />
         </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
             <StackPanel MaxWidth="720" HorizontalAlignment="Left">
                 <!-- Group 1: Paths -->
                 <Border Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
