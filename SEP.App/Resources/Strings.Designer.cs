@@ -444,6 +444,15 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Share not responding.
+        /// </summary>
+        public static string Project_Unresponsive {
+            get {
+                return ResourceManager.GetString("Project_Unresponsive", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The project code must be 2–5 letters or digits (e.g. PRJ, APS, M01)..
         /// </summary>
         public static string Create_InvalidCode {
@@ -575,6 +584,33 @@ namespace SEP.App.Resources {
         public static string Launch_Failed {
             get {
                 return ResourceManager.GetString("Launch_Failed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The local project repository (projects_dir) is not configured. Set it in Settings..
+        /// </summary>
+        public static string Launch_ProjectsDirMissing {
+            get {
+                return ResourceManager.GetString("Launch_ProjectsDirMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The path contains characters that are not allowed in a batch file: {0}.
+        /// </summary>
+        public static string Launch_UnsafePath {
+            get {
+                return ResourceManager.GetString("Launch_UnsafePath", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No projects_dir= line was found in {0}..
+        /// </summary>
+        public static string Launch_ProjectsDirLineMissing {
+            get {
+                return ResourceManager.GetString("Launch_ProjectsDirLineMissing", resourceCulture);
             }
         }
 

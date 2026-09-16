@@ -47,7 +47,8 @@ public class E3dProjectService : IE3dProjectService
             if (string.IsNullOrEmpty(parent) || parent == curr) break;
             curr = parent;
         }
-        return @"c:\Muvsera\Projects\SEP";
+        // Nothing found: keep the config next to the executable (created on first save).
+        return AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
@@ -103,35 +104,81 @@ public class E3dProjectService : IE3dProjectService
         catch { }
     }
 
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _hostCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (bool Up, DateTime At)> _hostCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private static bool IsHostReachable(string host, int timeoutMs = 400)
+    // A host that answered stays "up" for 5 min; one that did not is retried after 30 s, so a share that
+    // comes back (VPN reconnect) shows up on the next refresh instead of staying offline all session.
+    private static readonly TimeSpan HostUpTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan HostDownTtl = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan UncAccessTimeout = TimeSpan.FromSeconds(5);
+
+    private static bool IsHostReachable(string host, int timeoutMs = 800)
     {
         if (string.IsNullOrWhiteSpace(host)) return false;
-        if (_hostCache.TryGetValue(host, out bool cached)) return cached;
+        if (_hostCache.TryGetValue(host, out var cached) &&
+            DateTime.UtcNow - cached.At < (cached.Up ? HostUpTtl : HostDownTtl))
+        {
+            return cached.Up;
+        }
 
+        bool up = false;
         try
         {
             using var client = new System.Net.Sockets.TcpClient();
             var result = client.BeginConnect(host, 445, null, null);
-            bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(timeoutMs));
-            if (!success)
+            if (result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(timeoutMs)))
             {
-                _hostCache[host] = false;
-                return false;
+                client.EndConnect(result);
+                up = true;
             }
-            client.EndConnect(result);
-            _hostCache[host] = true;
-            return true;
         }
-        catch
+        catch { }
+
+        _hostCache[host] = (up, DateTime.UtcNow);
+        return up;
+    }
+
+    /// <summary>Runs a blocking file-system call with a deadline; a call that overruns keeps running on its
+    /// thread-pool thread but the caller gets <paramref name="fallback"/> (an SMB share that stops answering
+    /// would otherwise block the scan for the full Windows timeout).</summary>
+    private static T WithTimeout<T>(Func<T> action, TimeSpan timeout, T fallback, out bool timedOut)
+    {
+        var task = Task.Run(action);
+        if (task.Wait(timeout)) { timedOut = false; return task.Result; }
+        timedOut = true;
+        return fallback;
+    }
+
+    // Last full scan, reused by pages that only read (health check, launch) so switching pages is instant.
+    private List<ProjectItem>? _lastScan;
+    private DateTime _lastScanAt;
+    private static readonly TimeSpan ScanTtl = TimeSpan.FromSeconds(60);
+
+    public async Task<List<ProjectItem>> LoadAllProjectsAsync(bool forceRescan = false)
+    {
+        if (!forceRescan && _lastScan != null && DateTime.UtcNow - _lastScanAt < ScanTtl)
         {
-            _hostCache[host] = false;
-            return false;
+            RefreshFlags(_lastScan);
+            return _lastScan;
+        }
+
+        var items = await ScanProjectsAsync();
+        _lastScan = items;
+        _lastScanAt = DateTime.UtcNow;
+        return items;
+    }
+
+    private void RefreshFlags(List<ProjectItem> items)
+    {
+        foreach (var item in items)
+        {
+            item.IsFavorite = ProjectsConfig.Favorites.Contains(item.Code, StringComparer.OrdinalIgnoreCase);
+            item.IsActive = !string.IsNullOrEmpty(ProjectsConfig.LastActiveProject) &&
+                            item.Code.Equals(ProjectsConfig.LastActiveProject, StringComparison.OrdinalIgnoreCase);
         }
     }
 
-    public async Task<List<ProjectItem>> LoadAllProjectsAsync(bool forceRescan = false)
+    private async Task<List<ProjectItem>> ScanProjectsAsync()
     {
         var items = new List<ProjectItem>();
         var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -187,12 +234,7 @@ public class E3dProjectService : IE3dProjectService
         }
 
         // 3. Update favorite and active states
-        foreach (var item in items)
-        {
-            item.IsFavorite = ProjectsConfig.Favorites.Contains(item.Code, StringComparer.OrdinalIgnoreCase);
-            item.IsActive = !string.IsNullOrEmpty(ProjectsConfig.LastActiveProject) &&
-                            item.Code.Equals(ProjectsConfig.LastActiveProject, StringComparison.OrdinalIgnoreCase);
-        }
+        RefreshFlags(items);
 
         return items.OrderByDescending(x => x.IsFavorite)
                     .ThenByDescending(x => x.IsActive)
@@ -224,13 +266,15 @@ public class E3dProjectService : IE3dProjectService
             IsUnc = path.StartsWith(@"\\")
         };
 
-        // Fast UNC reachability test to avoid 25s Windows SMB freeze
+        // Network shares: a quick TCP probe first (an unreachable host would otherwise cost the full
+        // SMB timeout), then every folder access under a deadline.
+        var deadline = item.IsUnc ? UncAccessTimeout : TimeSpan.FromSeconds(30);
         if (item.IsUnc)
         {
             string withoutPrefix = path.TrimStart('\\');
             int slashIdx = withoutPrefix.IndexOf('\\');
             string host = slashIdx > 0 ? withoutPrefix.Substring(0, slashIdx) : withoutPrefix;
-            if (!IsHostReachable(host, 400))
+            if (!IsHostReachable(host))
             {
                 item.Exists = false;
                 item.Availability = ProjectAvailability.HostOffline;
@@ -238,20 +282,43 @@ public class E3dProjectService : IE3dProjectService
             }
         }
 
-        if (!Directory.Exists(path))
+        bool exists = WithTimeout(() => Directory.Exists(path), deadline, false, out bool timedOut);
+        if (timedOut)
+        {
+            item.Exists = false;
+            item.Availability = ProjectAvailability.Unresponsive;
+            return item;
+        }
+        if (!exists)
         {
             item.Exists = false;
             item.Availability = ProjectAvailability.NotMounted;
             return item;
         }
 
+        var metrics = WithTimeout(() => CollectMetrics(path), deadline, null, out timedOut);
+        if (metrics == null)
+        {
+            item.Availability = timedOut ? ProjectAvailability.Unresponsive : ProjectAvailability.MetricsUnavailable;
+            return item;
+        }
+
+        item.LockFiles = metrics.Value.LockFiles;
+        item.LockCount = metrics.Value.LockFiles.Count;
+        item.IsLocked = metrics.Value.LockFiles.Count > 0;
+        item.FileCount = metrics.Value.FileCount;
+        double mb = metrics.Value.TotalBytes / (1024.0 * 1024.0);
+        item.SizeHuman = mb > 1024 ? $"{(mb / 1024.0):F1} GB" : $"{mb:F1} MB";
+
+        return item;
+    }
+
+    /// <summary>Lock files inside the *000 folders plus a shallow size/count of the project root; null on error.</summary>
+    private static (List<string> LockFiles, int FileCount, long TotalBytes)? CollectMetrics(string path)
+    {
         try
         {
             var lckFiles = new List<string>();
-            int fileCount = 0;
-            long totalBytes = 0;
-
-            // Look inside *000 directories for .lck files and file metrics
             foreach (var d in Directory.GetDirectories(path, "*000", SearchOption.TopDirectoryOnly))
             {
                 foreach (var f in Directory.GetFiles(d, "*.lck", SearchOption.TopDirectoryOnly))
@@ -260,27 +327,19 @@ public class E3dProjectService : IE3dProjectService
                 }
             }
 
-            // Quick metrics scan (capped depth to avoid freezing on slow UNC)
+            int fileCount = 0;
+            long totalBytes = 0;
             foreach (var f in Directory.EnumerateFiles(path, "*.*", SearchOption.TopDirectoryOnly))
             {
                 fileCount++;
                 try { totalBytes += new FileInfo(f).Length; } catch { }
             }
-
-            item.LockFiles = lckFiles;
-            item.LockCount = lckFiles.Count;
-            item.IsLocked = lckFiles.Count > 0;
-            item.FileCount = fileCount;
-
-            double mb = totalBytes / (1024.0 * 1024.0);
-            item.SizeHuman = mb > 1024 ? $"{(mb / 1024.0):F1} GB" : $"{mb:F1} MB";
+            return (lckFiles, fileCount, totalBytes);
         }
         catch
         {
-            item.Availability = ProjectAvailability.MetricsUnavailable;
+            return null;
         }
-
-        return item;
     }
 
     public async Task<bool> ToggleFavoriteAsync(string projectCode)

@@ -34,9 +34,17 @@ public partial class DiagnosticsViewModel : ObservableObject
         RunDiagnosticsCommand.Execute(null);
     }
 
+    /// <summary>Initial check: reuses the last project scan when it is fresh, so opening the page is instant.</summary>
     [RelayCommand]
-    public async Task RunDiagnosticsAsync()
+    public Task RunDiagnosticsAsync() => RunAsync(forceRescan: false);
+
+    /// <summary>"Re-run check" button: probes every project again.</summary>
+    [RelayCommand]
+    private Task RerunAsync() => RunAsync(forceRescan: true);
+
+    private async Task RunAsync(bool forceRescan)
     {
+        if (IsLoading) return;
         IsLoading = true;
         StatusMessage = Strings.Diag_Running;
 
@@ -45,7 +53,7 @@ public partial class DiagnosticsViewModel : ObservableObject
             var items = await _diagService.RunSystemDiagnosticsAsync();
             DiagItems = new ObservableCollection<SystemDiagItem>(items);
 
-            var projs = await _projectService.LoadAllProjectsAsync();
+            var projs = await _projectService.LoadAllProjectsAsync(forceRescan);
             var locks = await _diagService.ScanAllLocksAsync(projs);
             LockItems = new ObservableCollection<SessionLockItem>(locks);
 

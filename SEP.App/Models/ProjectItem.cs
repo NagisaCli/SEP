@@ -10,7 +10,9 @@ public enum ProjectAvailability
     Online = 0,
     HostOffline = 1,
     NotMounted = 2,
-    MetricsUnavailable = 3
+    MetricsUnavailable = 3,
+    /// <summary>The host answers on the network but the share did not respond within the deadline.</summary>
+    Unresponsive = 4
 }
 
 public partial class ProjectItem : ObservableObject

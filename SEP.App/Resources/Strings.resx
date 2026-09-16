@@ -200,6 +200,9 @@ Details were written to sep_debug.log</value>
   <data name="Project_DefaultCategory" xml:space="preserve">
     <value>General</value>
   </data>
+  <data name="Project_Unresponsive" xml:space="preserve">
+    <value>Share not responding</value>
+  </data>
   <data name="Create_InvalidCode" xml:space="preserve">
     <value>The project code must be 2–5 letters or digits (e.g. PRJ, APS, M01).</value>
   </data>
@@ -244,6 +247,15 @@ Details were written to sep_debug.log</value>
   </data>
   <data name="Launch_Failed" xml:space="preserve">
     <value>Failed to launch E3D: {0}</value>
+  </data>
+  <data name="Launch_ProjectsDirMissing" xml:space="preserve">
+    <value>The local project repository (projects_dir) is not configured. Set it in Settings.</value>
+  </data>
+  <data name="Launch_UnsafePath" xml:space="preserve">
+    <value>The path contains characters that are not allowed in a batch file: {0}</value>
+  </data>
+  <data name="Launch_ProjectsDirLineMissing" xml:space="preserve">
+    <value>No projects_dir= line was found in {0}.</value>
   </data>
   <data name="Diag_InstallDirTitle" xml:space="preserve">
     <value>AVEVA E3D installation folder</value>

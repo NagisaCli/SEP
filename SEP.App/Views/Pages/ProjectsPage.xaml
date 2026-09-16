@@ -23,15 +23,21 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{loc:Tr Nav_Projects}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,20,0" VerticalAlignment="Center" />
+                <TextBlock Text="{loc:Tr Nav_Projects}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center" />
+                <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="0,0,12,0" VerticalAlignment="Center"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                <!-- Filter Tabs -->
+                <!-- Filter Tabs: the active one is drawn as Primary -->
                 <Border Background="#161B22" CornerRadius="6" Padding="3" BorderBrush="#253040" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:Tr Projects_FilterAll}" Appearance="Secondary" Click="OnFilterAllClick" Margin="2,0" Padding="12,5" />
-                        <ui:Button Content="{loc:Tr Projects_FilterFavorites}" Appearance="Secondary" Click="OnFilterFavoritesClick" Margin="2,0" Padding="12,5" />
-                        <ui:Button Content="{loc:Tr Projects_FilterLocal}" Appearance="Secondary" Click="OnFilterLocalClick" Margin="2,0" Padding="12,5" />
-                        <ui:Button Content="{loc:Tr Projects_FilterUnc}" Appearance="Secondary" Click="OnFilterUncClick" Margin="2,0" Padding="12,5" />
+                        <ui:Button Content="{loc:Tr Projects_FilterAll}" Click="OnFilterAllClick" Margin="2,0" Padding="12,5"
+                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=All}" />
+                        <ui:Button Content="{loc:Tr Projects_FilterFavorites}" Click="OnFilterFavoritesClick" Margin="2,0" Padding="12,5"
+                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Favorites}" />
+                        <ui:Button Content="{loc:Tr Projects_FilterLocal}" Click="OnFilterLocalClick" Margin="2,0" Padding="12,5"
+                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Local}" />
+                        <ui:Button Content="{loc:Tr Projects_FilterUnc}" Click="OnFilterUncClick" Margin="2,0" Padding="12,5"
+                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Unc}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -153,6 +159,7 @@
                                                     <Binding Path="[Project_HostOffline]" Source="{x:Static loc:Loc.Instance}" />
                                                     <Binding Path="[Project_NotMounted]" Source="{x:Static loc:Loc.Instance}" />
                                                     <Binding Path="[Common_Ready]" Source="{x:Static loc:Loc.Instance}" />
+                                                    <Binding Path="[Project_Unresponsive]" Source="{x:Static loc:Loc.Instance}" />
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>

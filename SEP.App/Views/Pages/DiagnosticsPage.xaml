@@ -22,12 +22,16 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="{loc:Tr Diag_PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,20,0" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+                <TextBlock Text="{loc:Tr Diag_PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </StackPanel>
             <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#00E5FF" VerticalAlignment="Center" FontSize="13"
                        TextTrimming="CharacterEllipsis" Margin="0,0,12,0" ToolTip="{Binding StatusMessage}" />
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <ui:Button Appearance="Secondary" Content="{loc:Tr Diag_Rerun}" Command="{Binding RunDiagnosticsCommand}" Margin="0,0,10,0" />
+                <ui:Button Appearance="Secondary" Content="{loc:Tr Diag_Rerun}" Command="{Binding RerunCommand}" Margin="0,0,10,0" />
                 <ui:Button Appearance="Danger" Content="{loc:Tr Diag_UnlockAll}" Command="{Binding UnlockAllCommand}" />
             </StackPanel>
         </Grid>

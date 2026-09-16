@@ -31,7 +31,10 @@ public partial class ProjectsViewModel : ObservableObject
     [ObservableProperty]
     private string _searchKeyword = string.Empty;
 
+    /// <summary>True while scanning or launching; the launch buttons are disabled meanwhile.</summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SetActiveAndLaunchCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LoadProjectsCommand))]
     private bool _isLoading;
 
     [ObservableProperty]
@@ -46,7 +49,9 @@ public partial class ProjectsViewModel : ObservableObject
         LoadProjectsCommand.Execute(null);
     }
 
-    [RelayCommand]
+    private bool NotBusy() => !IsLoading;
+
+    [RelayCommand(CanExecute = nameof(NotBusy))]
     public async Task LoadProjectsAsync()
     {
         IsLoading = true;
@@ -54,7 +59,7 @@ public partial class ProjectsViewModel : ObservableObject
 
         try
         {
-            var list = await _projectService.LoadAllProjectsAsync();
+            var list = await _projectService.LoadAllProjectsAsync(forceRescan: true);
             Projects = new ObservableCollection<ProjectItem>(list);
             ApplyFilter();
             NotificationText = string.Format(Strings.Projects_Loaded, Projects.Count);
@@ -100,26 +105,33 @@ public partial class ProjectsViewModel : ObservableObject
         if (item == null) return;
         bool isFav = await _projectService.ToggleFavoriteAsync(item.Code);
         item.IsFavorite = isFav;
-        ApplyFilter();
+        if (FilterTab == "Favorites") ApplyFilter();   // the card leaves the list; otherwise the star just flips
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(NotBusy))]
     private async Task SetActiveAndLaunchAsync(ProjectItem? item)
     {
         if (item == null) return;
         IsLoading = true;
         NotificationText = string.Format(Strings.Projects_SwitchingTo, item.Code);
 
-        var res = await _launcherService.SwitchAndLaunchAsync(item);
-        NotificationText = res.Message;
-
-        foreach (var p in Projects)
+        try
         {
-            p.IsActive = p.Code.Equals(item.Code, StringComparison.OrdinalIgnoreCase);
-        }
+            var res = await _launcherService.SwitchAndLaunchAsync(item);
+            NotificationText = res.Message;
 
-        _mainVm.RefreshActiveProject();
-        IsLoading = false;
+            // The switch may have succeeded even if launching E3D afterwards did not: follow the config.
+            string? active = _projectService.ProjectsConfig.LastActiveProject;
+            foreach (var p in Projects)
+            {
+                p.IsActive = p.Code.Equals(active, StringComparison.OrdinalIgnoreCase);
+            }
+            _mainVm.RefreshActiveProject();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     [RelayCommand]

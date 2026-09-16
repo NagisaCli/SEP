@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ObservableObject
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(LaunchActiveProjectCommand))]
     private bool _isBusy;
 
     [ObservableProperty]
@@ -59,7 +60,9 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    private bool NotBusy() => !IsBusy;
+
+    [RelayCommand(CanExecute = nameof(NotBusy))]
     private async Task LaunchActiveProjectAsync()
     {
         if (string.IsNullOrEmpty(_projectService.ProjectsConfig.LastActiveProject))
@@ -68,21 +71,26 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        string code = _projectService.ProjectsConfig.LastActiveProject;
-        var projects = await _projectService.LoadAllProjectsAsync();
-        var proj = projects.Find(p => p.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
-
-        if (proj == null)
-        {
-            StatusMessage = string.Format(Strings.Main_ActiveProjectPathMissing, code);
-            return;
-        }
-
         IsBusy = true;
-        StatusMessage = string.Format(Strings.Main_SwitchingAndLaunching, code);
+        try
+        {
+            string code = _projectService.ProjectsConfig.LastActiveProject;
+            var projects = await _projectService.LoadAllProjectsAsync();   // cached snapshot when fresh
+            var proj = projects.Find(p => p.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
 
-        var res = await _launcherService.SwitchAndLaunchAsync(proj);
-        StatusMessage = res.Message;
-        IsBusy = false;
+            if (proj == null)
+            {
+                StatusMessage = string.Format(Strings.Main_ActiveProjectPathMissing, code);
+                return;
+            }
+
+            StatusMessage = string.Format(Strings.Main_SwitchingAndLaunching, code);
+            var res = await _launcherService.SwitchAndLaunchAsync(proj);
+            StatusMessage = res.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

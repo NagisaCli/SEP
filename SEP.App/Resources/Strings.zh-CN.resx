@@ -200,6 +200,9 @@
   <data name="Project_DefaultCategory" xml:space="preserve">
     <value>通用</value>
   </data>
+  <data name="Project_Unresponsive" xml:space="preserve">
+    <value>共享无响应</value>
+  </data>
   <data name="Create_InvalidCode" xml:space="preserve">
     <value>项目代号必须为 2~5 位英文字母或数字（例如 PRJ, APS, M01）。</value>
   </data>
@@ -244,6 +247,15 @@
   </data>
   <data name="Launch_Failed" xml:space="preserve">
     <value>唤起 E3D 失败: {0}</value>
+  </data>
+  <data name="Launch_ProjectsDirMissing" xml:space="preserve">
+    <value>未配置本地工程仓库根目录 (projects_dir)，请先在设置中填写。</value>
+  </data>
+  <data name="Launch_UnsafePath" xml:space="preserve">
+    <value>路径包含批处理文件不允许的字符: {0}</value>
+  </data>
+  <data name="Launch_ProjectsDirLineMissing" xml:space="preserve">
+    <value>{0} 中未找到 projects_dir= 行。</value>
   </data>
   <data name="Diag_InstallDirTitle" xml:space="preserve">
     <value>AVEVA E3D 主程序目录</value>

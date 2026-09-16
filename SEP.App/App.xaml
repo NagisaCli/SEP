@@ -17,6 +17,7 @@
             <converters:SwitchConverter x:Key="SwitchConverter" />
             <converters:FormatConverter x:Key="FormatConverter" />
             <converters:JoinConverter x:Key="JoinConverter" />
+            <converters:SelectedToAppearanceConverter x:Key="SelectedToAppearanceConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
