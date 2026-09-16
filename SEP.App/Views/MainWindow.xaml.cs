@@ -32,13 +32,33 @@ public partial class MainWindow : FluentWindow
         App.Log("MainWindow_Loaded enter");
         try
         {
-            App.Log("RootNavigation navigating to ProjectsPage");
-            bool ok = RootNavigation.Navigate(typeof(ProjectsPage));
+            var page = StartPageFromArgs();
+            App.Log($"RootNavigation navigating to {page.Name}");
+            bool ok = RootNavigation.Navigate(page);
             App.Log($"RootNavigation.Navigate result: {ok}");
         }
         catch (Exception ex)
         {
             App.Log($"Navigate exception: {ex}");
         }
+    }
+
+    /// <summary>
+    /// Optional start page: <c>SEP.exe --page=settings</c> (projects | users | health | settings),
+    /// handy for shortcuts and for UI checks; anything else opens the project workbench.
+    /// </summary>
+    private static Type StartPageFromArgs()
+    {
+        foreach (var arg in Environment.GetCommandLineArgs())
+        {
+            if (!arg.StartsWith("--page=", StringComparison.OrdinalIgnoreCase)) continue;
+            switch (arg["--page=".Length..].Trim().ToLowerInvariant())
+            {
+                case "users": return typeof(UserAdminPage);
+                case "health": return typeof(DiagnosticsPage);
+                case "settings": return typeof(SettingsPage);
+            }
+        }
+        return typeof(ProjectsPage);
     }
 }

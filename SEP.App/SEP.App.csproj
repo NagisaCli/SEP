@@ -9,6 +9,9 @@
     <AssemblyName>SEP</AssemblyName>
     <RootNamespace>SEP.App</RootNamespace>
     <ApplicationIcon>SEP.ico</ApplicationIcon>
+    <!-- UI strings: English lives in the main assembly (Resources/Strings.resx), Chinese in the zh-CN satellite. -->
+    <NeutralLanguage>en</NeutralLanguage>
+    <SatelliteResourceLanguages>en;zh-CN</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +22,19 @@
 
   <ItemGroup>
     <Resource Include="SEP.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Visual Studio regenerates Strings.Designer.cs from Strings.resx through this custom tool. -->
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

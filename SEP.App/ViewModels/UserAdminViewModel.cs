@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using E3dAdmin.Models;
+using SEP.App.Resources;
 using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
@@ -33,7 +34,7 @@ public partial class UserAdminViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
-    private string _statusMessage = "就绪";
+    private string _statusMessage = Strings.Common_Ready;
 
     // New User Inputs
     [ObservableProperty]
@@ -87,7 +88,7 @@ public partial class UserAdminViewModel : ObservableObject
         if (string.IsNullOrEmpty(SelectedProject)) return;
 
         IsLoading = true;
-        StatusMessage = $"正在读取 [{SelectedProject}] 用户与团队清单...";
+        StatusMessage = string.Format(Strings.Users_Loading, SelectedProject);
 
         try
         {
@@ -97,11 +98,11 @@ public partial class UserAdminViewModel : ObservableObject
             Users = new ObservableCollection<UserInfo>(userList);
             Teams = new ObservableCollection<TeamInfo>(teamList);
 
-            StatusMessage = $"[{SelectedProject}] 共找到 {Users.Count} 名用户与 {Teams.Count} 个团队。";
+            StatusMessage = string.Format(Strings.Users_Loaded, SelectedProject, Users.Count, Teams.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"读取失败: {ex.Message}";
+            StatusMessage = string.Format(Strings.Users_LoadFailed, ex.Message);
         }
         finally
         {
@@ -114,12 +115,12 @@ public partial class UserAdminViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(NewUserName) || string.IsNullOrWhiteSpace(NewUserTeam))
         {
-            StatusMessage = "请输入用户名和初始团队！";
+            StatusMessage = Strings.Users_InputRequired;
             return;
         }
 
         IsLoading = true;
-        StatusMessage = $"正在向 [{SelectedProject}] 添加用户 [{NewUserName.ToUpperInvariant()}]...";
+        StatusMessage = string.Format(Strings.Users_Adding, SelectedProject, NewUserName.ToUpperInvariant());
 
         var res = await _adminBridge.AddUserAsync(
             SelectedProject,
@@ -148,7 +149,7 @@ public partial class UserAdminViewModel : ObservableObject
         if (user == null) return;
 
         IsLoading = true;
-        StatusMessage = $"正在删除用户 [{user.Name}]...";
+        StatusMessage = string.Format(Strings.Users_Deleting, user.Name);
 
         var res = await _adminBridge.DeleteUserAsync(SelectedProject, user.Name, force: false);
         StatusMessage = res.Message;

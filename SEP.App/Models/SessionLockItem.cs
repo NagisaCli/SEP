@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SEP.App.Models;
@@ -24,5 +24,5 @@ public partial class SessionLockItem : ObservableObject
     private bool _isOrphan = true;
 
     [ObservableProperty]
-    private string _statusMessage = "异常残留锁";
+    private string _statusMessage = Resources.Strings.Lock_StatusOrphan;
 }

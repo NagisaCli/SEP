@@ -1,8 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SEP.App.Models;
 
+/// <summary>Mirror of e3d_paths.json (also written by the Python tools; unknown keys are preserved on save).</summary>
 public class E3dPathsConfig
 {
     [JsonPropertyName("evars_bat")]
@@ -19,8 +21,12 @@ public class E3dPathsConfig
 
     [JsonPropertyName("e3d_version")]
     public string? E3dVersion { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 
+/// <summary>Mirror of e3d_projects.json (unknown keys are preserved on save).</summary>
 public class E3dProjectsConfig
 {
     [JsonPropertyName("projects")]
@@ -34,6 +40,9 @@ public class E3dProjectsConfig
 
     [JsonPropertyName("settings")]
     public AppUserSettings Settings { get; set; } = new();
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 
 public class AppUserSettings
@@ -46,4 +55,8 @@ public class AppUserSettings
 
     [JsonPropertyName("theme_mode")]
     public string ThemeMode { get; set; } = "Dark";
+
+    /// <summary>UI language: "auto" (follow Windows), "en" or "zh-CN".</summary>
+    [JsonPropertyName("language")]
+    public string Language { get; set; } = "auto";
 }

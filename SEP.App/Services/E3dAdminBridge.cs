@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using E3dAdmin.Models;
 using E3dAdmin.Services;
+using SEP.App.Resources;
 
 namespace SEP.App.Services;
 
@@ -49,11 +50,11 @@ public class E3dAdminBridge : IE3dAdminBridge
         try
         {
             await _adminService.AddUserAsync(context, username, team, password, security, desc);
-            return (true, $"用户 [{username}] 成功创建并分配至团队 [{team}]！");
+            return (true, string.Format(Strings.Admin_UserCreated, username, team));
         }
         catch (Exception ex)
         {
-            return (false, $"创建用户失败: {ex.Message}");
+            return (false, string.Format(Strings.Admin_CreateFailed, ex.Message));
         }
     }
 
@@ -68,11 +69,11 @@ public class E3dAdminBridge : IE3dAdminBridge
         try
         {
             await _adminService.DeleteUserAsync(context, username, force);
-            return (true, $"用户 [{username}] 已成功删除！");
+            return (true, string.Format(Strings.Admin_UserDeleted, username));
         }
         catch (Exception ex)
         {
-            return (false, $"删除用户失败: {ex.Message}");
+            return (false, string.Format(Strings.Admin_DeleteFailed, ex.Message));
         }
     }
 
@@ -87,11 +88,11 @@ public class E3dAdminBridge : IE3dAdminBridge
         try
         {
             await _adminService.AddUserToTeamAsync(context, team, username);
-            return (true, $"用户 [{username}] 已加入团队 [{team}]！");
+            return (true, string.Format(Strings.Admin_UserAddedToTeam, username, team));
         }
         catch (Exception ex)
         {
-            return (false, $"分配团队失败: {ex.Message}");
+            return (false, string.Format(Strings.Admin_TeamAssignFailed, ex.Message));
         }
     }
 }

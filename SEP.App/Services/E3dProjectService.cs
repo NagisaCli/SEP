@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SEP.App.Models;
+using SEP.App.Resources;
 
 namespace SEP.App.Services;
 
@@ -33,7 +34,9 @@ public class E3dProjectService : IE3dProjectService
 
     private static string FindProjectBaseDir()
     {
-        string curr = AppDomain.CurrentDomain.BaseDirectory;
+        // BaseDirectory ends with a separator; without trimming it, GetParent() first returns the same
+        // folder and the walk stops one level short (bin/Debug builds then never reach the repo root).
+        string curr = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         for (int i = 0; i < 5; i++)
         {
             if (File.Exists(Path.Combine(curr, "e3d_paths.json")) || File.Exists(Path.Combine(curr, "e3d_projects.json")))
@@ -47,35 +50,55 @@ public class E3dProjectService : IE3dProjectService
         return @"c:\Muvsera\Projects\SEP";
     }
 
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+    // Serialized form of each config as last loaded or written; a save that changes nothing skips the disk.
+    private string _lastPathsJson = string.Empty;
+    private string _lastProjectsJson = string.Empty;
+
     private void LoadInitialConfigs()
     {
-        try
-        {
-            if (File.Exists(_pathsJsonPath))
-            {
-                string json = File.ReadAllText(_pathsJsonPath, Encoding.UTF8);
-                PathsConfig = JsonSerializer.Deserialize<E3dPathsConfig>(json) ?? new();
-            }
-        }
-        catch { }
+        PathsConfig = LoadConfig<E3dPathsConfig>(_pathsJsonPath);
+        _lastPathsJson = JsonSerializer.Serialize(PathsConfig, JsonOptions);
 
-        try
-        {
-            if (File.Exists(_projectsJsonPath))
-            {
-                string json = File.ReadAllText(_projectsJsonPath, Encoding.UTF8);
-                ProjectsConfig = JsonSerializer.Deserialize<E3dProjectsConfig>(json) ?? new();
-            }
-        }
-        catch { }
+        ProjectsConfig = LoadConfig<E3dProjectsConfig>(_projectsJsonPath);
+        _lastProjectsJson = JsonSerializer.Serialize(ProjectsConfig, JsonOptions);
     }
 
+    private static T LoadConfig<T>(string path) where T : new()
+    {
+        if (!File.Exists(path)) return new T();
+        try
+        {
+            return JsonSerializer.Deserialize<T>(File.ReadAllText(path, Encoding.UTF8)) ?? new T();
+        }
+        catch (Exception ex)
+        {
+            // Unreadable file: keep a copy so the next save cannot silently replace the user's data with defaults.
+            App.Log($"Config {Path.GetFileName(path)} could not be read ({ex.Message}); backing it up before continuing with defaults");
+            try { File.Copy(path, path + ".corrupt.bak", overwrite: true); } catch { }
+            return new T();
+        }
+    }
+
+    /// <summary>Persists both config files (e3d_projects.json and e3d_paths.json), each only when it changed.</summary>
     public async Task SaveConfigAsync()
     {
         try
         {
-            string json = JsonSerializer.Serialize(ProjectsConfig, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_projectsJsonPath, json, Encoding.UTF8);
+            string projectsJson = JsonSerializer.Serialize(ProjectsConfig, JsonOptions);
+            if (projectsJson != _lastProjectsJson)
+            {
+                await File.WriteAllTextAsync(_projectsJsonPath, projectsJson, Encoding.UTF8);
+                _lastProjectsJson = projectsJson;
+            }
+
+            string pathsJson = JsonSerializer.Serialize(PathsConfig, JsonOptions);
+            if (pathsJson != _lastPathsJson)
+            {
+                await File.WriteAllTextAsync(_pathsJsonPath, pathsJson, Encoding.UTF8);
+                _lastPathsJson = pathsJson;
+            }
         }
         catch { }
     }
@@ -198,11 +221,11 @@ public class E3dProjectService : IE3dProjectService
             Code = code,
             Name = code,
             Path = path,
-            Source = path.StartsWith(@"\\") ? "网络UNC" : "本地"
+            IsUnc = path.StartsWith(@"\\")
         };
 
         // Fast UNC reachability test to avoid 25s Windows SMB freeze
-        if (path.StartsWith(@"\\"))
+        if (item.IsUnc)
         {
             string withoutPrefix = path.TrimStart('\\');
             int slashIdx = withoutPrefix.IndexOf('\\');
@@ -210,7 +233,7 @@ public class E3dProjectService : IE3dProjectService
             if (!IsHostReachable(host, 400))
             {
                 item.Exists = false;
-                item.SizeHuman = "网络离线";
+                item.Availability = ProjectAvailability.HostOffline;
                 return item;
             }
         }
@@ -218,7 +241,7 @@ public class E3dProjectService : IE3dProjectService
         if (!Directory.Exists(path))
         {
             item.Exists = false;
-            item.SizeHuman = "未挂载/离线";
+            item.Availability = ProjectAvailability.NotMounted;
             return item;
         }
 
@@ -254,7 +277,7 @@ public class E3dProjectService : IE3dProjectService
         }
         catch
         {
-            item.SizeHuman = "就绪";
+            item.Availability = ProjectAvailability.MetricsUnavailable;
         }
 
         return item;
@@ -289,7 +312,7 @@ public class E3dProjectService : IE3dProjectService
 
         if (code.Length < 2 || code.Length > 5 || !Regex.IsMatch(code, "^[A-Z0-9]+$"))
         {
-            return (false, "项目代号必须为 2~5 位英文字母或数字（例如 PRJ, APS, M01）。");
+            return (false, Strings.Create_InvalidCode);
         }
 
         string root = string.IsNullOrWhiteSpace(rootDir) ? (PathsConfig.ProjectsDir ?? @"D:\AVEVA\Projects\E3D3.1") : rootDir;
@@ -358,11 +381,11 @@ SET {code}000ID={code}
                 ProjectsConfig.Projects[code] = targetDir;
                 SaveConfigAsync().Wait();
 
-                return (true, $"项目 [{code}] 规范化创建成功并已注入 E3D 注册表！");
+                return (true, string.Format(Strings.Create_Success, code));
             }
             catch (Exception ex)
             {
-                return (false, $"创建失败: {ex.Message}");
+                return (false, string.Format(Strings.Create_Failed, ex.Message));
             }
         });
     }
@@ -370,7 +393,7 @@ SET {code}000ID={code}
     public async Task<(bool Success, string Message)> DecommissionProjectAsync(string projectPath, string archiveDir, bool doArchive, bool doDelete)
     {
         if (!Directory.Exists(projectPath))
-            return (false, "项目物理目录不存在。");
+            return (false, Strings.Decommission_DirMissing);
 
         string code = Path.GetFileName(projectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).ToUpperInvariant();
 
@@ -382,7 +405,7 @@ SET {code}000ID={code}
                 var locks = Directory.GetFiles(projectPath, "*.lck", SearchOption.AllDirectories);
                 if (locks.Length > 0)
                 {
-                    return (false, $"检测到项目存在 {locks.Length} 个活跃锁文件，已安全拦截下线操作！");
+                    return (false, string.Format(Strings.Decommission_LocksFound, locks.Length));
                 }
 
                 // Archive
@@ -410,11 +433,11 @@ SET {code}000ID={code}
                     Directory.Delete(projectPath, true);
                 }
 
-                return (true, $"项目 [{code}] 已成功安全下线与冷备归档！");
+                return (true, string.Format(Strings.Decommission_Success, code));
             }
             catch (Exception ex)
             {
-                return (false, $"下线失败: {ex.Message}");
+                return (false, string.Format(Strings.Decommission_Failed, ex.Message));
             }
         });
     }

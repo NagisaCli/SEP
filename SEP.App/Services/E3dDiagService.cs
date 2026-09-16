@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using SEP.App.Models;
+using SEP.App.Resources;
 
 namespace SEP.App.Services;
 
@@ -24,7 +25,9 @@ public class E3dDiagService : IE3dDiagService
 
             foreach (var proj in projects)
             {
-                if (!Directory.Exists(proj.Path)) continue;
+                // The project scan already probed reachability; re-touching an offline UNC path here
+                // would block for the full SMB timeout and stall the whole health check.
+                if (!proj.Exists || !Directory.Exists(proj.Path)) continue;
 
                 try
                 {
@@ -44,7 +47,7 @@ public class E3dDiagService : IE3dDiagService
                                 LockTime = fi.LastWriteTime,
                                 FileSizeBytes = fi.Length,
                                 IsOrphan = true,
-                                StatusMessage = "活跃/残留数据库锁"
+                                StatusMessage = Strings.Lock_StatusActive
                             });
                         }
                     }
@@ -63,14 +66,14 @@ public class E3dDiagService : IE3dDiagService
             try
             {
                 if (!File.Exists(item.FilePath))
-                    return (true, "锁文件已被清除。");
+                    return (true, Strings.Unlock_AlreadyCleared);
 
                 File.Delete(item.FilePath);
-                return (true, $"已成功强制解锁: {item.FileName}");
+                return (true, string.Format(Strings.Unlock_Success, item.FileName));
             }
             catch (Exception ex)
             {
-                return (false, $"无法解锁: {ex.Message}");
+                return (false, string.Format(Strings.Unlock_Failed, ex.Message));
             }
         });
     }
@@ -98,9 +101,9 @@ public class E3dDiagService : IE3dDiagService
             {
                 list.Add(new SystemDiagItem
                 {
-                    Title = "AVEVA E3D 主程序目录",
-                    Category = "核心环境",
-                    Detail = $"已定位: {paths.InstallDir} ({paths.E3dVersion ?? "Everything3D"})",
+                    Title = Strings.Diag_InstallDirTitle,
+                    Category = Strings.Diag_CategoryCore,
+                    Detail = string.Format(Strings.Diag_InstallDirFound, paths.InstallDir, paths.E3dVersion ?? "Everything3D"),
                     Severity = DiagSeverity.Success
                 });
             }
@@ -108,9 +111,9 @@ public class E3dDiagService : IE3dDiagService
             {
                 list.Add(new SystemDiagItem
                 {
-                    Title = "AVEVA E3D 主程序目录",
-                    Category = "核心环境",
-                    Detail = "未探测到有效的 E3D 主安装路径，请在设置中配置。",
+                    Title = Strings.Diag_InstallDirTitle,
+                    Category = Strings.Diag_CategoryCore,
+                    Detail = Strings.Diag_InstallDirMissing,
                     Severity = DiagSeverity.Warning,
                     CanAutoFix = false
                 });
@@ -121,9 +124,9 @@ public class E3dDiagService : IE3dDiagService
             {
                 list.Add(new SystemDiagItem
                 {
-                    Title = "系统环境变量脚本 (evars.bat)",
-                    Category = "系统集成",
-                    Detail = $"有效: {paths.EvarsBat}",
+                    Title = Strings.Diag_EvarsTitle,
+                    Category = Strings.Diag_CategoryIntegration,
+                    Detail = string.Format(Strings.Diag_EvarsFound, paths.EvarsBat),
                     Severity = DiagSeverity.Success
                 });
             }
@@ -131,9 +134,9 @@ public class E3dDiagService : IE3dDiagService
             {
                 list.Add(new SystemDiagItem
                 {
-                    Title = "系统环境变量脚本 (evars.bat)",
-                    Category = "系统集成",
-                    Detail = "未找到全局 evars.bat，可能影响项目全局注入。",
+                    Title = Strings.Diag_EvarsTitle,
+                    Category = Strings.Diag_CategoryIntegration,
+                    Detail = Strings.Diag_EvarsMissing,
                     Severity = DiagSeverity.Warning
                 });
             }
@@ -146,9 +149,10 @@ public class E3dDiagService : IE3dDiagService
 
                 list.Add(new SystemDiagItem
                 {
-                    Title = "本地工程主仓库 (projects_dir)",
-                    Category = "数据仓库",
-                    Detail = $"目录正常: {paths.ProjectsDir} | 托管区 custom_evars: {(hasCustom ? "已建立" : "待初始化")}",
+                    Title = Strings.Diag_ProjectsDirTitle,
+                    Category = Strings.Diag_CategoryStorage,
+                    Detail = string.Format(Strings.Diag_ProjectsDirFound, paths.ProjectsDir,
+                        hasCustom ? Strings.Diag_CustomEvarsPresent : Strings.Diag_CustomEvarsPending),
                     Severity = DiagSeverity.Success
                 });
             }
@@ -156,9 +160,9 @@ public class E3dDiagService : IE3dDiagService
             {
                 list.Add(new SystemDiagItem
                 {
-                    Title = "本地工程主仓库 (projects_dir)",
-                    Category = "数据仓库",
-                    Detail = "本地工程主目录不存在，建议新建或指定有效存储盘。",
+                    Title = Strings.Diag_ProjectsDirTitle,
+                    Category = Strings.Diag_CategoryStorage,
+                    Detail = Strings.Diag_ProjectsDirMissing,
                     Severity = DiagSeverity.Error
                 });
             }
@@ -166,9 +170,9 @@ public class E3dDiagService : IE3dDiagService
             // 4. Windows 11 Desktop Runtime
             list.Add(new SystemDiagItem
             {
-                Title = "原生运行时环境 (.NET 10 & DirectWrite/Mica)",
-                Category = "GUI引擎",
-                Detail = $"运行在 Windows 11 原生托管层，硬件加速开启，0ms 进程直通。",
+                Title = Strings.Diag_RuntimeTitle,
+                Category = Strings.Diag_CategoryGui,
+                Detail = Strings.Diag_RuntimeDetail,
                 Severity = DiagSeverity.Success
             });
 

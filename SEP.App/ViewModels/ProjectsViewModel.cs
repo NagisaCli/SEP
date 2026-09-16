@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SEP.App.Models;
+using SEP.App.Resources;
 using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
@@ -49,18 +50,18 @@ public partial class ProjectsViewModel : ObservableObject
     public async Task LoadProjectsAsync()
     {
         IsLoading = true;
-        NotificationText = "正在扫描 E3D 项目与锁状态...";
+        NotificationText = Strings.Projects_Scanning;
 
         try
         {
             var list = await _projectService.LoadAllProjectsAsync();
             Projects = new ObservableCollection<ProjectItem>(list);
             ApplyFilter();
-            NotificationText = $"已加载 {Projects.Count} 个 E3D 工程";
+            NotificationText = string.Format(Strings.Projects_Loaded, Projects.Count);
         }
         catch (Exception ex)
         {
-            NotificationText = $"扫描项目出错: {ex.Message}";
+            NotificationText = string.Format(Strings.Projects_ScanError, ex.Message);
         }
         finally
         {
@@ -78,9 +79,9 @@ public partial class ProjectsViewModel : ObservableObject
         if (FilterTab == "Favorites")
             q = q.Where(p => p.IsFavorite);
         else if (FilterTab == "Local")
-            q = q.Where(p => p.Source == "本地");
+            q = q.Where(p => !p.IsUnc);
         else if (FilterTab == "Unc")
-            q = q.Where(p => p.Source == "网络UNC");
+            q = q.Where(p => p.IsUnc);
 
         if (!string.IsNullOrWhiteSpace(SearchKeyword))
         {
@@ -107,7 +108,7 @@ public partial class ProjectsViewModel : ObservableObject
     {
         if (item == null) return;
         IsLoading = true;
-        NotificationText = $"正在切换活动工程为 [{item.Code}] 并唤起 E3D...";
+        NotificationText = string.Format(Strings.Projects_SwitchingTo, item.Code);
 
         var res = await _launcherService.SwitchAndLaunchAsync(item);
         NotificationText = res.Message;

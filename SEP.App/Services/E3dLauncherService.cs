@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SEP.App.Models;
+using SEP.App.Resources;
 
 namespace SEP.App.Services;
 
@@ -41,7 +42,7 @@ public class E3dLauncherService : IE3dLauncherService
 
                 if (!File.Exists(targetBat))
                 {
-                    return (false, $"未找到项目启动脚本: evars{project.Code}.bat");
+                    return (false, string.Format(Strings.Launch_EvarsMissing, project.Code));
                 }
 
                 // 2. Locate custom_evars.bat in local projects_dir
@@ -60,11 +61,11 @@ public class E3dLauncherService : IE3dLauncherService
                 // 4. Update active project in config
                 _projectService.SetActiveProjectAsync(project.Code).Wait();
 
-                return (true, $"已成功切换活动工程为 [{project.Code}]！");
+                return (true, string.Format(Strings.Launch_SwitchSuccess, project.Code));
             }
             catch (Exception ex)
             {
-                return (false, $"切换工程环境失败: {ex.Message}");
+                return (false, string.Format(Strings.Launch_SwitchFailed, ex.Message));
             }
         });
     }
@@ -89,7 +90,7 @@ public class E3dLauncherService : IE3dLauncherService
                         if (lnks.Length > 0)
                         {
                             Process.Start(new ProcessStartInfo(lnks[0]) { UseShellExecute = true });
-                            return (true, "已通过桌面快捷方式成功唤起 AVEVA E3D！");
+                            return (true, Strings.Launch_ViaShortcut);
                         }
                     }
                 }
@@ -106,15 +107,15 @@ public class E3dLauncherService : IE3dLauncherService
                             UseShellExecute = true
                         };
                         Process.Start(psi);
-                        return (true, "已成功唤起 AVEVA E3D 主程序！");
+                        return (true, Strings.Launch_ViaMonExe);
                     }
                 }
 
-                return (false, "未找到 AVEVA E3D 可执行文件或快捷方式，请在设置中配置安装路径。");
+                return (false, Strings.Launch_NotFound);
             }
             catch (Exception ex)
             {
-                return (false, $"唤起 E3D 失败: {ex.Message}");
+                return (false, string.Format(Strings.Launch_Failed, ex.Message));
             }
         });
     }

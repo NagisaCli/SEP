@@ -14,7 +14,9 @@
             <converters:BoolToStarConverter x:Key="BoolToStarConverter" />
             <converters:LockToBackgroundConverter x:Key="LockToBackgroundConverter" />
             <converters:LockToForegroundConverter x:Key="LockToForegroundConverter" />
-            <converters:LockToTextConverter x:Key="LockToTextConverter" />
+            <converters:SwitchConverter x:Key="SwitchConverter" />
+            <converters:FormatConverter x:Key="FormatConverter" />
+            <converters:JoinConverter x:Key="JoinConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 

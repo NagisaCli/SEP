@@ -2,7 +2,8 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      Title="用户与权限治理"
+      xmlns:loc="clr-namespace:SEP.App.Localization"
+      Title="{loc:Tr Users_PageTitle}"
       Background="#0D1117" Foreground="#FFFFFF">
 
     <Grid Margin="24,16,24,24">
@@ -20,12 +21,12 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="用户与权限治理" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,24,0" VerticalAlignment="Center" />
+                <TextBlock Text="{loc:Tr Users_PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,24,0" VerticalAlignment="Center" />
 
-                <TextBlock Text="当前工程:" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock Text="{loc:Tr Users_CurrentProject}" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <ComboBox Width="140" ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" VerticalAlignment="Center" />
 
-                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshUsersCommand}" Margin="10,0,0,0" ToolTip="刷新人员清单" />
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshUsersCommand}" Margin="10,0,0,0" ToolTip="{loc:Tr Users_RefreshTooltip}" />
             </StackPanel>
 
             <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#00E5FF" VerticalAlignment="Center" FontSize="13" />
@@ -48,11 +49,19 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,0,0,12">
-                        <TextBlock Text="工程用户列表" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Users.Count, StringFormat='共 {0} 人'}" HorizontalAlignment="Right" Foreground="#8B949E" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Tr Users_ListHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                        <TextBlock HorizontalAlignment="Right" Foreground="#8B949E" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource FormatConverter}">
+                                    <Binding Path="[Users_CountFormat]" Source="{x:Static loc:Loc.Instance}" />
+                                    <Binding Path="Users.Count" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
                     </Grid>
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}" BorderThickness="0" Background="Transparent">
+                    <ListView Grid.Row="1" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}" BorderThickness="0" Background="Transparent"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,2" Padding="10,8" Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6">
@@ -69,7 +78,14 @@
 
                                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#D1D5DB" TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Text="{Binding Teams, Converter={StaticResource StringToVisibilityConverter}, FallbackValue='团队: 无'}" FontSize="11" Foreground="#9CA3AF" />
+                                            <TextBlock FontSize="11" Foreground="#9CA3AF">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource FormatConverter}">
+                                                        <Binding Path="[Users_TeamsFormat]" Source="{x:Static loc:Loc.Instance}" />
+                                                        <Binding Path="Teams" Converter="{StaticResource JoinConverter}" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
                                         </StackPanel>
 
                                         <Border Grid.Column="2" CornerRadius="4" Padding="6,2" Background="#111827" BorderBrush="#374151" BorderThickness="1" VerticalAlignment="Center">
@@ -95,22 +111,22 @@
                 <Border Grid.Row="0" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16"
                         Visibility="{Binding SelectedUser, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="选中用户信息" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,10" />
+                        <TextBlock Text="{loc:Tr Users_SelectedHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,10" />
 
                         <Grid Margin="0,0,0,8">
-                            <TextBlock Text="用户代号:" Foreground="#8B949E" />
+                            <TextBlock Text="{loc:Tr Users_NameLabel}" Foreground="#8B949E" />
                             <TextBlock Text="{Binding SelectedUser.Name}" FontFamily="Cascadia Code" FontWeight="Bold" Foreground="#00E5FF" HorizontalAlignment="Right" />
                         </Grid>
                         <Grid Margin="0,0,0,8">
-                            <TextBlock Text="安全等级:" Foreground="#8B949E" />
+                            <TextBlock Text="{loc:Tr Users_SecurityLabel}" Foreground="#8B949E" />
                             <TextBlock Text="{Binding SelectedUser.Security}" Foreground="#FFFFFF" HorizontalAlignment="Right" />
                         </Grid>
                         <Grid Margin="0,0,0,8">
-                            <TextBlock Text="所属团队:" Foreground="#8B949E" />
-                            <TextBlock Text="{Binding SelectedUser.Teams, StringFormat='{}{0}'}" Foreground="#FFFFFF" HorizontalAlignment="Right" />
+                            <TextBlock Text="{loc:Tr Users_TeamsLabel}" Foreground="#8B949E" />
+                            <TextBlock Text="{Binding SelectedUser.Teams, Converter={StaticResource JoinConverter}}" Foreground="#FFFFFF" HorizontalAlignment="Right" />
                         </Grid>
 
-                        <ui:Button Appearance="Danger" Content="🗑️ 删除此用户" HorizontalAlignment="Right" Margin="0,8,0,0"
+                        <ui:Button Appearance="Danger" Content="{loc:Tr Users_DeleteButton}" HorizontalAlignment="Right" Margin="0,8,0,0"
                                    Command="{Binding DeleteUserCommand}" CommandParameter="{Binding SelectedUser}" />
                     </StackPanel>
                 </Border>
@@ -118,27 +134,27 @@
                 <!-- Add User Form -->
                 <Border Grid.Row="2" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
                     <StackPanel>
-                        <TextBlock Text="新建工程用户" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                        <TextBlock Text="{loc:Tr Users_NewHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
 
-                        <TextBlock Text="用户名称 (代号)" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="如 JOHN" Text="{Binding NewUserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                        <TextBlock Text="{loc:Tr Users_NewNameLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewNamePlaceholder}" Text="{Binding NewUserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
 
-                        <TextBlock Text="分配初始团队" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="如 *MASTER 或 *PIPING" Text="{Binding NewUserTeam, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                        <TextBlock Text="{loc:Tr Users_NewTeamLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewTeamPlaceholder}" Text="{Binding NewUserTeam, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
 
-                        <TextBlock Text="登录初始密码 (可选，默认空)" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Tr Users_NewPasswordLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
                         <ui:PasswordBox Margin="0,0,0,10" />
 
-                        <TextBlock Text="用户安全等级" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Tr Users_NewSecurityLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
                         <ComboBox SelectedValue="{Binding NewUserSecurity}" SelectedValuePath="Content" Margin="0,0,0,10">
                             <ComboBoxItem Content="General" IsSelected="True" />
                             <ComboBoxItem Content="Free" />
                         </ComboBox>
 
-                        <TextBlock Text="用户描述 / 备注" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="如 管道专业负责人" Text="{Binding NewUserDesc, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+                        <TextBlock Text="{loc:Tr Users_NewDescLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewDescPlaceholder}" Text="{Binding NewUserDesc, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
 
-                        <ui:Button Appearance="Primary" Content="➕ 立即创建用户" Command="{Binding AddUserCommand}" HorizontalAlignment="Stretch" />
+                        <ui:Button Appearance="Primary" Content="{loc:Tr Users_CreateButton}" Command="{Binding AddUserCommand}" HorizontalAlignment="Stretch" />
                     </StackPanel>
                 </Border>
             </Grid>

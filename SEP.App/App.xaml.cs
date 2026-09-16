@@ -1,7 +1,10 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using SEP.App.Localization;
+using SEP.App.Resources;
 using SEP.App.Services;
 using SEP.App.ViewModels;
 using SEP.App.Views;
@@ -28,19 +31,24 @@ public partial class App : Application
     {
         Log("App Constructor enter");
 
+        // evars*.bat / custom_evars.bat / projects.ini are read and written as GBK; .NET only ships the
+        // Unicode encodings unless the code-page provider is registered, so without this line every
+        // Encoding.GetEncoding("GBK") call throws and project switching / creation fails.
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
             var ex = e.ExceptionObject as Exception;
             string msg = $"[AppDomain Unhandled] {ex?.GetType().Name}: {ex?.Message}\r\n{ex?.StackTrace}\r\nInner: {ex?.InnerException?.Message}\r\n{ex?.InnerException?.StackTrace}";
             Log(msg);
-            MessageBox.Show($"[SEP 启动致命错误]\n{ex?.Message}\n\n详细信息已写入 sep_debug.log", "SEP 启动错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(string.Format(Strings.App_FatalBody, ex?.Message), Strings.App_FatalTitle, MessageBoxButton.OK, MessageBoxImage.Error);
         };
 
         DispatcherUnhandledException += (s, e) =>
         {
             string msg = $"[Dispatcher Unhandled] {e.Exception?.GetType().Name}: {e.Exception?.Message}\r\n{e.Exception?.StackTrace}\r\nInner: {e.Exception?.InnerException?.Message}\r\n{e.Exception?.InnerException?.StackTrace}";
             Log(msg);
-            MessageBox.Show($"[SEP 界面异常]\n{e.Exception?.Message}\n\n详细信息已写入 sep_debug.log", "SEP 异常", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(string.Format(Strings.App_UiErrorBody, e.Exception?.Message), Strings.App_UiErrorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         };
     }
@@ -88,6 +96,11 @@ public partial class App : Application
             Services = services.BuildServiceProvider();
             Log("DI built successfully");
 
+            // UI language must be in effect before any view-model or window is created.
+            string language = Services.GetRequiredService<IE3dProjectService>().ProjectsConfig.Settings.Language;
+            Loc.Instance.Apply(language);
+            Log($"UI language: setting={language} culture={Loc.Instance.Culture.Name}");
+
             Log("Resolving MainWindow");
             var mainWindow = Services.GetRequiredService<MainWindow>();
             Log("MainWindow resolved, calling Show()");
@@ -97,7 +110,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log($"OnStartup Exception: {ex.GetType().Name} - {ex.Message}\r\n{ex.StackTrace}\r\nInner: {ex.InnerException?.Message}\r\n{ex.InnerException?.StackTrace}");
-            MessageBox.Show($"启动失败: {ex.Message}\n{ex.InnerException?.Message}", "SEP 启动错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(string.Format(Strings.App_StartupFailed, ex.Message, ex.InnerException?.Message), Strings.App_FatalTitle, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

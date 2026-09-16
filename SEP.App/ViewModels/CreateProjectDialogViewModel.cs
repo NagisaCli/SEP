@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SEP.App.Resources;
 using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
@@ -75,13 +76,13 @@ public partial class CreateProjectDialogViewModel : ObservableObject
 
         if (Code.Length < 2 || Code.Length > 5 || !Regex.IsMatch(Code, "^[A-Z0-9]+$"))
         {
-            ErrorMessage = "项目代号必须为 2~5 位英文字母或数字（例如 PRJ, APS, M01）。";
+            ErrorMessage = Strings.Create_InvalidCode;
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ErrorMessage = "请输入项目全称或描述。";
+            ErrorMessage = Strings.Create_NameRequired;
             return;
         }
 

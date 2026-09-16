@@ -1,8 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SEP.App.Models;
+
+/// <summary>Reachability of a project folder; the order matters (it indexes localized texts in XAML).</summary>
+public enum ProjectAvailability
+{
+    Online = 0,
+    HostOffline = 1,
+    NotMounted = 2,
+    MetricsUnavailable = 3
+}
 
 public partial class ProjectItem : ObservableObject
 {
@@ -37,10 +46,14 @@ public partial class ProjectItem : ObservableObject
     private string _sizeHuman = "0 MB";
 
     [ObservableProperty]
-    private string _category = "通用";
+    private ProjectAvailability _availability = ProjectAvailability.Online;
 
     [ObservableProperty]
-    private string _source = "本地";
+    private string _category = Resources.Strings.Project_DefaultCategory;
+
+    /// <summary>True for \\server\share (UNC) paths; the display text is localized in XAML.</summary>
+    [ObservableProperty]
+    private bool _isUnc;
 
     [ObservableProperty]
     private bool _exists = true;

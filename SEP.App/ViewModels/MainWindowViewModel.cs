@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SEP.App.Localization;
 using SEP.App.Models;
+using SEP.App.Resources;
 using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
@@ -13,10 +15,10 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IE3dLauncherService _launcherService;
 
     [ObservableProperty]
-    private string _activeProjectCode = "无活动项目";
+    private string _activeProjectCode = Strings.Main_NoActiveProject;
 
     [ObservableProperty]
-    private string _activeProjectStatus = "待选择";
+    private string _activeProjectStatus = Strings.Main_StatusPending;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -25,7 +27,7 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
-    private string _statusMessage = "就绪";
+    private string _statusMessage = Strings.Common_Ready;
 
     public MainWindowViewModel(IE3dProjectService projectService, IE3dLauncherService launcherService)
     {
@@ -33,6 +35,13 @@ public partial class MainWindowViewModel : ObservableObject
         _launcherService = launcherService;
 
         RefreshActiveProject();
+
+        // Singleton view-model: re-render the cached status texts when the UI language changes.
+        Loc.Instance.LanguageChanged += (_, _) =>
+        {
+            RefreshActiveProject();
+            if (!IsBusy) StatusMessage = Strings.Common_Ready;
+        };
     }
 
     public void RefreshActiveProject()
@@ -41,12 +50,12 @@ public partial class MainWindowViewModel : ObservableObject
         if (!string.IsNullOrEmpty(active))
         {
             ActiveProjectCode = active;
-            ActiveProjectStatus = "就绪";
+            ActiveProjectStatus = Strings.Common_Ready;
         }
         else
         {
-            ActiveProjectCode = "未指定活动工程";
-            ActiveProjectStatus = "待选择";
+            ActiveProjectCode = Strings.Main_NoActiveProjectSet;
+            ActiveProjectStatus = Strings.Main_StatusPending;
         }
     }
 
@@ -55,7 +64,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(_projectService.ProjectsConfig.LastActiveProject))
         {
-            StatusMessage = "请先在工程工作台中选择一个工程！";
+            StatusMessage = Strings.Main_SelectProjectFirst;
             return;
         }
 
@@ -65,12 +74,12 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (proj == null)
         {
-            StatusMessage = $"未找到活动工程 [{code}] 的物理路径配置";
+            StatusMessage = string.Format(Strings.Main_ActiveProjectPathMissing, code);
             return;
         }
 
         IsBusy = true;
-        StatusMessage = $"正在切换环境并唤起 AVEVA E3D [{code}]...";
+        StatusMessage = string.Format(Strings.Main_SwitchingAndLaunching, code);
 
         var res = await _launcherService.SwitchAndLaunchAsync(proj);
         StatusMessage = res.Message;

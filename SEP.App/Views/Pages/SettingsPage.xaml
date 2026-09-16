@@ -2,7 +2,8 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      Title="系统与设备设置"
+      xmlns:loc="clr-namespace:SEP.App.Localization"
+      Title="{loc:Tr Nav_Settings}"
       Background="#0D1117" Foreground="#FFFFFF">
 
     <Grid Margin="24,16,24,24">
@@ -13,7 +14,7 @@
 
         <!-- Top Title -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="系统与路径设置" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+            <TextBlock Text="{loc:Tr Nav_Settings}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
             <TextBlock Text="{Binding StatusMessage}" Foreground="#00E5FF" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" />
         </Grid>
 
@@ -22,43 +23,49 @@
                 <!-- Group 1: Paths -->
                 <Border Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="AVEVA E3D 核心环境路径" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                        <TextBlock Text="{loc:Tr Settings_PathsHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
 
-                        <TextBlock Text="E3D 主程序安装目录 (install_dir)" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding InstallDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="如 D:\AVEVA\Everything3D3.1" Margin="0,0,0,12" />
+                        <TextBlock Text="{loc:Tr Settings_InstallDirLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding InstallDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_InstallDirPlaceholder}" Margin="0,0,0,12" />
 
-                        <TextBlock Text="本地工程仓库根目录 (projects_dir)" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding ProjectsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="如 D:\AVEVA\Projects\E3D3.1" Margin="0,0,0,12" />
+                        <TextBlock Text="{loc:Tr Settings_ProjectsDirLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding ProjectsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" Margin="0,0,0,12" />
 
-                        <TextBlock Text="全局环境变量初始化脚本 (evars.bat)" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding EvarsBat, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="如 D:\AVEVA\Everything3D3.1\evars.bat" Margin="0,0,0,12" />
+                        <TextBlock Text="{loc:Tr Settings_EvarsLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding EvarsBat, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_EvarsPlaceholder}" Margin="0,0,0,12" />
 
-                        <TextBlock Text="E3D 版本标识" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox Text="{Binding E3dVersion, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="如 AVEVA Everything3D 3.1" Margin="0,0,0,12" />
+                        <TextBlock Text="{loc:Tr Settings_VersionLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding E3dVersion, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_VersionPlaceholder}" Margin="0,0,0,12" />
                     </StackPanel>
                 </Border>
 
                 <!-- Group 2: Preferences -->
                 <Border Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="客户端运行偏好" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                        <TextBlock Text="{loc:Tr Settings_PreferencesHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
 
-                        <CheckBox Content="随系统启动 (开机自启并保持环境待命)" IsChecked="{Binding AutoStart}" Margin="0,0,0,10" Foreground="#FFFFFF" />
+                        <!-- Language: applies immediately and is saved on change -->
+                        <TextBlock Text="{loc:Tr Settings_LanguageLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ComboBox Width="260" HorizontalAlignment="Left" Margin="0,0,0,14"
+                                  ItemsSource="{Binding LanguageOptions}" DisplayMemberPath="Display"
+                                  SelectedValuePath="Code" SelectedValue="{Binding Language}" />
+
+                        <CheckBox Content="{loc:Tr Settings_AutoStart}" IsChecked="{Binding AutoStart}" Margin="0,0,0,10" Foreground="#FFFFFF" />
                     </StackPanel>
                 </Border>
 
                 <!-- Group 3: About -->
                 <Border Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,20">
                     <StackPanel>
-                        <TextBlock Text="关于 SEP" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,8" />
-                        <TextBlock Text="SEP · AVEVA E3D 现代智能工程管理系统" FontWeight="SemiBold" Foreground="#00E5FF" FontSize="13" Margin="0,0,0,4" />
-                        <TextBlock Text="架构：C# .NET 10 (DirectWrite / Windows 11 Mica 渲染)" Foreground="#8B949E" FontSize="12" Margin="0,0,0,2" />
-                        <TextBlock Text="设计风格：专业稳定 · 艺术极简 (Obsidian Deep &amp; Fluent 2.0)" Foreground="#8B949E" FontSize="12" />
+                        <TextBlock Text="{loc:Tr Settings_AboutHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,8" />
+                        <TextBlock Text="{loc:Tr Settings_AboutTagline}" FontWeight="SemiBold" Foreground="#00E5FF" FontSize="13" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Tr Settings_AboutArch}" Foreground="#8B949E" FontSize="12" Margin="0,0,0,2" />
+                        <TextBlock Text="{loc:Tr Settings_AboutStyle}" Foreground="#8B949E" FontSize="12" />
                     </StackPanel>
                 </Border>
 
                 <!-- Save Button -->
-                <ui:Button Appearance="Primary" Content="💾 保存并应用所有设置" Command="{Binding SaveSettingsCommand}" Padding="24,10" HorizontalAlignment="Left" />
+                <ui:Button Appearance="Primary" Content="{loc:Tr Settings_SaveButton}" Command="{Binding SaveSettingsCommand}" Padding="24,10" HorizontalAlignment="Left" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SEP.App.Models;
+using SEP.App.Resources;
 using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
@@ -23,7 +24,7 @@ public partial class DiagnosticsViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
-    private string _statusMessage = "就绪";
+    private string _statusMessage = Strings.Common_Ready;
 
     public DiagnosticsViewModel(IE3dDiagService diagService, IE3dProjectService projectService)
     {
@@ -37,7 +38,7 @@ public partial class DiagnosticsViewModel : ObservableObject
     public async Task RunDiagnosticsAsync()
     {
         IsLoading = true;
-        StatusMessage = "正在执行环境体检与锁文件扫描...";
+        StatusMessage = Strings.Diag_Running;
 
         try
         {
@@ -48,11 +49,11 @@ public partial class DiagnosticsViewModel : ObservableObject
             var locks = await _diagService.ScanAllLocksAsync(projs);
             LockItems = new ObservableCollection<SessionLockItem>(locks);
 
-            StatusMessage = $"体检完成：共发现 {LockItems.Count} 个活跃/残留数据库锁。";
+            StatusMessage = string.Format(Strings.Diag_Complete, LockItems.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"诊断出错: {ex.Message}";
+            StatusMessage = string.Format(Strings.Diag_Error, ex.Message);
         }
         finally
         {
@@ -77,15 +78,15 @@ public partial class DiagnosticsViewModel : ObservableObject
     {
         if (LockItems.Count == 0)
         {
-            StatusMessage = "当前没有需要清理的锁文件。";
+            StatusMessage = Strings.Diag_NoLocks;
             return;
         }
 
         IsLoading = true;
-        StatusMessage = "正在一键清理所有残留锁...";
+        StatusMessage = Strings.Diag_ClearingAll;
 
         var (ok, fail) = await _diagService.UnlockAllSessionsAsync(LockItems);
-        StatusMessage = $"一键清理完成：成功解锁 {ok} 个，失败 {fail} 个。";
+        StatusMessage = string.Format(Strings.Diag_ClearAllDone, ok, fail);
 
         await RunDiagnosticsAsync();
     }

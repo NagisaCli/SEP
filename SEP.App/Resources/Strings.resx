@@ -1,0 +1,560 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Strings.resx = English (neutral language); Strings.zh-CN.resx = Simplified Chinese.
+    Every key must exist in Strings.resx; the zh-CN file may omit keys (they fall back to English).
+    After adding keys, regenerate Strings.Designer.cs (Visual Studio does this automatically through the
+    PublicResXFileCodeGenerator custom tool configured in SEP.App.csproj).
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_FatalTitle" xml:space="preserve">
+    <value>SEP startup error</value>
+  </data>
+  <data name="App_FatalBody" xml:space="preserve">
+    <value>[SEP fatal startup error]
+{0}
+
+Details were written to sep_debug.log</value>
+  </data>
+  <data name="App_UiErrorTitle" xml:space="preserve">
+    <value>SEP error</value>
+  </data>
+  <data name="App_UiErrorBody" xml:space="preserve">
+    <value>[SEP UI exception]
+{0}
+
+Details were written to sep_debug.log</value>
+  </data>
+  <data name="App_StartupFailed" xml:space="preserve">
+    <value>Startup failed: {0}
+{1}</value>
+  </data>
+  <data name="Common_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>SEP · AVEVA E3D Project Manager</value>
+  </data>
+  <data name="Main_ActiveProjectLabel" xml:space="preserve">
+    <value>Active project: </value>
+  </data>
+  <data name="Main_LaunchButton" xml:space="preserve">
+    <value>🚀 Launch E3D now</value>
+  </data>
+  <data name="Main_LaunchTooltip" xml:space="preserve">
+    <value>Switch to the active project and launch E3D</value>
+  </data>
+  <data name="Nav_Projects" xml:space="preserve">
+    <value>Project Workbench</value>
+  </data>
+  <data name="Nav_UserAdmin" xml:space="preserve">
+    <value>Users &amp; Permissions</value>
+  </data>
+  <data name="Nav_Diagnostics" xml:space="preserve">
+    <value>Health Check</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>System &amp; Path Settings</value>
+  </data>
+  <data name="Main_NoActiveProject" xml:space="preserve">
+    <value>No active project</value>
+  </data>
+  <data name="Main_NoActiveProjectSet" xml:space="preserve">
+    <value>No active project selected</value>
+  </data>
+  <data name="Main_StatusPending" xml:space="preserve">
+    <value>Not selected</value>
+  </data>
+  <data name="Main_SelectProjectFirst" xml:space="preserve">
+    <value>Select a project in the Project Workbench first.</value>
+  </data>
+  <data name="Main_ActiveProjectPathMissing" xml:space="preserve">
+    <value>No path is configured for active project [{0}].</value>
+  </data>
+  <data name="Main_SwitchingAndLaunching" xml:space="preserve">
+    <value>Switching environment and launching AVEVA E3D [{0}]...</value>
+  </data>
+  <data name="Projects_FilterAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Projects_FilterFavorites" xml:space="preserve">
+    <value>★ Favorites</value>
+  </data>
+  <data name="Projects_FilterLocal" xml:space="preserve">
+    <value>💻 Local</value>
+  </data>
+  <data name="Projects_FilterUnc" xml:space="preserve">
+    <value>🌐 Network</value>
+  </data>
+  <data name="Projects_SearchPlaceholder" xml:space="preserve">
+    <value>Search code or path...</value>
+  </data>
+  <data name="Projects_CreateButton" xml:space="preserve">
+    <value>✨ New project</value>
+  </data>
+  <data name="Projects_RefreshTooltip" xml:space="preserve">
+    <value>Refresh project list</value>
+  </data>
+  <data name="Projects_OpenFolderTooltip" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="Projects_ActiveBadge" xml:space="preserve">
+    <value>● Active project</value>
+  </data>
+  <data name="Projects_SwitchAndLaunch" xml:space="preserve">
+    <value>🚀 Switch &amp; launch E3D</value>
+  </data>
+  <data name="Projects_MoreTooltip" xml:space="preserve">
+    <value>Decommission &amp; manage</value>
+  </data>
+  <data name="Projects_Scanning" xml:space="preserve">
+    <value>Scanning E3D projects and lock status...</value>
+  </data>
+  <data name="Projects_Loaded" xml:space="preserve">
+    <value>Loaded {0} E3D project(s)</value>
+  </data>
+  <data name="Projects_ScanError" xml:space="preserve">
+    <value>Project scan failed: {0}</value>
+  </data>
+  <data name="Projects_SwitchingTo" xml:space="preserve">
+    <value>Switching active project to [{0}] and launching E3D...</value>
+  </data>
+  <data name="Project_LockActive" xml:space="preserve">
+    <value>⚠ Active database lock</value>
+  </data>
+  <data name="Project_LockFree" xml:space="preserve">
+    <value>✓ No locks</value>
+  </data>
+  <data name="Project_SourceLocal" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Project_SourceUnc" xml:space="preserve">
+    <value>Network (UNC)</value>
+  </data>
+  <data name="Project_HostOffline" xml:space="preserve">
+    <value>Host offline</value>
+  </data>
+  <data name="Project_NotMounted" xml:space="preserve">
+    <value>Not mounted / offline</value>
+  </data>
+  <data name="Project_DefaultCategory" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Create_InvalidCode" xml:space="preserve">
+    <value>The project code must be 2–5 letters or digits (e.g. PRJ, APS, M01).</value>
+  </data>
+  <data name="Create_NameRequired" xml:space="preserve">
+    <value>Enter a project name or description.</value>
+  </data>
+  <data name="Create_Success" xml:space="preserve">
+    <value>Project [{0}] was created and registered with E3D.</value>
+  </data>
+  <data name="Create_Failed" xml:space="preserve">
+    <value>Creation failed: {0}</value>
+  </data>
+  <data name="Decommission_DirMissing" xml:space="preserve">
+    <value>The project folder does not exist.</value>
+  </data>
+  <data name="Decommission_LocksFound" xml:space="preserve">
+    <value>{0} active lock file(s) were found in the project; decommissioning was blocked for safety.</value>
+  </data>
+  <data name="Decommission_Success" xml:space="preserve">
+    <value>Project [{0}] was decommissioned and archived.</value>
+  </data>
+  <data name="Decommission_Failed" xml:space="preserve">
+    <value>Decommissioning failed: {0}</value>
+  </data>
+  <data name="Launch_EvarsMissing" xml:space="preserve">
+    <value>Project startup script not found: evars{0}.bat</value>
+  </data>
+  <data name="Launch_SwitchSuccess" xml:space="preserve">
+    <value>Active project switched to [{0}].</value>
+  </data>
+  <data name="Launch_SwitchFailed" xml:space="preserve">
+    <value>Failed to switch project environment: {0}</value>
+  </data>
+  <data name="Launch_ViaShortcut" xml:space="preserve">
+    <value>AVEVA E3D was launched via the desktop shortcut.</value>
+  </data>
+  <data name="Launch_ViaMonExe" xml:space="preserve">
+    <value>AVEVA E3D was launched.</value>
+  </data>
+  <data name="Launch_NotFound" xml:space="preserve">
+    <value>No AVEVA E3D executable or shortcut was found. Configure the install path in Settings.</value>
+  </data>
+  <data name="Launch_Failed" xml:space="preserve">
+    <value>Failed to launch E3D: {0}</value>
+  </data>
+  <data name="Diag_InstallDirTitle" xml:space="preserve">
+    <value>AVEVA E3D installation folder</value>
+  </data>
+  <data name="Diag_CategoryCore" xml:space="preserve">
+    <value>Core environment</value>
+  </data>
+  <data name="Diag_InstallDirFound" xml:space="preserve">
+    <value>Found: {0} ({1})</value>
+  </data>
+  <data name="Diag_InstallDirMissing" xml:space="preserve">
+    <value>No valid E3D installation path was detected. Configure it in Settings.</value>
+  </data>
+  <data name="Diag_EvarsTitle" xml:space="preserve">
+    <value>Environment script (evars.bat)</value>
+  </data>
+  <data name="Diag_CategoryIntegration" xml:space="preserve">
+    <value>System integration</value>
+  </data>
+  <data name="Diag_EvarsFound" xml:space="preserve">
+    <value>Valid: {0}</value>
+  </data>
+  <data name="Diag_EvarsMissing" xml:space="preserve">
+    <value>Global evars.bat not found; project injection may not work.</value>
+  </data>
+  <data name="Diag_ProjectsDirTitle" xml:space="preserve">
+    <value>Local project repository (projects_dir)</value>
+  </data>
+  <data name="Diag_CategoryStorage" xml:space="preserve">
+    <value>Data repository</value>
+  </data>
+  <data name="Diag_ProjectsDirFound" xml:space="preserve">
+    <value>Folder OK: {0} | managed custom_evars: {1}</value>
+  </data>
+  <data name="Diag_CustomEvarsPresent" xml:space="preserve">
+    <value>present</value>
+  </data>
+  <data name="Diag_CustomEvarsPending" xml:space="preserve">
+    <value>not initialised</value>
+  </data>
+  <data name="Diag_ProjectsDirMissing" xml:space="preserve">
+    <value>The local project folder does not exist. Create it or point to a valid drive.</value>
+  </data>
+  <data name="Diag_RuntimeTitle" xml:space="preserve">
+    <value>Native runtime (.NET 10 &amp; DirectWrite/Mica)</value>
+  </data>
+  <data name="Diag_CategoryGui" xml:space="preserve">
+    <value>GUI engine</value>
+  </data>
+  <data name="Diag_RuntimeDetail" xml:space="preserve">
+    <value>Running natively on Windows 11 with hardware acceleration.</value>
+  </data>
+  <data name="Lock_StatusActive" xml:space="preserve">
+    <value>Active / stale database lock</value>
+  </data>
+  <data name="Lock_StatusOrphan" xml:space="preserve">
+    <value>Stale lock</value>
+  </data>
+  <data name="Unlock_AlreadyCleared" xml:space="preserve">
+    <value>The lock file was already removed.</value>
+  </data>
+  <data name="Unlock_Success" xml:space="preserve">
+    <value>Force-unlocked: {0}</value>
+  </data>
+  <data name="Unlock_Failed" xml:space="preserve">
+    <value>Unable to unlock: {0}</value>
+  </data>
+  <data name="Diag_PageTitle" xml:space="preserve">
+    <value>Health Check &amp; Lock Inspection</value>
+  </data>
+  <data name="Diag_Rerun" xml:space="preserve">
+    <value>🔄 Re-run check</value>
+  </data>
+  <data name="Diag_UnlockAll" xml:space="preserve">
+    <value>🛡️ Clear all stale locks</value>
+  </data>
+  <data name="Diag_CoreMetrics" xml:space="preserve">
+    <value>Core environment checks</value>
+  </data>
+  <data name="Diag_LocksHeader" xml:space="preserve">
+    <value>Database lock files across projects (active session locks)</value>
+  </data>
+  <data name="Diag_LocksCountFormat" xml:space="preserve">
+    <value>{0} lock(s) found</value>
+  </data>
+  <data name="Diag_UnlockButton" xml:space="preserve">
+    <value>🔓 Unlock</value>
+  </data>
+  <data name="Diag_Running" xml:space="preserve">
+    <value>Running environment check and lock scan...</value>
+  </data>
+  <data name="Diag_Complete" xml:space="preserve">
+    <value>Check complete: {0} active/stale database lock(s) found.</value>
+  </data>
+  <data name="Diag_Error" xml:space="preserve">
+    <value>Diagnostics failed: {0}</value>
+  </data>
+  <data name="Diag_NoLocks" xml:space="preserve">
+    <value>There are no lock files to clear.</value>
+  </data>
+  <data name="Diag_ClearingAll" xml:space="preserve">
+    <value>Clearing all stale locks...</value>
+  </data>
+  <data name="Diag_ClearAllDone" xml:space="preserve">
+    <value>Clean-up complete: {0} unlocked, {1} failed.</value>
+  </data>
+  <data name="Users_PageTitle" xml:space="preserve">
+    <value>Users &amp; Permissions</value>
+  </data>
+  <data name="Users_CurrentProject" xml:space="preserve">
+    <value>Project:</value>
+  </data>
+  <data name="Users_RefreshTooltip" xml:space="preserve">
+    <value>Refresh user list</value>
+  </data>
+  <data name="Users_ListHeader" xml:space="preserve">
+    <value>Project users</value>
+  </data>
+  <data name="Users_CountFormat" xml:space="preserve">
+    <value>{0} user(s)</value>
+  </data>
+  <data name="Users_TeamsFormat" xml:space="preserve">
+    <value>Teams: {0}</value>
+  </data>
+  <data name="Users_SelectedHeader" xml:space="preserve">
+    <value>Selected user</value>
+  </data>
+  <data name="Users_NameLabel" xml:space="preserve">
+    <value>User code:</value>
+  </data>
+  <data name="Users_SecurityLabel" xml:space="preserve">
+    <value>Security level:</value>
+  </data>
+  <data name="Users_TeamsLabel" xml:space="preserve">
+    <value>Teams:</value>
+  </data>
+  <data name="Users_DeleteButton" xml:space="preserve">
+    <value>🗑️ Delete this user</value>
+  </data>
+  <data name="Users_NewHeader" xml:space="preserve">
+    <value>New project user</value>
+  </data>
+  <data name="Users_NewNameLabel" xml:space="preserve">
+    <value>User name (code)</value>
+  </data>
+  <data name="Users_NewNamePlaceholder" xml:space="preserve">
+    <value>e.g. JOHN</value>
+  </data>
+  <data name="Users_NewTeamLabel" xml:space="preserve">
+    <value>Initial team</value>
+  </data>
+  <data name="Users_NewTeamPlaceholder" xml:space="preserve">
+    <value>e.g. *MASTER or *PIPING</value>
+  </data>
+  <data name="Users_NewPasswordLabel" xml:space="preserve">
+    <value>Initial password (optional, blank by default)</value>
+  </data>
+  <data name="Users_NewSecurityLabel" xml:space="preserve">
+    <value>Security level</value>
+  </data>
+  <data name="Users_NewDescLabel" xml:space="preserve">
+    <value>Description / notes</value>
+  </data>
+  <data name="Users_NewDescPlaceholder" xml:space="preserve">
+    <value>e.g. Piping lead</value>
+  </data>
+  <data name="Users_CreateButton" xml:space="preserve">
+    <value>➕ Create user</value>
+  </data>
+  <data name="Users_Loading" xml:space="preserve">
+    <value>Reading users and teams for [{0}]...</value>
+  </data>
+  <data name="Users_Loaded" xml:space="preserve">
+    <value>[{0}] {1} user(s) and {2} team(s) found.</value>
+  </data>
+  <data name="Users_LoadFailed" xml:space="preserve">
+    <value>Read failed: {0}</value>
+  </data>
+  <data name="Users_InputRequired" xml:space="preserve">
+    <value>Enter a user name and an initial team.</value>
+  </data>
+  <data name="Users_Adding" xml:space="preserve">
+    <value>Adding user [{1}] to [{0}]...</value>
+  </data>
+  <data name="Users_Deleting" xml:space="preserve">
+    <value>Deleting user [{0}]...</value>
+  </data>
+  <data name="Admin_UserCreated" xml:space="preserve">
+    <value>User [{0}] was created and assigned to team [{1}].</value>
+  </data>
+  <data name="Admin_CreateFailed" xml:space="preserve">
+    <value>Failed to create user: {0}</value>
+  </data>
+  <data name="Admin_UserDeleted" xml:space="preserve">
+    <value>User [{0}] was deleted.</value>
+  </data>
+  <data name="Admin_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete user: {0}</value>
+  </data>
+  <data name="Admin_UserAddedToTeam" xml:space="preserve">
+    <value>User [{0}] was added to team [{1}].</value>
+  </data>
+  <data name="Admin_TeamAssignFailed" xml:space="preserve">
+    <value>Failed to assign team: {0}</value>
+  </data>
+  <data name="Settings_PathsHeader" xml:space="preserve">
+    <value>AVEVA E3D core paths</value>
+  </data>
+  <data name="Settings_InstallDirLabel" xml:space="preserve">
+    <value>E3D installation folder (install_dir)</value>
+  </data>
+  <data name="Settings_InstallDirPlaceholder" xml:space="preserve">
+    <value>e.g. D:\AVEVA\Everything3D3.1</value>
+  </data>
+  <data name="Settings_ProjectsDirLabel" xml:space="preserve">
+    <value>Local project repository (projects_dir)</value>
+  </data>
+  <data name="Settings_ProjectsDirPlaceholder" xml:space="preserve">
+    <value>e.g. D:\AVEVA\Projects\E3D3.1</value>
+  </data>
+  <data name="Settings_EvarsLabel" xml:space="preserve">
+    <value>Global environment script (evars.bat)</value>
+  </data>
+  <data name="Settings_EvarsPlaceholder" xml:space="preserve">
+    <value>e.g. D:\AVEVA\Everything3D3.1\evars.bat</value>
+  </data>
+  <data name="Settings_VersionLabel" xml:space="preserve">
+    <value>E3D version label</value>
+  </data>
+  <data name="Settings_VersionPlaceholder" xml:space="preserve">
+    <value>e.g. AVEVA Everything3D 3.1</value>
+  </data>
+  <data name="Settings_PreferencesHeader" xml:space="preserve">
+    <value>Client preferences</value>
+  </data>
+  <data name="Settings_AutoStart" xml:space="preserve">
+    <value>Start with Windows (keep the environment ready)</value>
+  </data>
+  <data name="Settings_LanguageLabel" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageAuto" xml:space="preserve">
+    <value>Auto (follow Windows)</value>
+  </data>
+  <data name="Settings_AboutHeader" xml:space="preserve">
+    <value>About SEP</value>
+  </data>
+  <data name="Settings_AboutTagline" xml:space="preserve">
+    <value>SEP · AVEVA E3D Smart Project Manager</value>
+  </data>
+  <data name="Settings_AboutArch" xml:space="preserve">
+    <value>Architecture: C# .NET 10 (DirectWrite / Windows 11 Mica)</value>
+  </data>
+  <data name="Settings_AboutStyle" xml:space="preserve">
+    <value>Design: professional &amp; minimal (Obsidian Deep &amp; Fluent 2.0)</value>
+  </data>
+  <data name="Settings_SaveButton" xml:space="preserve">
+    <value>💾 Save &amp; apply settings</value>
+  </data>
+  <data name="Settings_Saved" xml:space="preserve">
+    <value>Settings saved.</value>
+  </data>
+  <data name="Create_Title" xml:space="preserve">
+    <value>New Project</value>
+  </data>
+  <data name="Create_Header" xml:space="preserve">
+    <value>AVEVA E3D – New standardised project</value>
+  </data>
+  <data name="Create_CodeLabel" xml:space="preserve">
+    <value>Code (2–5 chars)</value>
+  </data>
+  <data name="Create_CodePlaceholder" xml:space="preserve">
+    <value>e.g. PRJ</value>
+  </data>
+  <data name="Create_NameLabel" xml:space="preserve">
+    <value>Project name / description</value>
+  </data>
+  <data name="Create_NamePlaceholder" xml:space="preserve">
+    <value>e.g. 200 kt/a ethylene plant</value>
+  </data>
+  <data name="Create_RootDirLabel" xml:space="preserve">
+    <value>Project root folder</value>
+  </data>
+  <data name="Create_CloneCheckbox" xml:space="preserve">
+    <value>Clone configuration from an existing project</value>
+  </data>
+  <data name="Create_Hint" xml:space="preserve">
+    <value>💡 The 000/ISO/DWG/MAC/PIC/DFLTS folder skeleton and evars.bat are generated automatically, and the project is registered in ProjectInfo.xml and projects.ini.</value>
+  </data>
+  <data name="Create_Button" xml:space="preserve">
+    <value>✨ Create project</value>
+  </data>
+  <data name="Decommission_Title" xml:space="preserve">
+    <value>Decommission &amp; Archive</value>
+  </data>
+  <data name="Decommission_Header" xml:space="preserve">
+    <value>AVEVA E3D – Decommission &amp; cold archive</value>
+  </data>
+  <data name="Decommission_ArchiveCheckbox" xml:space="preserve">
+    <value>Archive the project as a ZIP file (cold backup)</value>
+  </data>
+  <data name="Decommission_UnregisterCheckbox" xml:space="preserve">
+    <value>Unregister from ProjectInfo.xml and projects.ini</value>
+  </data>
+  <data name="Decommission_DeleteCheckbox" xml:space="preserve">
+    <value>Delete the project folder from disk (dangerous)</value>
+  </data>
+  <data name="Decommission_ArchiveDirLabel" xml:space="preserve">
+    <value>Archive folder:</value>
+  </data>
+  <data name="Decommission_Button" xml:space="preserve">
+    <value>📦 Confirm decommission</value>
+  </data>
+</root>

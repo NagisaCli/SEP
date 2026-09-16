@@ -1,0 +1,560 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Strings.resx = English (neutral language); Strings.zh-CN.resx = Simplified Chinese.
+    Every key must exist in Strings.resx; the zh-CN file may omit keys (they fall back to English).
+    After adding keys, regenerate Strings.Designer.cs (Visual Studio does this automatically through the
+    PublicResXFileCodeGenerator custom tool configured in SEP.App.csproj).
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_FatalTitle" xml:space="preserve">
+    <value>SEP 启动错误</value>
+  </data>
+  <data name="App_FatalBody" xml:space="preserve">
+    <value>[SEP 启动致命错误]
+{0}
+
+详细信息已写入 sep_debug.log</value>
+  </data>
+  <data name="App_UiErrorTitle" xml:space="preserve">
+    <value>SEP 异常</value>
+  </data>
+  <data name="App_UiErrorBody" xml:space="preserve">
+    <value>[SEP 界面异常]
+{0}
+
+详细信息已写入 sep_debug.log</value>
+  </data>
+  <data name="App_StartupFailed" xml:space="preserve">
+    <value>启动失败: {0}
+{1}</value>
+  </data>
+  <data name="Common_Ready" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>SEP · AVEVA E3D 工程管理系统</value>
+  </data>
+  <data name="Main_ActiveProjectLabel" xml:space="preserve">
+    <value>活动工程: </value>
+  </data>
+  <data name="Main_LaunchButton" xml:space="preserve">
+    <value>🚀 立即唤起 E3D</value>
+  </data>
+  <data name="Main_LaunchTooltip" xml:space="preserve">
+    <value>一键唤起当前活动工程</value>
+  </data>
+  <data name="Nav_Projects" xml:space="preserve">
+    <value>工程工作台</value>
+  </data>
+  <data name="Nav_UserAdmin" xml:space="preserve">
+    <value>用户与权限</value>
+  </data>
+  <data name="Nav_Diagnostics" xml:space="preserve">
+    <value>全景体检</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>系统与路径设置</value>
+  </data>
+  <data name="Main_NoActiveProject" xml:space="preserve">
+    <value>无活动项目</value>
+  </data>
+  <data name="Main_NoActiveProjectSet" xml:space="preserve">
+    <value>未指定活动工程</value>
+  </data>
+  <data name="Main_StatusPending" xml:space="preserve">
+    <value>待选择</value>
+  </data>
+  <data name="Main_SelectProjectFirst" xml:space="preserve">
+    <value>请先在工程工作台中选择一个工程！</value>
+  </data>
+  <data name="Main_ActiveProjectPathMissing" xml:space="preserve">
+    <value>未找到活动工程 [{0}] 的物理路径配置</value>
+  </data>
+  <data name="Main_SwitchingAndLaunching" xml:space="preserve">
+    <value>正在切换环境并唤起 AVEVA E3D [{0}]...</value>
+  </data>
+  <data name="Projects_FilterAll" xml:space="preserve">
+    <value>全部工程</value>
+  </data>
+  <data name="Projects_FilterFavorites" xml:space="preserve">
+    <value>★ 我的常用</value>
+  </data>
+  <data name="Projects_FilterLocal" xml:space="preserve">
+    <value>💻 本地工程</value>
+  </data>
+  <data name="Projects_FilterUnc" xml:space="preserve">
+    <value>🌐 网络UNC</value>
+  </data>
+  <data name="Projects_SearchPlaceholder" xml:space="preserve">
+    <value>快速搜索代号/路径...</value>
+  </data>
+  <data name="Projects_CreateButton" xml:space="preserve">
+    <value>✨ 新建工程</value>
+  </data>
+  <data name="Projects_RefreshTooltip" xml:space="preserve">
+    <value>刷新工程清单</value>
+  </data>
+  <data name="Projects_OpenFolderTooltip" xml:space="preserve">
+    <value>打开物理文件夹</value>
+  </data>
+  <data name="Projects_ActiveBadge" xml:space="preserve">
+    <value>● 当前活动工程</value>
+  </data>
+  <data name="Projects_SwitchAndLaunch" xml:space="preserve">
+    <value>🚀 切换环境并启动 E3D</value>
+  </data>
+  <data name="Projects_MoreTooltip" xml:space="preserve">
+    <value>下线归档与管理</value>
+  </data>
+  <data name="Projects_Scanning" xml:space="preserve">
+    <value>正在扫描 E3D 项目与锁状态...</value>
+  </data>
+  <data name="Projects_Loaded" xml:space="preserve">
+    <value>已加载 {0} 个 E3D 工程</value>
+  </data>
+  <data name="Projects_ScanError" xml:space="preserve">
+    <value>扫描项目出错: {0}</value>
+  </data>
+  <data name="Projects_SwitchingTo" xml:space="preserve">
+    <value>正在切换活动工程为 [{0}] 并唤起 E3D...</value>
+  </data>
+  <data name="Project_LockActive" xml:space="preserve">
+    <value>⚠ 存在数据库活跃锁</value>
+  </data>
+  <data name="Project_LockFree" xml:space="preserve">
+    <value>✓ 无锁就绪</value>
+  </data>
+  <data name="Project_SourceLocal" xml:space="preserve">
+    <value>本地</value>
+  </data>
+  <data name="Project_SourceUnc" xml:space="preserve">
+    <value>网络UNC</value>
+  </data>
+  <data name="Project_HostOffline" xml:space="preserve">
+    <value>网络离线</value>
+  </data>
+  <data name="Project_NotMounted" xml:space="preserve">
+    <value>未挂载/离线</value>
+  </data>
+  <data name="Project_DefaultCategory" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="Create_InvalidCode" xml:space="preserve">
+    <value>项目代号必须为 2~5 位英文字母或数字（例如 PRJ, APS, M01）。</value>
+  </data>
+  <data name="Create_NameRequired" xml:space="preserve">
+    <value>请输入项目全称或描述。</value>
+  </data>
+  <data name="Create_Success" xml:space="preserve">
+    <value>项目 [{0}] 规范化创建成功并已注入 E3D 注册表！</value>
+  </data>
+  <data name="Create_Failed" xml:space="preserve">
+    <value>创建失败: {0}</value>
+  </data>
+  <data name="Decommission_DirMissing" xml:space="preserve">
+    <value>项目物理目录不存在。</value>
+  </data>
+  <data name="Decommission_LocksFound" xml:space="preserve">
+    <value>检测到项目存在 {0} 个活跃锁文件，已安全拦截下线操作！</value>
+  </data>
+  <data name="Decommission_Success" xml:space="preserve">
+    <value>项目 [{0}] 已成功安全下线与冷备归档！</value>
+  </data>
+  <data name="Decommission_Failed" xml:space="preserve">
+    <value>下线失败: {0}</value>
+  </data>
+  <data name="Launch_EvarsMissing" xml:space="preserve">
+    <value>未找到项目启动脚本: evars{0}.bat</value>
+  </data>
+  <data name="Launch_SwitchSuccess" xml:space="preserve">
+    <value>已成功切换活动工程为 [{0}]！</value>
+  </data>
+  <data name="Launch_SwitchFailed" xml:space="preserve">
+    <value>切换工程环境失败: {0}</value>
+  </data>
+  <data name="Launch_ViaShortcut" xml:space="preserve">
+    <value>已通过桌面快捷方式成功唤起 AVEVA E3D！</value>
+  </data>
+  <data name="Launch_ViaMonExe" xml:space="preserve">
+    <value>已成功唤起 AVEVA E3D 主程序！</value>
+  </data>
+  <data name="Launch_NotFound" xml:space="preserve">
+    <value>未找到 AVEVA E3D 可执行文件或快捷方式，请在设置中配置安装路径。</value>
+  </data>
+  <data name="Launch_Failed" xml:space="preserve">
+    <value>唤起 E3D 失败: {0}</value>
+  </data>
+  <data name="Diag_InstallDirTitle" xml:space="preserve">
+    <value>AVEVA E3D 主程序目录</value>
+  </data>
+  <data name="Diag_CategoryCore" xml:space="preserve">
+    <value>核心环境</value>
+  </data>
+  <data name="Diag_InstallDirFound" xml:space="preserve">
+    <value>已定位: {0} ({1})</value>
+  </data>
+  <data name="Diag_InstallDirMissing" xml:space="preserve">
+    <value>未探测到有效的 E3D 主安装路径，请在设置中配置。</value>
+  </data>
+  <data name="Diag_EvarsTitle" xml:space="preserve">
+    <value>系统环境变量脚本 (evars.bat)</value>
+  </data>
+  <data name="Diag_CategoryIntegration" xml:space="preserve">
+    <value>系统集成</value>
+  </data>
+  <data name="Diag_EvarsFound" xml:space="preserve">
+    <value>有效: {0}</value>
+  </data>
+  <data name="Diag_EvarsMissing" xml:space="preserve">
+    <value>未找到全局 evars.bat，可能影响项目全局注入。</value>
+  </data>
+  <data name="Diag_ProjectsDirTitle" xml:space="preserve">
+    <value>本地工程主仓库 (projects_dir)</value>
+  </data>
+  <data name="Diag_CategoryStorage" xml:space="preserve">
+    <value>数据仓库</value>
+  </data>
+  <data name="Diag_ProjectsDirFound" xml:space="preserve">
+    <value>目录正常: {0} | 托管区 custom_evars: {1}</value>
+  </data>
+  <data name="Diag_CustomEvarsPresent" xml:space="preserve">
+    <value>已建立</value>
+  </data>
+  <data name="Diag_CustomEvarsPending" xml:space="preserve">
+    <value>待初始化</value>
+  </data>
+  <data name="Diag_ProjectsDirMissing" xml:space="preserve">
+    <value>本地工程主目录不存在，建议新建或指定有效存储盘。</value>
+  </data>
+  <data name="Diag_RuntimeTitle" xml:space="preserve">
+    <value>原生运行时环境 (.NET 10 &amp; DirectWrite/Mica)</value>
+  </data>
+  <data name="Diag_CategoryGui" xml:space="preserve">
+    <value>GUI引擎</value>
+  </data>
+  <data name="Diag_RuntimeDetail" xml:space="preserve">
+    <value>运行在 Windows 11 原生托管层，硬件加速开启，0ms 进程直通。</value>
+  </data>
+  <data name="Lock_StatusActive" xml:space="preserve">
+    <value>活跃/残留数据库锁</value>
+  </data>
+  <data name="Lock_StatusOrphan" xml:space="preserve">
+    <value>异常残留锁</value>
+  </data>
+  <data name="Unlock_AlreadyCleared" xml:space="preserve">
+    <value>锁文件已被清除。</value>
+  </data>
+  <data name="Unlock_Success" xml:space="preserve">
+    <value>已成功强制解锁: {0}</value>
+  </data>
+  <data name="Unlock_Failed" xml:space="preserve">
+    <value>无法解锁: {0}</value>
+  </data>
+  <data name="Diag_PageTitle" xml:space="preserve">
+    <value>全景体检与锁排查</value>
+  </data>
+  <data name="Diag_Rerun" xml:space="preserve">
+    <value>🔄 重新体检</value>
+  </data>
+  <data name="Diag_UnlockAll" xml:space="preserve">
+    <value>🛡️ 一键清理所有残留锁</value>
+  </data>
+  <data name="Diag_CoreMetrics" xml:space="preserve">
+    <value>核心环境诊断指标</value>
+  </data>
+  <data name="Diag_LocksHeader" xml:space="preserve">
+    <value>跨工程数据库锁文件巡检 (Active Session Locks)</value>
+  </data>
+  <data name="Diag_LocksCountFormat" xml:space="preserve">
+    <value>检测到 {0} 个锁</value>
+  </data>
+  <data name="Diag_UnlockButton" xml:space="preserve">
+    <value>🔓 解锁</value>
+  </data>
+  <data name="Diag_Running" xml:space="preserve">
+    <value>正在执行环境体检与锁文件扫描...</value>
+  </data>
+  <data name="Diag_Complete" xml:space="preserve">
+    <value>体检完成：共发现 {0} 个活跃/残留数据库锁。</value>
+  </data>
+  <data name="Diag_Error" xml:space="preserve">
+    <value>诊断出错: {0}</value>
+  </data>
+  <data name="Diag_NoLocks" xml:space="preserve">
+    <value>当前没有需要清理的锁文件。</value>
+  </data>
+  <data name="Diag_ClearingAll" xml:space="preserve">
+    <value>正在一键清理所有残留锁...</value>
+  </data>
+  <data name="Diag_ClearAllDone" xml:space="preserve">
+    <value>一键清理完成：成功解锁 {0} 个，失败 {1} 个。</value>
+  </data>
+  <data name="Users_PageTitle" xml:space="preserve">
+    <value>用户与权限治理</value>
+  </data>
+  <data name="Users_CurrentProject" xml:space="preserve">
+    <value>当前工程:</value>
+  </data>
+  <data name="Users_RefreshTooltip" xml:space="preserve">
+    <value>刷新人员清单</value>
+  </data>
+  <data name="Users_ListHeader" xml:space="preserve">
+    <value>工程用户列表</value>
+  </data>
+  <data name="Users_CountFormat" xml:space="preserve">
+    <value>共 {0} 人</value>
+  </data>
+  <data name="Users_TeamsFormat" xml:space="preserve">
+    <value>团队: {0}</value>
+  </data>
+  <data name="Users_SelectedHeader" xml:space="preserve">
+    <value>选中用户信息</value>
+  </data>
+  <data name="Users_NameLabel" xml:space="preserve">
+    <value>用户代号:</value>
+  </data>
+  <data name="Users_SecurityLabel" xml:space="preserve">
+    <value>安全等级:</value>
+  </data>
+  <data name="Users_TeamsLabel" xml:space="preserve">
+    <value>所属团队:</value>
+  </data>
+  <data name="Users_DeleteButton" xml:space="preserve">
+    <value>🗑️ 删除此用户</value>
+  </data>
+  <data name="Users_NewHeader" xml:space="preserve">
+    <value>新建工程用户</value>
+  </data>
+  <data name="Users_NewNameLabel" xml:space="preserve">
+    <value>用户名称 (代号)</value>
+  </data>
+  <data name="Users_NewNamePlaceholder" xml:space="preserve">
+    <value>如 JOHN</value>
+  </data>
+  <data name="Users_NewTeamLabel" xml:space="preserve">
+    <value>分配初始团队</value>
+  </data>
+  <data name="Users_NewTeamPlaceholder" xml:space="preserve">
+    <value>如 *MASTER 或 *PIPING</value>
+  </data>
+  <data name="Users_NewPasswordLabel" xml:space="preserve">
+    <value>登录初始密码 (可选，默认空)</value>
+  </data>
+  <data name="Users_NewSecurityLabel" xml:space="preserve">
+    <value>用户安全等级</value>
+  </data>
+  <data name="Users_NewDescLabel" xml:space="preserve">
+    <value>用户描述 / 备注</value>
+  </data>
+  <data name="Users_NewDescPlaceholder" xml:space="preserve">
+    <value>如 管道专业负责人</value>
+  </data>
+  <data name="Users_CreateButton" xml:space="preserve">
+    <value>➕ 立即创建用户</value>
+  </data>
+  <data name="Users_Loading" xml:space="preserve">
+    <value>正在读取 [{0}] 用户与团队清单...</value>
+  </data>
+  <data name="Users_Loaded" xml:space="preserve">
+    <value>[{0}] 共找到 {1} 名用户与 {2} 个团队。</value>
+  </data>
+  <data name="Users_LoadFailed" xml:space="preserve">
+    <value>读取失败: {0}</value>
+  </data>
+  <data name="Users_InputRequired" xml:space="preserve">
+    <value>请输入用户名和初始团队！</value>
+  </data>
+  <data name="Users_Adding" xml:space="preserve">
+    <value>正在向 [{0}] 添加用户 [{1}]...</value>
+  </data>
+  <data name="Users_Deleting" xml:space="preserve">
+    <value>正在删除用户 [{0}]...</value>
+  </data>
+  <data name="Admin_UserCreated" xml:space="preserve">
+    <value>用户 [{0}] 成功创建并分配至团队 [{1}]！</value>
+  </data>
+  <data name="Admin_CreateFailed" xml:space="preserve">
+    <value>创建用户失败: {0}</value>
+  </data>
+  <data name="Admin_UserDeleted" xml:space="preserve">
+    <value>用户 [{0}] 已成功删除！</value>
+  </data>
+  <data name="Admin_DeleteFailed" xml:space="preserve">
+    <value>删除用户失败: {0}</value>
+  </data>
+  <data name="Admin_UserAddedToTeam" xml:space="preserve">
+    <value>用户 [{0}] 已加入团队 [{1}]！</value>
+  </data>
+  <data name="Admin_TeamAssignFailed" xml:space="preserve">
+    <value>分配团队失败: {0}</value>
+  </data>
+  <data name="Settings_PathsHeader" xml:space="preserve">
+    <value>AVEVA E3D 核心环境路径</value>
+  </data>
+  <data name="Settings_InstallDirLabel" xml:space="preserve">
+    <value>E3D 主程序安装目录 (install_dir)</value>
+  </data>
+  <data name="Settings_InstallDirPlaceholder" xml:space="preserve">
+    <value>如 D:\AVEVA\Everything3D3.1</value>
+  </data>
+  <data name="Settings_ProjectsDirLabel" xml:space="preserve">
+    <value>本地工程仓库根目录 (projects_dir)</value>
+  </data>
+  <data name="Settings_ProjectsDirPlaceholder" xml:space="preserve">
+    <value>如 D:\AVEVA\Projects\E3D3.1</value>
+  </data>
+  <data name="Settings_EvarsLabel" xml:space="preserve">
+    <value>全局环境变量初始化脚本 (evars.bat)</value>
+  </data>
+  <data name="Settings_EvarsPlaceholder" xml:space="preserve">
+    <value>如 D:\AVEVA\Everything3D3.1\evars.bat</value>
+  </data>
+  <data name="Settings_VersionLabel" xml:space="preserve">
+    <value>E3D 版本标识</value>
+  </data>
+  <data name="Settings_VersionPlaceholder" xml:space="preserve">
+    <value>如 AVEVA Everything3D 3.1</value>
+  </data>
+  <data name="Settings_PreferencesHeader" xml:space="preserve">
+    <value>客户端运行偏好</value>
+  </data>
+  <data name="Settings_AutoStart" xml:space="preserve">
+    <value>随系统启动 (开机自启并保持环境待命)</value>
+  </data>
+  <data name="Settings_LanguageLabel" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="Settings_LanguageAuto" xml:space="preserve">
+    <value>自动（跟随系统）</value>
+  </data>
+  <data name="Settings_AboutHeader" xml:space="preserve">
+    <value>关于 SEP</value>
+  </data>
+  <data name="Settings_AboutTagline" xml:space="preserve">
+    <value>SEP · AVEVA E3D 现代智能工程管理系统</value>
+  </data>
+  <data name="Settings_AboutArch" xml:space="preserve">
+    <value>架构：C# .NET 10 (DirectWrite / Windows 11 Mica 渲染)</value>
+  </data>
+  <data name="Settings_AboutStyle" xml:space="preserve">
+    <value>设计风格：专业稳定 · 艺术极简 (Obsidian Deep &amp; Fluent 2.0)</value>
+  </data>
+  <data name="Settings_SaveButton" xml:space="preserve">
+    <value>💾 保存并应用所有设置</value>
+  </data>
+  <data name="Settings_Saved" xml:space="preserve">
+    <value>设置保存成功！</value>
+  </data>
+  <data name="Create_Title" xml:space="preserve">
+    <value>规范化新建工程</value>
+  </data>
+  <data name="Create_Header" xml:space="preserve">
+    <value>AVEVA E3D 规范化新建工程</value>
+  </data>
+  <data name="Create_CodeLabel" xml:space="preserve">
+    <value>项目代号 (2~5位)</value>
+  </data>
+  <data name="Create_CodePlaceholder" xml:space="preserve">
+    <value>如 PRJ</value>
+  </data>
+  <data name="Create_NameLabel" xml:space="preserve">
+    <value>项目全称 / 描述</value>
+  </data>
+  <data name="Create_NamePlaceholder" xml:space="preserve">
+    <value>如 某化工厂20万吨乙烯装置</value>
+  </data>
+  <data name="Create_RootDirLabel" xml:space="preserve">
+    <value>项目存储根目录</value>
+  </data>
+  <data name="Create_CloneCheckbox" xml:space="preserve">
+    <value>从已有工程克隆配置 (000系统库/等级库/出图样式)</value>
+  </data>
+  <data name="Create_Hint" xml:space="preserve">
+    <value>💡 创建后将自动生成 000/ISO/DWG/MAC/PIC/DFLTS 目录骨架与 evars.bat，并同步注册至 ProjectInfo.xml 与 projects.ini。</value>
+  </data>
+  <data name="Create_Button" xml:space="preserve">
+    <value>✨ 立即规范化创建</value>
+  </data>
+  <data name="Decommission_Title" xml:space="preserve">
+    <value>工程下线与冷备归档</value>
+  </data>
+  <data name="Decommission_Header" xml:space="preserve">
+    <value>AVEVA E3D 工程下线与冷备归档</value>
+  </data>
+  <data name="Decommission_ArchiveCheckbox" xml:space="preserve">
+    <value>自动将全量项目压缩打包为 ZIP 冷备归档</value>
+  </data>
+  <data name="Decommission_UnregisterCheckbox" xml:space="preserve">
+    <value>从 ProjectInfo.xml 及 projects.ini 中注销</value>
+  </data>
+  <data name="Decommission_DeleteCheckbox" xml:space="preserve">
+    <value>从磁盘中删除物理文件夹 (危险)</value>
+  </data>
+  <data name="Decommission_ArchiveDirLabel" xml:space="preserve">
+    <value>冷备归档存放目录:</value>
+  </data>
+  <data name="Decommission_Button" xml:space="preserve">
+    <value>📦 确认安全下线</value>
+  </data>
+</root>
