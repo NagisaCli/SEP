@@ -128,17 +128,11 @@
   <data name="Main_SelectProjectFirst" xml:space="preserve">
     <value>请先在工程工作台中选择一个工程！</value>
   </data>
-  <data name="Main_ActiveProjectPathMissing" xml:space="preserve">
-    <value>未找到活动工程 [{0}] 的物理路径配置</value>
-  </data>
   <data name="Main_SwitchingAndLaunching" xml:space="preserve">
     <value>正在切换环境并唤起 AVEVA E3D [{0}]...</value>
   </data>
   <data name="Projects_FilterAll" xml:space="preserve">
     <value>全部工程</value>
-  </data>
-  <data name="Projects_FilterFavorites" xml:space="preserve">
-    <value>★ 我的常用</value>
   </data>
   <data name="Projects_FilterLocal" xml:space="preserve">
     <value>💻 本地工程</value>
@@ -170,9 +164,6 @@
   <data name="Projects_Scanning" xml:space="preserve">
     <value>正在扫描 E3D 项目与锁状态...</value>
   </data>
-  <data name="Projects_Loaded" xml:space="preserve">
-    <value>已加载 {0} 个 E3D 工程</value>
-  </data>
   <data name="Projects_ScanError" xml:space="preserve">
     <value>扫描项目出错: {0}</value>
   </data>
@@ -191,17 +182,116 @@
   <data name="Project_SourceUnc" xml:space="preserve">
     <value>网络UNC</value>
   </data>
-  <data name="Project_HostOffline" xml:space="preserve">
-    <value>网络离线</value>
+  <data name="Projects_FilterMine" xml:space="preserve">
+    <value>★ 我的项目</value>
   </data>
-  <data name="Project_NotMounted" xml:space="preserve">
-    <value>未挂载/离线</value>
+  <data name="Projects_Loaded" xml:space="preserve">
+    <value>{1} 个路径库，共 {0} 个项目</value>
   </data>
-  <data name="Project_DefaultCategory" xml:space="preserve">
-    <value>通用</value>
+  <data name="Projects_ScanDone" xml:space="preserve">
+    <value>扫描完成：{0} 个项目；{1} 个路径库不可达（显示缓存结果）</value>
   </data>
-  <data name="Project_Unresponsive" xml:space="preserve">
-    <value>共享无响应</value>
+  <data name="Project_Cached" xml:space="preserve">
+    <value>缓存</value>
+  </data>
+  <data name="Project_AddToMine" xml:space="preserve">
+    <value>加入我的项目</value>
+  </data>
+  <data name="Project_RemoveFromMine" xml:space="preserve">
+    <value>移出我的项目</value>
+  </data>
+  <data name="Lib_AddPlaceholder" xml:space="preserve">
+    <value>添加路径库：文件夹、\\服务器\共享 或 evarsXXX.bat</value>
+  </data>
+  <data name="Lib_AddButton" xml:space="preserve">
+    <value>➕ 添加路径库</value>
+  </data>
+  <data name="Lib_Rescan" xml:space="preserve">
+    <value>重新扫描该路径库</value>
+  </data>
+  <data name="Lib_Remove" xml:space="preserve">
+    <value>从列表移除路径库（不删除任何文件）</value>
+  </data>
+  <data name="Lib_LoadWhole" xml:space="preserve">
+    <value>▶ 整库载入</value>
+  </data>
+  <data name="Lib_OpenFolder" xml:space="preserve">
+    <value>打开文件夹</value>
+  </data>
+  <data name="Lib_Scanning" xml:space="preserve">
+    <value>正在扫描…</value>
+  </data>
+  <data name="Lib_ProjectsCount" xml:space="preserve">
+    <value>{0} 个项目</value>
+  </data>
+  <data name="Lib_ScannedAt" xml:space="preserve">
+    <value>扫描于 {0}</value>
+  </data>
+  <data name="Lib_CachedResults" xml:space="preserve">
+    <value>不可达 – 显示缓存结果</value>
+  </data>
+  <data name="Lib_TypeCollection" xml:space="preserve">
+    <value>项目库</value>
+  </data>
+  <data name="Lib_TypeProject" xml:space="preserve">
+    <value>单项目</value>
+  </data>
+  <data name="Lib_Added" xml:space="preserve">
+    <value>已添加路径库 [{0}]，发现 {1} 个项目。</value>
+  </data>
+  <data name="Lib_AddFailed" xml:space="preserve">
+    <value>无法添加路径库：{0}</value>
+  </data>
+  <data name="Lib_Removed" xml:space="preserve">
+    <value>已移除路径库 [{0}]。</value>
+  </data>
+  <data name="Lib_AlreadyAdded" xml:space="preserve">
+    <value>该路径库已存在。</value>
+  </data>
+  <data name="Lib_Empty" xml:space="preserve">
+    <value>尚未添加路径库。请在上方添加项目文件夹、网络共享或 evarsXXX.bat 文件。</value>
+  </data>
+  <data name="Scan_Timeout" xml:space="preserve">
+    <value>网络路径在 {0} 秒内无响应</value>
+  </data>
+  <data name="Scan_HostOffline" xml:space="preserve">
+    <value>主机离线（SMB 445 端口无响应）</value>
+  </data>
+  <data name="Scan_NotFound" xml:space="preserve">
+    <value>路径不存在或不可访问</value>
+  </data>
+  <data name="Scan_AccessDenied" xml:space="preserve">
+    <value>访问被拒绝：{0}</value>
+  </data>
+  <data name="Scan_NoProjects" xml:space="preserve">
+    <value>未在该路径解析出任何项目</value>
+  </data>
+  <data name="Scan_NotProjectFile" xml:space="preserve">
+    <value>文件不是 evarsXXX.bat 或 custom_evars.bat</value>
+  </data>
+  <data name="Scan_Unsupported" xml:space="preserve">
+    <value>暂不支持 URL 路径库</value>
+  </data>
+  <data name="Scan_Error" xml:space="preserve">
+    <value>扫描失败：{0}</value>
+  </data>
+  <data name="Launch_Library" xml:space="preserve">
+    <value>已整库载入 [{0}]：E3D 将显示其全部项目。</value>
+  </data>
+  <data name="Launch_LibraryUnreachable" xml:space="preserve">
+    <value>路径库不可访问：{0}</value>
+  </data>
+  <data name="Launch_ProjectFileUnreachable" xml:space="preserve">
+    <value>项目文件不可访问：{0}</value>
+  </data>
+  <data name="Settings_LocalProjectsDirLabel" xml:space="preserve">
+    <value>单项目启动使用的本地项目库 (local_projects_dir)</value>
+  </data>
+  <data name="Settings_LnkLabel" xml:space="preserve">
+    <value>E3D 启动快捷方式 (.lnk) – 可选，留空自动查找</value>
+  </data>
+  <data name="Users_NoCode" xml:space="preserve">
+    <value>无法从该项目的 evars 文件读取项目代号 (XXX000=)。</value>
   </data>
   <data name="Create_InvalidCode" xml:space="preserve">
     <value>项目代号必须为 2~5 位英文字母或数字（例如 PRJ, APS, M01）。</value>

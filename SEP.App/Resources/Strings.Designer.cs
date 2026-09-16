@@ -228,15 +228,6 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to No path is configured for active project [{0}]..
-        /// </summary>
-        public static string Main_ActiveProjectPathMissing {
-            get {
-                return ResourceManager.GetString("Main_ActiveProjectPathMissing", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Switching environment and launching AVEVA E3D [{0}]....
         /// </summary>
         public static string Main_SwitchingAndLaunching {
@@ -251,15 +242,6 @@ namespace SEP.App.Resources {
         public static string Projects_FilterAll {
             get {
                 return ResourceManager.GetString("Projects_FilterAll", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to ★ Favorites.
-        /// </summary>
-        public static string Projects_FilterFavorites {
-            get {
-                return ResourceManager.GetString("Projects_FilterFavorites", resourceCulture);
             }
         }
 
@@ -354,15 +336,6 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Loaded {0} E3D project(s).
-        /// </summary>
-        public static string Projects_Loaded {
-            get {
-                return ResourceManager.GetString("Projects_Loaded", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Project scan failed: {0}.
         /// </summary>
         public static string Projects_ScanError {
@@ -417,38 +390,335 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Host offline.
+        ///   Looks up a localized string similar to ★ My projects.
         /// </summary>
-        public static string Project_HostOffline {
+        public static string Projects_FilterMine {
             get {
-                return ResourceManager.GetString("Project_HostOffline", resourceCulture);
+                return ResourceManager.GetString("Projects_FilterMine", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Not mounted / offline.
+        ///   Looks up a localized string similar to {0} project(s) in {1} library(ies).
         /// </summary>
-        public static string Project_NotMounted {
+        public static string Projects_Loaded {
             get {
-                return ResourceManager.GetString("Project_NotMounted", resourceCulture);
+                return ResourceManager.GetString("Projects_Loaded", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to General.
+        ///   Looks up a localized string similar to Scan complete: {0} project(s); {1} library(ies) unreachable (cached results shown).
         /// </summary>
-        public static string Project_DefaultCategory {
+        public static string Projects_ScanDone {
             get {
-                return ResourceManager.GetString("Project_DefaultCategory", resourceCulture);
+                return ResourceManager.GetString("Projects_ScanDone", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Share not responding.
+        ///   Looks up a localized string similar to cached.
         /// </summary>
-        public static string Project_Unresponsive {
+        public static string Project_Cached {
             get {
-                return ResourceManager.GetString("Project_Unresponsive", resourceCulture);
+                return ResourceManager.GetString("Project_Cached", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add to my projects.
+        /// </summary>
+        public static string Project_AddToMine {
+            get {
+                return ResourceManager.GetString("Project_AddToMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from my projects.
+        /// </summary>
+        public static string Project_RemoveFromMine {
+            get {
+                return ResourceManager.GetString("Project_RemoveFromMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add a library: folder, \\server\share or evarsXXX.bat.
+        /// </summary>
+        public static string Lib_AddPlaceholder {
+            get {
+                return ResourceManager.GetString("Lib_AddPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ➕ Add library.
+        /// </summary>
+        public static string Lib_AddButton {
+            get {
+                return ResourceManager.GetString("Lib_AddButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rescan this library.
+        /// </summary>
+        public static string Lib_Rescan {
+            get {
+                return ResourceManager.GetString("Lib_Rescan", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove library from the list (nothing is deleted on disk).
+        /// </summary>
+        public static string Lib_Remove {
+            get {
+                return ResourceManager.GetString("Lib_Remove", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ▶ Load whole library.
+        /// </summary>
+        public static string Lib_LoadWhole {
+            get {
+                return ResourceManager.GetString("Lib_LoadWhole", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open folder.
+        /// </summary>
+        public static string Lib_OpenFolder {
+            get {
+                return ResourceManager.GetString("Lib_OpenFolder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to scanning….
+        /// </summary>
+        public static string Lib_Scanning {
+            get {
+                return ResourceManager.GetString("Lib_Scanning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s).
+        /// </summary>
+        public static string Lib_ProjectsCount {
+            get {
+                return ResourceManager.GetString("Lib_ProjectsCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to scanned {0}.
+        /// </summary>
+        public static string Lib_ScannedAt {
+            get {
+                return ResourceManager.GetString("Lib_ScannedAt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to unreachable – showing cached results.
+        /// </summary>
+        public static string Lib_CachedResults {
+            get {
+                return ResourceManager.GetString("Lib_CachedResults", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library.
+        /// </summary>
+        public static string Lib_TypeCollection {
+            get {
+                return ResourceManager.GetString("Lib_TypeCollection", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Single project.
+        /// </summary>
+        public static string Lib_TypeProject {
+            get {
+                return ResourceManager.GetString("Lib_TypeProject", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library [{0}] added with {1} project(s)..
+        /// </summary>
+        public static string Lib_Added {
+            get {
+                return ResourceManager.GetString("Lib_Added", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot add library: {0}.
+        /// </summary>
+        public static string Lib_AddFailed {
+            get {
+                return ResourceManager.GetString("Lib_AddFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library [{0}] removed..
+        /// </summary>
+        public static string Lib_Removed {
+            get {
+                return ResourceManager.GetString("Lib_Removed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This library is already in the list..
+        /// </summary>
+        public static string Lib_AlreadyAdded {
+            get {
+                return ResourceManager.GetString("Lib_AlreadyAdded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No libraries yet. Add a project folder, a network share or an evarsXXX.bat file above..
+        /// </summary>
+        public static string Lib_Empty {
+            get {
+                return ResourceManager.GetString("Lib_Empty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Network path did not respond within {0} s.
+        /// </summary>
+        public static string Scan_Timeout {
+            get {
+                return ResourceManager.GetString("Scan_Timeout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Host is offline (no answer on SMB port 445).
+        /// </summary>
+        public static string Scan_HostOffline {
+            get {
+                return ResourceManager.GetString("Scan_HostOffline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Path does not exist or is not accessible.
+        /// </summary>
+        public static string Scan_NotFound {
+            get {
+                return ResourceManager.GetString("Scan_NotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Access denied: {0}.
+        /// </summary>
+        public static string Scan_AccessDenied {
+            get {
+                return ResourceManager.GetString("Scan_AccessDenied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No evarsXXX.bat project files were found there.
+        /// </summary>
+        public static string Scan_NoProjects {
+            get {
+                return ResourceManager.GetString("Scan_NoProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The file is not an evarsXXX.bat or custom_evars.bat.
+        /// </summary>
+        public static string Scan_NotProjectFile {
+            get {
+                return ResourceManager.GetString("Scan_NotProjectFile", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to URL libraries are not supported yet.
+        /// </summary>
+        public static string Scan_Unsupported {
+            get {
+                return ResourceManager.GetString("Scan_Unsupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Scan failed: {0}.
+        /// </summary>
+        public static string Scan_Error {
+            get {
+                return ResourceManager.GetString("Scan_Error", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library [{0}] loaded: E3D now lists all of its projects..
+        /// </summary>
+        public static string Launch_Library {
+            get {
+                return ResourceManager.GetString("Launch_Library", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library path is not accessible: {0}.
+        /// </summary>
+        public static string Launch_LibraryUnreachable {
+            get {
+                return ResourceManager.GetString("Launch_LibraryUnreachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Project file is not accessible: {0}.
+        /// </summary>
+        public static string Launch_ProjectFileUnreachable {
+            get {
+                return ResourceManager.GetString("Launch_ProjectFileUnreachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Local project library for single-project launches (local_projects_dir).
+        /// </summary>
+        public static string Settings_LocalProjectsDirLabel {
+            get {
+                return ResourceManager.GetString("Settings_LocalProjectsDirLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D shortcut (.lnk) – optional, found automatically when empty.
+        /// </summary>
+        public static string Settings_LnkLabel {
+            get {
+                return ResourceManager.GetString("Settings_LnkLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No project code (XXX000=) could be read from this project's evars file..
+        /// </summary>
+        public static string Users_NoCode {
+            get {
+                return ResourceManager.GetString("Users_NoCode", resourceCulture);
             }
         }
 

@@ -4,6 +4,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:loc="clr-namespace:SEP.App.Localization"
       xmlns:models="clr-namespace:SEP.App.Models"
+      xmlns:vm="clr-namespace:SEP.App.ViewModels"
       Title="{loc:Tr Nav_Projects}"
       Background="#0D1117" Foreground="#FFFFFF">
 
@@ -11,12 +12,12 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Top Header & Filter Bar -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
+        <!-- Header: title, spinner, filter tabs, search, actions -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -27,13 +28,12 @@
                 <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="0,0,12,0" VerticalAlignment="Center"
                                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                <!-- Filter Tabs: the active one is drawn as Primary -->
                 <Border Background="#161B22" CornerRadius="6" Padding="3" BorderBrush="#253040" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
                         <ui:Button Content="{loc:Tr Projects_FilterAll}" Click="OnFilterAllClick" Margin="2,0" Padding="12,5"
                                    Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=All}" />
-                        <ui:Button Content="{loc:Tr Projects_FilterFavorites}" Click="OnFilterFavoritesClick" Margin="2,0" Padding="12,5"
-                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Favorites}" />
+                        <ui:Button Content="{loc:Tr Projects_FilterMine}" Click="OnFilterMineClick" Margin="2,0" Padding="12,5"
+                                   Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Mine}" />
                         <ui:Button Content="{loc:Tr Projects_FilterLocal}" Click="OnFilterLocalClick" Margin="2,0" Padding="12,5"
                                    Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Local}" />
                         <ui:Button Content="{loc:Tr Projects_FilterUnc}" Click="OnFilterUncClick" Margin="2,0" Padding="12,5"
@@ -42,155 +42,222 @@
                 </Border>
             </StackPanel>
 
-            <!-- Actions Right -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <ui:TextBox Width="150" PlaceholderText="{loc:Tr Projects_SearchPlaceholder}" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
                             Icon="{ui:SymbolIcon Symbol=Search24}" Margin="0,0,10,0" />
                 <ui:Button Appearance="Primary" Content="{loc:Tr Projects_CreateButton}" Click="OnCreateProjectClick" Margin="0,0,10,0" />
-                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding LoadProjectsCommand}" ToolTip="{loc:Tr Projects_RefreshTooltip}" />
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RescanAllCommand}" ToolTip="{loc:Tr Projects_RefreshTooltip}" />
             </StackPanel>
         </Grid>
 
-        <!-- Notification Banner if any -->
-        <Border Grid.Row="1" Background="#161B22" BorderBrush="#00E5FF" BorderThickness="1,0,0,0" CornerRadius="4" Padding="12,8" Margin="0,0,0,12"
+        <!-- Add library -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:TextBox PlaceholderText="{loc:Tr Lib_AddPlaceholder}" Text="{Binding NewLibraryPath, UpdateSourceTrigger=PropertyChanged}"
+                        Icon="{ui:SymbolIcon Symbol=FolderAdd24}" FontFamily="Cascadia Code, Consolas" />
+            <ui:Button Grid.Column="1" Appearance="Secondary" Content="{loc:Tr Lib_AddButton}" Command="{Binding AddLibraryCommand}" Margin="10,0,0,0" />
+        </Grid>
+
+        <!-- Notification banner -->
+        <Border Grid.Row="2" Background="#161B22" BorderBrush="#00E5FF" BorderThickness="1,0,0,0" CornerRadius="4" Padding="12,8" Margin="0,0,0,12"
                 Visibility="{Binding NotificationText, Converter={StaticResource StringToVisibilityConverter}, FallbackValue=Collapsed}">
-            <TextBlock Text="{Binding NotificationText}" Foreground="#00E5FF" FontSize="13" />
+            <TextBlock Text="{Binding NotificationText}" Foreground="#00E5FF" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding NotificationText}" />
         </Border>
 
-        <!-- Project Cards List -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding FilteredProjects}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:ProjectItem}">
-                        <Border Width="380" Margin="0,0,16,16" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+        <!-- Libraries with their projects -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <TextBlock Text="{loc:Tr Lib_Empty}" Foreground="#8B949E" FontSize="13" Margin="4,12" TextWrapping="Wrap"
+                           Visibility="{Binding HasLibraries, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
 
-                                <!-- Header: Code Badge + Name + Favorite -->
-                                <Grid Grid.Row="0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- 3-Letter Monospace Badge -->
-                                    <Border Background="#0D1117" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Code}" FontFamily="Cascadia Code, Consolas" FontSize="15" FontWeight="Bold" Foreground="#00E5FF" />
-                                    </Border>
-
-                                    <!-- Title & Description -->
-                                    <StackPanel Grid.Column="1" Margin="10,0,10,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding DisplayTitle}" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" />
-                                        <!-- Local / Network (UNC), localized live -->
-                                        <TextBlock FontSize="11" Foreground="#8B949E">
-                                            <TextBlock.Text>
-                                                <MultiBinding Converter="{StaticResource SwitchConverter}">
-                                                    <Binding Path="IsUnc" />
-                                                    <Binding Path="[Project_SourceUnc]" Source="{x:Static loc:Loc.Instance}" />
-                                                    <Binding Path="[Project_SourceLocal]" Source="{x:Static loc:Loc.Instance}" />
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </StackPanel>
-
-                                    <!-- Favorite Star -->
-                                    <Button Grid.Column="2" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
-                                            Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}">
-                                        <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="16" Foreground="#F59E0B" />
-                                    </Button>
-                                </Grid>
-
-                                <!-- Path & Location -->
-                                <Border Grid.Row="1" Background="#0D1117" CornerRadius="4" Padding="8,6" Margin="0,12,0,12">
-                                    <Grid>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:LibraryGroup}">
+                            <Border Margin="0,0,0,14" Background="#11161D" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <StackPanel>
+                                    <!-- Library header -->
+                                    <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Path}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="#8B949E"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Path}" />
-                                        <ui:Button Grid.Column="1" Appearance="Transparent" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Padding="4,2"
-                                                   Command="{Binding DataContext.OpenProjectFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                   CommandParameter="{Binding}" ToolTip="{loc:Tr Projects_OpenFolderTooltip}" />
-                                    </Grid>
-                                </Border>
 
-                                <!-- Metrics & Health Status -->
-                                <Grid Grid.Row="2" Margin="0,0,0,14">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                        <ui:Button Appearance="Transparent" Padding="4,2" Margin="0,0,6,0"
+                                                   Command="{Binding DataContext.ToggleExpandedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                   CommandParameter="{Binding}">
+                                            <ui:Button.Icon>
+                                                <ui:SymbolIcon>
+                                                    <ui:SymbolIcon.Style>
+                                                        <Style TargetType="ui:SymbolIcon">
+                                                            <Setter Property="Symbol" Value="ChevronDown20" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Library.IsExpanded}" Value="False">
+                                                                    <Setter Property="Symbol" Value="ChevronRight20" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ui:SymbolIcon.Style>
+                                                </ui:SymbolIcon>
+                                            </ui:Button.Icon>
+                                        </ui:Button>
 
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <!-- Lock Pill -->
-                                        <Border CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
-                                                Background="{Binding IsLocked, Converter={StaticResource LockToBackgroundConverter}}">
-                                            <TextBlock FontSize="11" FontWeight="Medium"
-                                                       Foreground="{Binding IsLocked, Converter={StaticResource LockToForegroundConverter}}">
+                                        <TextBlock Grid.Column="1" Text="{Binding Library.Name}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                        <!-- Library type / Local / Network tag -->
+                                        <Border Grid.Column="2" Background="#1F2937" CornerRadius="4" Padding="6,1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <TextBlock FontSize="11" Foreground="#93C5FD">
                                                 <TextBlock.Text>
                                                     <MultiBinding Converter="{StaticResource SwitchConverter}">
-                                                        <Binding Path="IsLocked" />
-                                                        <Binding Path="[Project_LockActive]" Source="{x:Static loc:Loc.Instance}" />
-                                                        <Binding Path="[Project_LockFree]" Source="{x:Static loc:Loc.Instance}" />
+                                                        <Binding Path="Library.IsCollection" />
+                                                        <Binding Path="[Lib_TypeCollection]" Source="{x:Static loc:Loc.Instance}" />
+                                                        <Binding Path="[Lib_TypeProject]" Source="{x:Static loc:Loc.Instance}" />
                                                     </MultiBinding>
                                                 </TextBlock.Text>
                                             </TextBlock>
                                         </Border>
 
-                                        <!-- Size tag, or the reason the folder is unavailable (order = ProjectAvailability enum) -->
-                                        <TextBlock FontSize="12" Foreground="#8B949E" VerticalAlignment="Center">
-                                            <TextBlock.Text>
-                                                <MultiBinding Converter="{StaticResource SwitchConverter}">
-                                                    <Binding Path="Availability" />
-                                                    <Binding Path="SizeHuman" />
-                                                    <Binding Path="[Project_HostOffline]" Source="{x:Static loc:Loc.Instance}" />
-                                                    <Binding Path="[Project_NotMounted]" Source="{x:Static loc:Loc.Instance}" />
-                                                    <Binding Path="[Common_Ready]" Source="{x:Static loc:Loc.Instance}" />
-                                                    <Binding Path="[Project_Unresponsive]" Source="{x:Static loc:Loc.Instance}" />
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Library.Path}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="#8B949E" TextTrimming="CharacterEllipsis" ToolTip="{Binding Library.Path}" />
+                                            <TextBlock Text="{Binding StatusText}" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#34D399" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Library.IsReachable}" Value="False">
+                                                                <Setter Property="Foreground" Value="#FBBF24" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Library.IsScanning}" Value="True">
+                                                                <Setter Property="Foreground" Value="#00E5FF" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
 
-                                    <!-- Active Pill if active -->
-                                    <Border Grid.Column="1" Background="#064E3B" CornerRadius="4" Padding="6,2"
-                                            Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <TextBlock Text="{loc:Tr Projects_ActiveBadge}" FontSize="11" Foreground="#34D399" FontWeight="SemiBold" />
-                                    </Border>
-                                </Grid>
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                            <ui:Button Appearance="Secondary" Content="{loc:Tr Lib_LoadWhole}" Padding="10,4" Margin="0,0,6,0"
+                                                       Visibility="{Binding Library.IsCollection, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                       Command="{Binding DataContext.LoadLibraryCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                       CommandParameter="{Binding}" />
+                                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync20}" Padding="8,4" Margin="0,0,6,0" ToolTip="{loc:Tr Lib_Rescan}"
+                                                       Command="{Binding DataContext.RescanLibraryCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                       CommandParameter="{Binding}" />
+                                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Padding="8,4" Margin="0,0,6,0" ToolTip="{loc:Tr Lib_OpenFolder}"
+                                                       Command="{Binding DataContext.OpenLibraryFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                       CommandParameter="{Binding}" />
+                                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Dismiss20}" Padding="8,4" ToolTip="{loc:Tr Lib_Remove}"
+                                                       Command="{Binding DataContext.RemoveLibraryCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                       CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </Grid>
 
-                                <!-- Action Buttons -->
-                                <Grid Grid.Row="3">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                    <!-- Project cards -->
+                                    <ItemsControl ItemsSource="{Binding Projects}" Visibility="{Binding Library.IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type models:ProjectItem}">
+                                                <Border Width="330" Margin="0,0,12,12" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="14">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
 
-                                    <ui:Button Grid.Column="0" Appearance="Primary" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch"
-                                               Command="{Binding DataContext.SetActiveAndLaunchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                               CommandParameter="{Binding}" />
+                                                        <!-- Header: code badge, title, star -->
+                                                        <Grid Grid.Row="0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
 
-                                    <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}" Margin="8,0,0,0"
-                                               Click="OnProjectMoreClick" Tag="{Binding}" ToolTip="{loc:Tr Projects_MoreTooltip}" />
-                                </Grid>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                                            <Border Background="#0D1117" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="4" Padding="8,3" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Badge}" FontFamily="Cascadia Code, Consolas" FontSize="14" FontWeight="Bold" Foreground="#00E5FF" />
+                                                            </Border>
+
+                                                            <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}" />
+                                                                <TextBlock Text="{Binding ProjectDir}" FontFamily="Cascadia Code, Consolas" FontSize="10" Foreground="#8B949E" TextTrimming="CharacterEllipsis" ToolTip="{Binding BatPath}" />
+                                                            </StackPanel>
+
+                                                            <Button Grid.Column="2" Width="30" Height="30" Padding="0" Background="Transparent" BorderThickness="0"
+                                                                    Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                    CommandParameter="{Binding}">
+                                                                <Button.ToolTip>
+                                                                    <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                                                        <Binding Path="IsFavorite" />
+                                                                        <Binding Path="[Project_RemoveFromMine]" Source="{x:Static loc:Loc.Instance}" />
+                                                                        <Binding Path="[Project_AddToMine]" Source="{x:Static loc:Loc.Instance}" />
+                                                                    </MultiBinding>
+                                                                </Button.ToolTip>
+                                                                <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="16" Foreground="#F59E0B" />
+                                                            </Button>
+                                                        </Grid>
+
+                                                        <!-- Status pills -->
+                                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,10">
+                                                            <Border CornerRadius="4" Padding="6,2" Margin="0,0,6,0"
+                                                                    Background="{Binding IsLocked, Converter={StaticResource LockToBackgroundConverter}}"
+                                                                    Visibility="{Binding LockStateKnown, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                <TextBlock FontSize="11" FontWeight="Medium" Foreground="{Binding IsLocked, Converter={StaticResource LockToForegroundConverter}}">
+                                                                    <TextBlock.Text>
+                                                                        <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                                                            <Binding Path="IsLocked" />
+                                                                            <Binding Path="[Project_LockActive]" Source="{x:Static loc:Loc.Instance}" />
+                                                                            <Binding Path="[Project_LockFree]" Source="{x:Static loc:Loc.Instance}" />
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Text>
+                                                                </TextBlock>
+                                                            </Border>
+                                                            <Border CornerRadius="4" Padding="6,2" Margin="0,0,6,0" Background="#3F3F46"
+                                                                    Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                <TextBlock Text="{loc:Tr Project_Cached}" FontSize="11" Foreground="#D4D4D8" />
+                                                            </Border>
+                                                            <Border Background="#064E3B" CornerRadius="4" Padding="6,2"
+                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                <TextBlock Text="{loc:Tr Projects_ActiveBadge}" FontSize="11" Foreground="#34D399" FontWeight="SemiBold" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <!-- Actions -->
+                                                        <Grid Grid.Row="2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <ui:Button Grid.Column="0" Appearance="Primary" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch"
+                                                                       Command="{Binding DataContext.SetActiveAndLaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                       CommandParameter="{Binding}" />
+                                                            <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Margin="6,0,0,0" ToolTip="{loc:Tr Projects_OpenFolderTooltip}"
+                                                                       Command="{Binding DataContext.OpenProjectFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                       CommandParameter="{Binding}" />
+                                                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}" Margin="6,0,0,0"
+                                                                       Click="OnProjectMoreClick" Tag="{Binding}" ToolTip="{loc:Tr Projects_MoreTooltip}" />
+                                                        </Grid>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>

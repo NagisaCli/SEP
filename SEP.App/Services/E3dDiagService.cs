@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SEP.App.Models;
 using SEP.App.Resources;
@@ -10,53 +11,53 @@ namespace SEP.App.Services;
 
 public class E3dDiagService : IE3dDiagService
 {
-    private readonly IE3dProjectService _projectService;
+    private static readonly TimeSpan LockProbeTimeout = TimeSpan.FromSeconds(5);
+    private readonly IProjectCatalog _catalog;
 
-    public E3dDiagService(IE3dProjectService projectService)
+    public E3dDiagService(IProjectCatalog catalog)
     {
-        _projectService = projectService;
+        _catalog = catalog;
     }
 
+    /// <summary>Lock files of every project in a reachable library, probed in parallel under a deadline each.</summary>
     public async Task<List<SessionLockItem>> ScanAllLocksAsync(IEnumerable<ProjectItem> projects)
     {
-        return await Task.Run(() =>
+        var results = new List<SessionLockItem>();
+        var gate = new object();
+        using var limiter = new SemaphoreSlim(16);
+
+        await Task.WhenAll(projects.Where(p => !p.IsCached).Select(async proj =>
         {
-            var results = new List<SessionLockItem>();
-
-            foreach (var proj in projects)
+            await limiter.WaitAsync();
+            try
             {
-                // The project scan already probed reachability; re-touching an offline UNC path here
-                // would block for the full SMB timeout and stall the whole health check.
-                if (!proj.Exists || !Directory.Exists(proj.Path)) continue;
+                var work = Task.Run(() => LibraryScanner.FindLockFiles(proj.ProjectDir));
+                if (await Task.WhenAny(work, Task.Delay(LockProbeTimeout)) != work) return;
+                var locks = await work;
+                if (locks == null) return;
 
-                try
+                var items = new List<SessionLockItem>();
+                foreach (var lck in locks)
                 {
-                    // Scan *000 subdirectories
-                    var zeroDirs = Directory.GetDirectories(proj.Path, "*000", SearchOption.TopDirectoryOnly);
-                    foreach (var zd in zeroDirs)
+                    var fi = new FileInfo(lck);
+                    items.Add(new SessionLockItem
                     {
-                        var lcks = Directory.GetFiles(zd, "*.lck", SearchOption.TopDirectoryOnly);
-                        foreach (var lck in lcks)
-                        {
-                            var fi = new FileInfo(lck);
-                            results.Add(new SessionLockItem
-                            {
-                                ProjectCode = proj.Code,
-                                FileName = fi.Name,
-                                FilePath = fi.FullName,
-                                LockTime = fi.LastWriteTime,
-                                FileSizeBytes = fi.Length,
-                                IsOrphan = true,
-                                StatusMessage = Strings.Lock_StatusActive
-                            });
-                        }
-                    }
+                        ProjectCode = proj.Code ?? proj.Name,
+                        FileName = fi.Name,
+                        FilePath = fi.FullName,
+                        LockTime = fi.LastWriteTime,
+                        FileSizeBytes = fi.Length,
+                        IsOrphan = true,
+                        StatusMessage = Strings.Lock_StatusActive
+                    });
                 }
-                catch { }
+                lock (gate) results.AddRange(items);
             }
+            catch { }
+            finally { limiter.Release(); }
+        }));
 
-            return results.OrderByDescending(x => x.LockTime).ToList();
-        });
+        return results.OrderByDescending(x => x.LockTime).ToList();
     }
 
     public async Task<(bool Success, string Message)> UnlockSessionAsync(SessionLockItem item)
@@ -94,7 +95,7 @@ public class E3dDiagService : IE3dDiagService
         return await Task.Run(() =>
         {
             var list = new List<SystemDiagItem>();
-            var paths = _projectService.PathsConfig;
+            var paths = _catalog.Paths;
 
             // 1. E3D Main Installation
             if (!string.IsNullOrEmpty(paths.InstallDir) && Directory.Exists(paths.InstallDir))
@@ -141,17 +142,16 @@ public class E3dDiagService : IE3dDiagService
                 });
             }
 
-            // 3. Projects Dir & custom_evars.bat
-            if (!string.IsNullOrEmpty(paths.ProjectsDir) && Directory.Exists(paths.ProjectsDir))
+            // 3. Local project library & custom_evars.bat
+            string localDir = _catalog.LocalProjectsDir;
+            if (Directory.Exists(localDir))
             {
-                string customEvars = Path.Combine(paths.ProjectsDir, "custom_evars.bat");
-                bool hasCustom = File.Exists(customEvars);
-
+                bool hasCustom = File.Exists(Path.Combine(localDir, "custom_evars.bat")) || File.Exists(Path.Combine(localDir, "custom_evar.bat"));
                 list.Add(new SystemDiagItem
                 {
                     Title = Strings.Diag_ProjectsDirTitle,
                     Category = Strings.Diag_CategoryStorage,
-                    Detail = string.Format(Strings.Diag_ProjectsDirFound, paths.ProjectsDir,
+                    Detail = string.Format(Strings.Diag_ProjectsDirFound, localDir,
                         hasCustom ? Strings.Diag_CustomEvarsPresent : Strings.Diag_CustomEvarsPending),
                     Severity = DiagSeverity.Success
                 });

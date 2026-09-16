@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using E3dAdmin.Models;
@@ -10,16 +11,23 @@ using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
 
+/// <summary>A project the AVEVA admin tool can be pointed at: needs the real project code (the XXX of "set XXX000=").</summary>
+public sealed record ProjectChoice(string Code, string Name)
+{
+    public string Display => string.Equals(Code, Name, StringComparison.OrdinalIgnoreCase) ? Code : $"{Code} · {Name}";
+    public override string ToString() => Display;
+}
+
 public partial class UserAdminViewModel : ObservableObject
 {
     private readonly IE3dAdminBridge _adminBridge;
-    private readonly IE3dProjectService _projectService;
+    private readonly IProjectCatalog _catalog;
 
     [ObservableProperty]
-    private ObservableCollection<string> _availableProjects = new();
+    private ObservableCollection<ProjectChoice> _availableProjects = new();
 
     [ObservableProperty]
-    private string _selectedProject = string.Empty;
+    private ProjectChoice? _selectedProject;
 
     [ObservableProperty]
     private ObservableCollection<UserInfo> _users = new();
@@ -52,53 +60,63 @@ public partial class UserAdminViewModel : ObservableObject
     [ObservableProperty]
     private string _newUserDesc = string.Empty;
 
-    public UserAdminViewModel(IE3dAdminBridge adminBridge, IE3dProjectService projectService)
+    public UserAdminViewModel(IE3dAdminBridge adminBridge, IProjectCatalog catalog)
     {
         _adminBridge = adminBridge;
-        _projectService = projectService;
+        _catalog = catalog;
 
         LoadProjectList();
+        _catalog.Changed += (_, _) =>
+        {
+            var d = Application.Current?.Dispatcher;
+            if (d == null || d.CheckAccess()) LoadProjectList(); else d.BeginInvoke(LoadProjectList);
+        };
     }
 
     public void LoadProjectList()
     {
-        AvailableProjects.Clear();
-        foreach (var kv in _projectService.ProjectsConfig.Projects)
-        {
-            AvailableProjects.Add(kv.Key);
-        }
+        // One entry per project code; the active project first, then my projects, then the rest.
+        var choices = _catalog.Projects
+            .Where(p => !string.IsNullOrEmpty(p.Code))
+            .OrderByDescending(p => p.IsActive).ThenByDescending(p => p.IsFavorite).ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .GroupBy(p => p.Code!, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new ProjectChoice(g.Key.ToUpperInvariant(), g.First().Name))
+            .ToList();
 
-        if (AvailableProjects.Count > 0 && string.IsNullOrEmpty(SelectedProject))
+        var current = SelectedProject;
+        AvailableProjects = new ObservableCollection<ProjectChoice>(choices);
+        if (choices.Count == 0)
         {
-            SelectedProject = AvailableProjects[0];
+            SelectedProject = null;
+            StatusMessage = Strings.Users_NoCode;
+            return;
         }
+        SelectedProject = current != null ? choices.FirstOrDefault(c => c.Code == current.Code) ?? choices[0] : choices[0];
     }
 
-    partial void OnSelectedProjectChanged(string value)
+    partial void OnSelectedProjectChanged(ProjectChoice? value)
     {
-        if (!string.IsNullOrEmpty(value))
-        {
-            RefreshUsersCommand.Execute(null);
-        }
+        if (value != null) RefreshUsersCommand.Execute(null);
     }
 
     [RelayCommand]
     public async Task RefreshUsersAsync()
     {
-        if (string.IsNullOrEmpty(SelectedProject)) return;
+        var project = SelectedProject;
+        if (project == null) return;
 
         IsLoading = true;
-        StatusMessage = string.Format(Strings.Users_Loading, SelectedProject);
+        StatusMessage = string.Format(Strings.Users_Loading, project.Code);
 
         try
         {
-            var userList = await _adminBridge.GetUsersAsync(SelectedProject);
-            var teamList = await _adminBridge.GetTeamsAsync(SelectedProject);
+            var userList = await _adminBridge.GetUsersAsync(project.Code);
+            var teamList = await _adminBridge.GetTeamsAsync(project.Code);
 
             Users = new ObservableCollection<UserInfo>(userList);
             Teams = new ObservableCollection<TeamInfo>(teamList);
 
-            StatusMessage = string.Format(Strings.Users_Loaded, SelectedProject, Users.Count, Teams.Count);
+            StatusMessage = string.Format(Strings.Users_Loaded, project.Code, Users.Count, Teams.Count);
         }
         catch (Exception ex)
         {
@@ -113,6 +131,8 @@ public partial class UserAdminViewModel : ObservableObject
     [RelayCommand]
     private async Task AddUserAsync()
     {
+        var project = SelectedProject;
+        if (project == null) return;
         if (string.IsNullOrWhiteSpace(NewUserName) || string.IsNullOrWhiteSpace(NewUserTeam))
         {
             StatusMessage = Strings.Users_InputRequired;
@@ -120,10 +140,10 @@ public partial class UserAdminViewModel : ObservableObject
         }
 
         IsLoading = true;
-        StatusMessage = string.Format(Strings.Users_Adding, SelectedProject, NewUserName.ToUpperInvariant());
+        StatusMessage = string.Format(Strings.Users_Adding, project.Code, NewUserName.ToUpperInvariant());
 
         var res = await _adminBridge.AddUserAsync(
-            SelectedProject,
+            project.Code,
             NewUserName.Trim().ToUpperInvariant(),
             NewUserTeam.Trim().ToUpperInvariant(),
             string.IsNullOrWhiteSpace(NewUserPassword) ? null : NewUserPassword.Trim(),
@@ -146,12 +166,13 @@ public partial class UserAdminViewModel : ObservableObject
     [RelayCommand]
     private async Task DeleteUserAsync(UserInfo? user)
     {
-        if (user == null) return;
+        var project = SelectedProject;
+        if (user == null || project == null) return;
 
         IsLoading = true;
         StatusMessage = string.Format(Strings.Users_Deleting, user.Name);
 
-        var res = await _adminBridge.DeleteUserAsync(SelectedProject, user.Name, force: false);
+        var res = await _adminBridge.DeleteUserAsync(project.Code, user.Name, force: false);
         StatusMessage = res.Message;
 
         if (res.Success)

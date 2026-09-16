@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -38,19 +39,16 @@ public partial class CreateProjectDialogViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSuccess;
 
-    public CreateProjectDialogViewModel(IE3dProjectService projectService)
+    public CreateProjectDialogViewModel(IE3dProjectService projectService, IProjectCatalog catalog)
     {
         _projectService = projectService;
 
-        RootDir = _projectService.PathsConfig.ProjectsDir ?? @"D:\AVEVA\Projects\E3D3.1";
+        RootDir = catalog.LocalProjectsDir;
 
-        // Collect available template directories
-        foreach (var kv in _projectService.ProjectsConfig.Projects)
+        // Templates: local project folders that exist (the 000 database folder is cloned from them)
+        foreach (var dir in catalog.Projects.Where(p => !p.IsUnc).Select(p => p.ProjectDir).Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            if (Directory.Exists(kv.Value))
-            {
-                AvailableTemplates.Add(kv.Value);
-            }
+            if (Directory.Exists(dir)) AvailableTemplates.Add(dir);
         }
         if (AvailableTemplates.Count > 0)
         {

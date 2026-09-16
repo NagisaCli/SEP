@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SEP.App.Localization;
@@ -29,7 +28,7 @@ public partial class LanguageOption : ObservableObject
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly IE3dProjectService _projectService;
+    private readonly IProjectCatalog _catalog;
     private readonly LanguageOption _autoOption = new(Loc.Auto, Strings.Settings_LanguageAuto);
     private readonly bool _initialized;
 
@@ -45,6 +44,14 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _e3dVersion = string.Empty;
 
+    /// <summary>settings.local_projects_dir — the library whose custom_evars.bat receives single-project launches.</summary>
+    [ObservableProperty]
+    private string _localProjectsDir = string.Empty;
+
+    /// <summary>settings.e3d_lnk — explicit shortcut; empty = find automatically.</summary>
+    [ObservableProperty]
+    private string _e3dLnk = string.Empty;
+
     [ObservableProperty]
     private bool _autoStart;
 
@@ -57,17 +64,20 @@ public partial class SettingsViewModel : ObservableObject
 
     public ObservableCollection<LanguageOption> LanguageOptions { get; }
 
-    public SettingsViewModel(IE3dProjectService projectService)
+    public SettingsViewModel(IProjectCatalog catalog)
     {
-        _projectService = projectService;
+        _catalog = catalog;
 
-        var paths = _projectService.PathsConfig;
+        var paths = _catalog.Paths;
         InstallDir = paths.InstallDir ?? string.Empty;
         ProjectsDir = paths.ProjectsDir ?? string.Empty;
         EvarsBat = paths.EvarsBat ?? string.Empty;
         E3dVersion = paths.E3dVersion ?? "AVEVA Everything3D 3.1";
 
-        AutoStart = _projectService.ProjectsConfig.Settings.AutoStart;
+        var settings = _catalog.Data.Settings;
+        LocalProjectsDir = settings.LocalProjectsDir;
+        E3dLnk = settings.E3dLnk;
+        AutoStart = settings.AutoStart;
 
         // Native names on purpose: a user who cannot read the current language must still find their own.
         LanguageOptions = new ObservableCollection<LanguageOption>
@@ -76,7 +86,7 @@ public partial class SettingsViewModel : ObservableObject
             new(Loc.English, "English"),
             new(Loc.ChineseSimplified, "中文（简体）"),
         };
-        Language = Loc.Normalize(_projectService.ProjectsConfig.Settings.Language);
+        Language = Loc.Normalize(settings.Language);
         _initialized = true;
     }
 
@@ -88,22 +98,32 @@ public partial class SettingsViewModel : ObservableObject
         _autoOption.Display = Strings.Settings_LanguageAuto;
         StatusMessage = Strings.Common_Ready;
 
-        _projectService.ProjectsConfig.Settings.Language = value;
-        _ = _projectService.SaveConfigAsync();
+        _catalog.Data.Settings.Language = value;
+        _catalog.Save();
     }
 
     [RelayCommand]
-    private async Task SaveSettingsAsync()
+    private void SaveSettings()
     {
-        _projectService.PathsConfig.InstallDir = InstallDir.Trim();
-        _projectService.PathsConfig.ProjectsDir = ProjectsDir.Trim();
-        _projectService.PathsConfig.EvarsBat = EvarsBat.Trim();
-        _projectService.PathsConfig.E3dVersion = E3dVersion.Trim();
+        var paths = _catalog.Paths;
+        paths.InstallDir = InstallDir.Trim();
+        paths.ProjectsDir = ProjectsDir.Trim();
+        paths.EvarsBat = EvarsBat.Trim();
+        paths.E3dVersion = E3dVersion.Trim();
+        // evars.init lives next to evars.bat; keep it in step when the user changes the bat path
+        if (!string.IsNullOrEmpty(paths.EvarsBat))
+        {
+            string init = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(paths.EvarsBat) ?? string.Empty, "evars.init");
+            if (string.IsNullOrEmpty(paths.EvarsInit) || !System.IO.File.Exists(paths.EvarsInit)) paths.EvarsInit = init;
+        }
 
-        _projectService.ProjectsConfig.Settings.AutoStart = AutoStart;
-        _projectService.ProjectsConfig.Settings.Language = Language;
+        var settings = _catalog.Data.Settings;
+        settings.LocalProjectsDir = SepPaths.Normalize(LocalProjectsDir);
+        settings.E3dLnk = SepPaths.Normalize(E3dLnk);
+        settings.AutoStart = AutoStart;
+        settings.Language = Language;
 
-        await _projectService.SaveConfigAsync();
+        _catalog.Save();
         StatusMessage = Strings.Settings_Saved;
     }
 }

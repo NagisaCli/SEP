@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SEP.App.Localization;
-using SEP.App.Models;
 using SEP.App.Resources;
 using SEP.App.Services;
 
@@ -11,7 +11,7 @@ namespace SEP.App.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    private readonly IE3dProjectService _projectService;
+    private readonly IProjectCatalog _catalog;
     private readonly IE3dLauncherService _launcherService;
 
     [ObservableProperty]
@@ -21,21 +21,19 @@ public partial class MainWindowViewModel : ObservableObject
     private string _activeProjectStatus = Strings.Main_StatusPending;
 
     [ObservableProperty]
-    private string _searchQuery = string.Empty;
-
-    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchActiveProjectCommand))]
     private bool _isBusy;
 
     [ObservableProperty]
     private string _statusMessage = Strings.Common_Ready;
 
-    public MainWindowViewModel(IE3dProjectService projectService, IE3dLauncherService launcherService)
+    public MainWindowViewModel(IProjectCatalog catalog, IE3dLauncherService launcherService)
     {
-        _projectService = projectService;
+        _catalog = catalog;
         _launcherService = launcherService;
 
         RefreshActiveProject();
+        _catalog.Changed += (_, _) => OnUiThread(RefreshActiveProject);
 
         // Singleton view-model: re-render the cached status texts when the UI language changes.
         Loc.Instance.LanguageChanged += (_, _) =>
@@ -45,12 +43,19 @@ public partial class MainWindowViewModel : ObservableObject
         };
     }
 
+    private static void OnUiThread(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.CheckAccess()) action();
+        else dispatcher.BeginInvoke(action);
+    }
+
     public void RefreshActiveProject()
     {
-        string? active = _projectService.ProjectsConfig.LastActiveProject;
-        if (!string.IsNullOrEmpty(active))
+        string last = _catalog.Data.Settings.LastLaunched;
+        if (!string.IsNullOrEmpty(last))
         {
-            ActiveProjectCode = active;
+            ActiveProjectCode = last;
             ActiveProjectStatus = Strings.Common_Ready;
         }
         else
@@ -65,7 +70,8 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(NotBusy))]
     private async Task LaunchActiveProjectAsync()
     {
-        if (string.IsNullOrEmpty(_projectService.ProjectsConfig.LastActiveProject))
+        string last = _catalog.Data.Settings.LastLaunched;
+        if (string.IsNullOrEmpty(last))
         {
             StatusMessage = Strings.Main_SelectProjectFirst;
             return;
@@ -74,17 +80,17 @@ public partial class MainWindowViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            string code = _projectService.ProjectsConfig.LastActiveProject;
-            var projects = await _projectService.LoadAllProjectsAsync();   // cached snapshot when fresh
-            var proj = projects.Find(p => p.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
-
+            var proj = _catalog.ActiveProject;
             if (proj == null)
             {
-                StatusMessage = string.Format(Strings.Main_ActiveProjectPathMissing, code);
+                // Not a single project we know (a whole library or "all my projects" was loaded last time, possibly by
+                // the Python UI): the E3D environment is already set up, so just start E3D.
+                var launch = await _launcherService.LaunchE3dProcessAsync();
+                StatusMessage = $"[{last}] {launch.Message}";
                 return;
             }
 
-            StatusMessage = string.Format(Strings.Main_SwitchingAndLaunching, code);
+            StatusMessage = string.Format(Strings.Main_SwitchingAndLaunching, proj.Name);
             var res = await _launcherService.SwitchAndLaunchAsync(proj);
             StatusMessage = res.Message;
         }

@@ -36,6 +36,12 @@
 
                         <TextBlock Text="{loc:Tr Settings_VersionLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
                         <ui:TextBox Text="{Binding E3dVersion, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_VersionPlaceholder}" Margin="0,0,0,12" />
+
+                        <TextBlock Text="{loc:Tr Settings_LocalProjectsDirLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding LocalProjectsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" Margin="0,0,0,12" />
+
+                        <TextBlock Text="{loc:Tr Settings_LnkLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
+                        <ui:TextBox Text="{Binding E3dLnk, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
                     </StackPanel>
                 </Border>
 

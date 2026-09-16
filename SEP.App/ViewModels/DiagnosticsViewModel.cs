@@ -12,7 +12,7 @@ namespace SEP.App.ViewModels;
 public partial class DiagnosticsViewModel : ObservableObject
 {
     private readonly IE3dDiagService _diagService;
-    private readonly IE3dProjectService _projectService;
+    private readonly IProjectCatalog _catalog;
 
     [ObservableProperty]
     private ObservableCollection<SystemDiagItem> _diagItems = new();
@@ -26,19 +26,19 @@ public partial class DiagnosticsViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = Strings.Common_Ready;
 
-    public DiagnosticsViewModel(IE3dDiagService diagService, IE3dProjectService projectService)
+    public DiagnosticsViewModel(IE3dDiagService diagService, IProjectCatalog catalog)
     {
         _diagService = diagService;
-        _projectService = projectService;
+        _catalog = catalog;
 
         RunDiagnosticsCommand.Execute(null);
     }
 
-    /// <summary>Initial check: reuses the last project scan when it is fresh, so opening the page is instant.</summary>
+    /// <summary>Initial check: reuses the last library scan when it is fresh, so opening the page is instant.</summary>
     [RelayCommand]
     public Task RunDiagnosticsAsync() => RunAsync(forceRescan: false);
 
-    /// <summary>"Re-run check" button: probes every project again.</summary>
+    /// <summary>"Re-run check" button: probes every library again.</summary>
     [RelayCommand]
     private Task RerunAsync() => RunAsync(forceRescan: true);
 
@@ -53,8 +53,8 @@ public partial class DiagnosticsViewModel : ObservableObject
             var items = await _diagService.RunSystemDiagnosticsAsync();
             DiagItems = new ObservableCollection<SystemDiagItem>(items);
 
-            var projs = await _projectService.LoadAllProjectsAsync(forceRescan);
-            var locks = await _diagService.ScanAllLocksAsync(projs);
+            await _catalog.RescanAllAsync(forceRescan);
+            var locks = await _diagService.ScanAllLocksAsync(_catalog.Projects);
             LockItems = new ObservableCollection<SessionLockItem>(locks);
 
             StatusMessage = string.Format(Strings.Diag_Complete, LockItems.Count);
@@ -95,6 +95,7 @@ public partial class DiagnosticsViewModel : ObservableObject
 
         var (ok, fail) = await _diagService.UnlockAllSessionsAsync(LockItems);
         StatusMessage = string.Format(Strings.Diag_ClearAllDone, ok, fail);
+        IsLoading = false;
 
         await RunDiagnosticsAsync();
     }

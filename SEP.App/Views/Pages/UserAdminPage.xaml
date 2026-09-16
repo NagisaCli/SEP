@@ -24,7 +24,7 @@
                 <TextBlock Text="{loc:Tr Users_PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,24,0" VerticalAlignment="Center" />
 
                 <TextBlock Text="{loc:Tr Users_CurrentProject}" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox Width="140" ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" VerticalAlignment="Center" />
+                <ComboBox MinWidth="200" ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Display" VerticalAlignment="Center" />
 
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshUsersCommand}" Margin="10,0,0,0" ToolTip="{loc:Tr Users_RefreshTooltip}" />
             </StackPanel>

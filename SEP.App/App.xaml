@@ -20,6 +20,7 @@
             <converters:SelectedToAppearanceConverter x:Key="SelectedToAppearanceConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
 
             <!-- Palette Overrides -->
             <SolidColorBrush x:Key="SepBrandCyanBrush" Color="#00E5FF" />

@@ -16,9 +16,9 @@ public partial class DecommissionDialog : Window
         _project = project;
         _projectService = App.Services.GetRequiredService<IE3dProjectService>();
 
-        TxtCode.Text = project.Code;
-        TxtName.Text = project.DisplayTitle;
-        TxtPath.Text = project.Path;
+        TxtCode.Text = project.Badge;
+        TxtName.Text = project.Title;
+        TxtPath.Text = project.ProjectDir;
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e)
@@ -35,7 +35,7 @@ public partial class DecommissionDialog : Window
         bool doDelete = ChkDelete.IsChecked == true;
         string archiveDir = TxtArchiveDir.Text.Trim();
 
-        var (ok, msg) = await _projectService.DecommissionProjectAsync(_project.Path, archiveDir, doArchive, doDelete);
+        var (ok, msg) = await _projectService.DecommissionProjectAsync(_project, archiveDir, doArchive, doDelete);
 
         if (!ok)
         {

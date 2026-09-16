@@ -128,17 +128,11 @@ Details were written to sep_debug.log</value>
   <data name="Main_SelectProjectFirst" xml:space="preserve">
     <value>Select a project in the Project Workbench first.</value>
   </data>
-  <data name="Main_ActiveProjectPathMissing" xml:space="preserve">
-    <value>No path is configured for active project [{0}].</value>
-  </data>
   <data name="Main_SwitchingAndLaunching" xml:space="preserve">
     <value>Switching environment and launching AVEVA E3D [{0}]...</value>
   </data>
   <data name="Projects_FilterAll" xml:space="preserve">
     <value>All</value>
-  </data>
-  <data name="Projects_FilterFavorites" xml:space="preserve">
-    <value>★ Favorites</value>
   </data>
   <data name="Projects_FilterLocal" xml:space="preserve">
     <value>💻 Local</value>
@@ -170,9 +164,6 @@ Details were written to sep_debug.log</value>
   <data name="Projects_Scanning" xml:space="preserve">
     <value>Scanning E3D projects and lock status...</value>
   </data>
-  <data name="Projects_Loaded" xml:space="preserve">
-    <value>Loaded {0} E3D project(s)</value>
-  </data>
   <data name="Projects_ScanError" xml:space="preserve">
     <value>Project scan failed: {0}</value>
   </data>
@@ -191,17 +182,116 @@ Details were written to sep_debug.log</value>
   <data name="Project_SourceUnc" xml:space="preserve">
     <value>Network (UNC)</value>
   </data>
-  <data name="Project_HostOffline" xml:space="preserve">
-    <value>Host offline</value>
+  <data name="Projects_FilterMine" xml:space="preserve">
+    <value>★ My projects</value>
   </data>
-  <data name="Project_NotMounted" xml:space="preserve">
-    <value>Not mounted / offline</value>
+  <data name="Projects_Loaded" xml:space="preserve">
+    <value>{0} project(s) in {1} library(ies)</value>
   </data>
-  <data name="Project_DefaultCategory" xml:space="preserve">
-    <value>General</value>
+  <data name="Projects_ScanDone" xml:space="preserve">
+    <value>Scan complete: {0} project(s); {1} library(ies) unreachable (cached results shown)</value>
   </data>
-  <data name="Project_Unresponsive" xml:space="preserve">
-    <value>Share not responding</value>
+  <data name="Project_Cached" xml:space="preserve">
+    <value>cached</value>
+  </data>
+  <data name="Project_AddToMine" xml:space="preserve">
+    <value>Add to my projects</value>
+  </data>
+  <data name="Project_RemoveFromMine" xml:space="preserve">
+    <value>Remove from my projects</value>
+  </data>
+  <data name="Lib_AddPlaceholder" xml:space="preserve">
+    <value>Add a library: folder, \\server\share or evarsXXX.bat</value>
+  </data>
+  <data name="Lib_AddButton" xml:space="preserve">
+    <value>➕ Add library</value>
+  </data>
+  <data name="Lib_Rescan" xml:space="preserve">
+    <value>Rescan this library</value>
+  </data>
+  <data name="Lib_Remove" xml:space="preserve">
+    <value>Remove library from the list (nothing is deleted on disk)</value>
+  </data>
+  <data name="Lib_LoadWhole" xml:space="preserve">
+    <value>▶ Load whole library</value>
+  </data>
+  <data name="Lib_OpenFolder" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="Lib_Scanning" xml:space="preserve">
+    <value>scanning…</value>
+  </data>
+  <data name="Lib_ProjectsCount" xml:space="preserve">
+    <value>{0} project(s)</value>
+  </data>
+  <data name="Lib_ScannedAt" xml:space="preserve">
+    <value>scanned {0}</value>
+  </data>
+  <data name="Lib_CachedResults" xml:space="preserve">
+    <value>unreachable – showing cached results</value>
+  </data>
+  <data name="Lib_TypeCollection" xml:space="preserve">
+    <value>Library</value>
+  </data>
+  <data name="Lib_TypeProject" xml:space="preserve">
+    <value>Single project</value>
+  </data>
+  <data name="Lib_Added" xml:space="preserve">
+    <value>Library [{0}] added with {1} project(s).</value>
+  </data>
+  <data name="Lib_AddFailed" xml:space="preserve">
+    <value>Cannot add library: {0}</value>
+  </data>
+  <data name="Lib_Removed" xml:space="preserve">
+    <value>Library [{0}] removed.</value>
+  </data>
+  <data name="Lib_AlreadyAdded" xml:space="preserve">
+    <value>This library is already in the list.</value>
+  </data>
+  <data name="Lib_Empty" xml:space="preserve">
+    <value>No libraries yet. Add a project folder, a network share or an evarsXXX.bat file above.</value>
+  </data>
+  <data name="Scan_Timeout" xml:space="preserve">
+    <value>Network path did not respond within {0} s</value>
+  </data>
+  <data name="Scan_HostOffline" xml:space="preserve">
+    <value>Host is offline (no answer on SMB port 445)</value>
+  </data>
+  <data name="Scan_NotFound" xml:space="preserve">
+    <value>Path does not exist or is not accessible</value>
+  </data>
+  <data name="Scan_AccessDenied" xml:space="preserve">
+    <value>Access denied: {0}</value>
+  </data>
+  <data name="Scan_NoProjects" xml:space="preserve">
+    <value>No evarsXXX.bat project files were found there</value>
+  </data>
+  <data name="Scan_NotProjectFile" xml:space="preserve">
+    <value>The file is not an evarsXXX.bat or custom_evars.bat</value>
+  </data>
+  <data name="Scan_Unsupported" xml:space="preserve">
+    <value>URL libraries are not supported yet</value>
+  </data>
+  <data name="Scan_Error" xml:space="preserve">
+    <value>Scan failed: {0}</value>
+  </data>
+  <data name="Launch_Library" xml:space="preserve">
+    <value>Library [{0}] loaded: E3D now lists all of its projects.</value>
+  </data>
+  <data name="Launch_LibraryUnreachable" xml:space="preserve">
+    <value>Library path is not accessible: {0}</value>
+  </data>
+  <data name="Launch_ProjectFileUnreachable" xml:space="preserve">
+    <value>Project file is not accessible: {0}</value>
+  </data>
+  <data name="Settings_LocalProjectsDirLabel" xml:space="preserve">
+    <value>Local project library for single-project launches (local_projects_dir)</value>
+  </data>
+  <data name="Settings_LnkLabel" xml:space="preserve">
+    <value>E3D shortcut (.lnk) – optional, found automatically when empty</value>
+  </data>
+  <data name="Users_NoCode" xml:space="preserve">
+    <value>No project code (XXX000=) could be read from this project's evars file.</value>
   </data>
   <data name="Create_InvalidCode" xml:space="preserve">
     <value>The project code must be 2–5 letters or digits (e.g. PRJ, APS, M01).</value>

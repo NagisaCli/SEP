@@ -74,6 +74,8 @@ public partial class App : Application
             Log("Configuring DI");
             var services = new ServiceCollection();
 
+            services.AddSingleton<SepDataStore>();
+            services.AddSingleton<IProjectCatalog, ProjectCatalog>();
             services.AddSingleton<IE3dProjectService, E3dProjectService>();
             services.AddSingleton<IE3dLauncherService, E3dLauncherService>();
             services.AddSingleton<IE3dDiagService, E3dDiagService>();
@@ -97,9 +99,10 @@ public partial class App : Application
             Log("DI built successfully");
 
             // UI language must be in effect before any view-model or window is created.
-            string language = Services.GetRequiredService<IE3dProjectService>().ProjectsConfig.Settings.Language;
+            var catalog = Services.GetRequiredService<IProjectCatalog>();
+            string language = catalog.Data.Settings.Language;
             Loc.Instance.Apply(language);
-            Log($"UI language: setting={language} culture={Loc.Instance.Culture.Name}");
+            Log($"UI language: setting={language} culture={Loc.Instance.Culture.Name}; data dir={Services.GetRequiredService<SepDataStore>().DataDir}; libraries={catalog.Libraries.Count} projects={catalog.Projects.Count}");
 
             Log("Resolving MainWindow");
             var mainWindow = Services.GetRequiredService<MainWindow>();

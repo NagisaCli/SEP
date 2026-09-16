@@ -23,17 +23,14 @@ public partial class ProjectsPage : Page
     }
 
     private void OnFilterAllClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "All";
-    private void OnFilterFavoritesClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Favorites";
+    private void OnFilterMineClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Mine";
     private void OnFilterLocalClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Local";
     private void OnFilterUncClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Unc";
 
     private void OnCreateProjectClick(object sender, RoutedEventArgs e)
     {
         var dlg = new CreateProjectDialog { Owner = Window.GetWindow(this) };
-        if (dlg.ShowDialog() == true)
-        {
-            _viewModel.LoadProjectsCommand.Execute(null);
-        }
+        dlg.ShowDialog();   // the catalog rescans the library itself after a successful creation
     }
 
     private void OnProjectMoreClick(object sender, RoutedEventArgs e)
@@ -41,10 +38,7 @@ public partial class ProjectsPage : Page
         if (sender is FrameworkElement fe && fe.Tag is ProjectItem item)
         {
             var dlg = new DecommissionDialog(item) { Owner = Window.GetWindow(this) };
-            if (dlg.ShowDialog() == true)
-            {
-                _viewModel.LoadProjectsCommand.Execute(null);
-            }
+            dlg.ShowDialog();
         }
     }
 }
