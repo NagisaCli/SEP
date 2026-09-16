@@ -21,7 +21,8 @@ public static class TeamCommands
                 {
                     name = t.Name,
                     member_count = t.Users.Count,
-                    users = t.Users
+                    users = t.Users,
+                    description = t.Description
                 }).ToList();
                 Console.WriteLine(JsonSerializer.Serialize(new { ok = true, project = context.Project, data = payload }, _jsonOpts));
             }

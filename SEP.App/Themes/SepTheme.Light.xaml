@@ -1,0 +1,58 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Light counterpart of SepTheme.Dark.xaml: same keys, daylight values. -->
+    <Color x:Key="SepPageColor">#F4F6F9</Color>
+    <Color x:Key="SepSurfaceColor">#FFFFFF</Color>
+    <Color x:Key="SepSurface2Color">#F3F5F8</Color>
+    <Color x:Key="SepSurfaceHoverColor">#EAEEF4</Color>
+    <Color x:Key="SepInputColor">#FFFFFF</Color>
+    <Color x:Key="SepBorderColor">#E1E6EE</Color>
+    <Color x:Key="SepBorderStrongColor">#C7CFDB</Color>
+    <Color x:Key="SepTextColor">#111827</Color>
+    <Color x:Key="SepText2Color">#4B5563</Color>
+    <Color x:Key="SepText3Color">#8A94A6</Color>
+    <Color x:Key="SepAccentColor">#0891B2</Color>
+    <Color x:Key="SepAccentStrongColor">#0E7490</Color>
+    <Color x:Key="SepAccentSoftColor">#DFF6FB</Color>
+    <Color x:Key="SepOnAccentColor">#FFFFFF</Color>
+    <Color x:Key="SepSuccessColor">#059669</Color>
+    <Color x:Key="SepSuccessSoftColor">#DCFCE7</Color>
+    <Color x:Key="SepWarningColor">#B45309</Color>
+    <Color x:Key="SepWarningSoftColor">#FEF3C7</Color>
+    <Color x:Key="SepDangerColor">#DC2626</Color>
+    <Color x:Key="SepDangerSoftColor">#FEE2E2</Color>
+    <Color x:Key="SepInfoColor">#2563EB</Color>
+    <Color x:Key="SepInfoSoftColor">#DBEAFE</Color>
+    <Color x:Key="SepPurpleColor">#7C3AED</Color>
+    <Color x:Key="SepPurpleSoftColor">#EDE9FE</Color>
+
+    <SolidColorBrush x:Key="SepPageBrush" Color="{StaticResource SepPageColor}" />
+    <SolidColorBrush x:Key="SepSurfaceBrush" Color="{StaticResource SepSurfaceColor}" />
+    <SolidColorBrush x:Key="SepSurface2Brush" Color="{StaticResource SepSurface2Color}" />
+    <SolidColorBrush x:Key="SepSurfaceHoverBrush" Color="{StaticResource SepSurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SepInputBrush" Color="{StaticResource SepInputColor}" />
+    <SolidColorBrush x:Key="SepBorderBrush" Color="{StaticResource SepBorderColor}" />
+    <SolidColorBrush x:Key="SepBorderStrongBrush" Color="{StaticResource SepBorderStrongColor}" />
+    <SolidColorBrush x:Key="SepTextBrush" Color="{StaticResource SepTextColor}" />
+    <SolidColorBrush x:Key="SepText2Brush" Color="{StaticResource SepText2Color}" />
+    <SolidColorBrush x:Key="SepText3Brush" Color="{StaticResource SepText3Color}" />
+    <SolidColorBrush x:Key="SepAccentBrush" Color="{StaticResource SepAccentColor}" />
+    <SolidColorBrush x:Key="SepAccentStrongBrush" Color="{StaticResource SepAccentStrongColor}" />
+    <SolidColorBrush x:Key="SepAccentSoftBrush" Color="{StaticResource SepAccentSoftColor}" />
+    <SolidColorBrush x:Key="SepOnAccentBrush" Color="{StaticResource SepOnAccentColor}" />
+    <SolidColorBrush x:Key="SepSuccessBrush" Color="{StaticResource SepSuccessColor}" />
+    <SolidColorBrush x:Key="SepSuccessSoftBrush" Color="{StaticResource SepSuccessSoftColor}" />
+    <SolidColorBrush x:Key="SepWarningBrush" Color="{StaticResource SepWarningColor}" />
+    <SolidColorBrush x:Key="SepWarningSoftBrush" Color="{StaticResource SepWarningSoftColor}" />
+    <SolidColorBrush x:Key="SepDangerBrush" Color="{StaticResource SepDangerColor}" />
+    <SolidColorBrush x:Key="SepDangerSoftBrush" Color="{StaticResource SepDangerSoftColor}" />
+    <SolidColorBrush x:Key="SepInfoBrush" Color="{StaticResource SepInfoColor}" />
+    <SolidColorBrush x:Key="SepInfoSoftBrush" Color="{StaticResource SepInfoSoftColor}" />
+    <SolidColorBrush x:Key="SepPurpleBrush" Color="{StaticResource SepPurpleColor}" />
+    <SolidColorBrush x:Key="SepPurpleSoftBrush" Color="{StaticResource SepPurpleSoftColor}" />
+
+    <LinearGradientBrush x:Key="SepAccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0891B2" Offset="0" />
+        <GradientStop Color="#2563EB" Offset="1" />
+    </LinearGradientBrush>
+</ResourceDictionary>

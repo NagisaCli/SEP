@@ -10,17 +10,23 @@ public class AvevaProcessRunner : IAvevaProcessRunner
     private static Dictionary<string, string>? _cachedEnvironment;
     private static readonly object _envLock = new();
 
-    public async Task<ProcessRunResult> RunMacroAsync(AdminContext context, string macroContent, int timeoutSeconds = 30)
+    public async Task<ProcessRunResult> RunMacroAsync(AdminContext context, string macroContent, int timeoutSeconds = 0)
     {
         string adminDir = ResolveAdminDirectory(context.AdminDirectory);
         string admExe = Path.Combine(adminDir, "adm.exe");
 
         if (!File.Exists(admExe))
         {
-            throw new FileNotFoundException($"Cannot find AVEVA Administration executable at: {admExe}");
+            throw new AvevaAdminException(AdminErrorKind.ExecutableMissing, $"Cannot find AVEVA Administration executable at: {admExe}");
         }
 
-        var env = GetOrCreateEnvironment(adminDir);
+        var env = new Dictionary<string, string>(GetOrCreateEnvironment(adminDir), StringComparer.OrdinalIgnoreCase);
+        // The project's own evars win over whatever the ADMIN install's evars/custom_evars registered.
+        foreach (var kvp in context.Environment)
+        {
+            env[kvp.Key] = kvp.Value;
+        }
+        if (timeoutSeconds <= 0) timeoutSeconds = context.TimeoutSeconds;
 
         // Ensure temp macro file is created
         string tempMacroPath = Path.Combine(Path.GetTempPath(), $"e3d_admin_{Guid.NewGuid():N}.mac");
@@ -93,7 +99,7 @@ public class AvevaProcessRunner : IAvevaProcessRunner
                     process.Kill(entireProcessTree: true);
                 }
                 catch {}
-                throw new TimeoutException($"AVEVA Administration execution timed out after {timeoutSeconds} seconds.");
+                throw new AvevaAdminException(AdminErrorKind.Timeout, $"AVEVA Administration did not finish within {timeoutSeconds} seconds.");
             }
 
             return new ProcessRunResult(
@@ -118,6 +124,7 @@ public class AvevaProcessRunner : IAvevaProcessRunner
 
         string sanitized = Regex.Replace(input, @"-password=[^\s]+", "-password=***", RegexOptions.IgnoreCase);
         sanitized = Regex.Replace(sanitized, @"/PASS\s+/[^\s]+", "PASS /***", RegexOptions.IgnoreCase);
+        sanitized = Regex.Replace(sanitized, @"(?<![A-Z])PASS(?:WORD)?\s+\|[^|]*\|", "PASS |***|", RegexOptions.IgnoreCase);
         sanitized = Regex.Replace(sanitized, @"CREATE USER\s+\|[^\|]+\|/[^\s]+", m =>
         {
             return Regex.Replace(m.Value, @"/[^\s]+", "/***");
@@ -147,8 +154,8 @@ public class AvevaProcessRunner : IAvevaProcessRunner
         if (Directory.Exists(defaultPath))
             return defaultPath;
 
-        throw new DirectoryNotFoundException(
-            "Could not locate AVEVA Administration directory. Please specify with --admin-dir or set AVEVA_ADMIN_DIR.");
+        throw new AvevaAdminException(AdminErrorKind.ExecutableMissing,
+            "Could not locate the AVEVA Administration directory. Specify it with --admin-dir or set AVEVA_ADMIN_DIR.");
     }
 
     private static Dictionary<string, string> GetOrCreateEnvironment(string adminDir)

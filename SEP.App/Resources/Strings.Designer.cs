@@ -1227,83 +1227,11 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Project users.
-        /// </summary>
-        public static string Users_ListHeader {
-            get {
-                return ResourceManager.GetString("Users_ListHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} user(s).
-        /// </summary>
-        public static string Users_CountFormat {
-            get {
-                return ResourceManager.GetString("Users_CountFormat", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Teams: {0}.
-        /// </summary>
-        public static string Users_TeamsFormat {
-            get {
-                return ResourceManager.GetString("Users_TeamsFormat", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Selected user.
-        /// </summary>
-        public static string Users_SelectedHeader {
-            get {
-                return ResourceManager.GetString("Users_SelectedHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to User code:.
-        /// </summary>
-        public static string Users_NameLabel {
-            get {
-                return ResourceManager.GetString("Users_NameLabel", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Security level:.
-        /// </summary>
-        public static string Users_SecurityLabel {
-            get {
-                return ResourceManager.GetString("Users_SecurityLabel", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Teams:.
         /// </summary>
         public static string Users_TeamsLabel {
             get {
                 return ResourceManager.GetString("Users_TeamsLabel", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to 🗑️ Delete this user.
-        /// </summary>
-        public static string Users_DeleteButton {
-            get {
-                return ResourceManager.GetString("Users_DeleteButton", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to New project user.
-        /// </summary>
-        public static string Users_NewHeader {
-            get {
-                return ResourceManager.GetString("Users_NewHeader", resourceCulture);
             }
         }
 
@@ -1335,16 +1263,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to e.g. *MASTER or *PIPING.
-        /// </summary>
-        public static string Users_NewTeamPlaceholder {
-            get {
-                return ResourceManager.GetString("Users_NewTeamPlaceholder", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Initial password (optional, blank by default).
+        ///   Looks up a localized string similar to Initial password (optional).
         /// </summary>
         public static string Users_NewPasswordLabel {
             get {
@@ -1416,15 +1335,6 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Enter a user name and an initial team..
-        /// </summary>
-        public static string Users_InputRequired {
-            get {
-                return ResourceManager.GetString("Users_InputRequired", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Adding user [{1}] to [{0}]....
         /// </summary>
         public static string Users_Adding {
@@ -1452,29 +1362,11 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create user: {0}.
-        /// </summary>
-        public static string Admin_CreateFailed {
-            get {
-                return ResourceManager.GetString("Admin_CreateFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to User [{0}] was deleted..
         /// </summary>
         public static string Admin_UserDeleted {
             get {
                 return ResourceManager.GetString("Admin_UserDeleted", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to delete user: {0}.
-        /// </summary>
-        public static string Admin_DeleteFailed {
-            get {
-                return ResourceManager.GetString("Admin_DeleteFailed", resourceCulture);
             }
         }
 
@@ -1488,11 +1380,974 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Failed to assign team: {0}.
+        ///   Looks up a localized string similar to Save.
         /// </summary>
-        public static string Admin_TeamAssignFailed {
+        public static string Common_Save {
             get {
-                return ResourceManager.GetString("Admin_TeamAssignFailed", resourceCulture);
+                return ResourceManager.GetString("Common_Save", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string Common_Ok {
+            get {
+                return ResourceManager.GetString("Common_Ok", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string Common_Close {
+            get {
+                return ResourceManager.GetString("Common_Close", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a value..
+        /// </summary>
+        public static string Common_ValueRequired {
+            get {
+                return ResourceManager.GetString("Common_ValueRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Project users, security levels and team membership through AVEVA Administration..
+        /// </summary>
+        public static string Users_PageSubtitle {
+            get {
+                return ResourceManager.GetString("Users_PageSubtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator login.
+        /// </summary>
+        public static string Users_CredHeader {
+            get {
+                return ResourceManager.GetString("Users_CredHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A FREE user of the project (usually SYSTEM) is needed to read and change users..
+        /// </summary>
+        public static string Users_CredHint {
+            get {
+                return ResourceManager.GetString("Users_CredHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Change….
+        /// </summary>
+        public static string Users_CredChange {
+            get {
+                return ResourceManager.GetString("Users_CredChange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} · saved.
+        /// </summary>
+        public static string Users_CredSaved {
+            get {
+                return ResourceManager.GetString("Users_CredSaved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} · default.
+        /// </summary>
+        public static string Users_CredDefault {
+            get {
+                return ResourceManager.GetString("Users_CredDefault", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator (FREE user).
+        /// </summary>
+        public static string Users_CredUserLabel {
+            get {
+                return ResourceManager.GetString("Users_CredUserLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string Users_CredPasswordLabel {
+            get {
+                return ResourceManager.GetString("Users_CredPasswordLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Test.
+        /// </summary>
+        public static string Users_CredTest {
+            get {
+                return ResourceManager.GetString("Users_CredTest", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Save &amp; use.
+        /// </summary>
+        public static string Users_CredSave {
+            get {
+                return ResourceManager.GetString("Users_CredSave", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Forget.
+        /// </summary>
+        public static string Users_CredForget {
+            get {
+                return ResourceManager.GetString("Users_CredForget", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Saved only on this computer, encrypted for your Windows account (sep_admin_creds.json)..
+        /// </summary>
+        public static string Users_CredStorageNote {
+            get {
+                return ResourceManager.GetString("Users_CredStorageNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the administrator user name..
+        /// </summary>
+        public static string Users_CredUserRequired {
+            get {
+                return ResourceManager.GetString("Users_CredUserRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Opening the project with these credentials….
+        /// </summary>
+        public static string Users_CredTesting {
+            get {
+                return ResourceManager.GetString("Users_CredTesting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials not verified.
+        /// </summary>
+        public static string Users_CredSaveAnywayTitle {
+            get {
+                return ResourceManager.GetString("Users_CredSaveAnywayTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0}  Save them anyway?.
+        /// </summary>
+        public static string Users_CredSaveAnywayBody {
+            get {
+                return ResourceManager.GetString("Users_CredSaveAnywayBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Save anyway.
+        /// </summary>
+        public static string Users_CredSaveAnyway {
+            get {
+                return ResourceManager.GetString("Users_CredSaveAnyway", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not save credentials: {0}.
+        /// </summary>
+        public static string Users_CredSaveFailed {
+            get {
+                return ResourceManager.GetString("Users_CredSaveFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator [{0}] saved for project [{1}]..
+        /// </summary>
+        public static string Users_CredSavedMsg {
+            get {
+                return ResourceManager.GetString("Users_CredSavedMsg", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Saved credentials for [{0}] removed; SYSTEM/XXXXXX will be used..
+        /// </summary>
+        public static string Users_CredForgotten {
+            get {
+                return ResourceManager.GetString("Users_CredForgotten", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] showing the list from {1}; asking ADMIN for the current one….
+        /// </summary>
+        public static string Users_CachedShown {
+            get {
+                return ResourceManager.GetString("Users_CachedShown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1} user(s) and {2} team(s), listed {3}. Refresh to ask ADMIN again..
+        /// </summary>
+        public static string Users_CachedFresh {
+            get {
+                return ResourceManager.GetString("Users_CachedFresh", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to cached {0}.
+        /// </summary>
+        public static string Users_ListedCached {
+            get {
+                return ResourceManager.GetString("Users_ListedCached", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ADMIN {0}.
+        /// </summary>
+        public static string Users_ListedLive {
+            get {
+                return ResourceManager.GetString("Users_ListedLive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Users.
+        /// </summary>
+        public static string Users_TabUsers {
+            get {
+                return ResourceManager.GetString("Users_TabUsers", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Teams.
+        /// </summary>
+        public static string Users_TabTeams {
+            get {
+                return ResourceManager.GetString("Users_TabTeams", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Filter users….
+        /// </summary>
+        public static string Users_FilterPlaceholder {
+            get {
+                return ResourceManager.GetString("Users_FilterPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Filter teams….
+        /// </summary>
+        public static string Users_FilterTeamsPlaceholder {
+            get {
+                return ResourceManager.GetString("Users_FilterTeamsPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New user.
+        /// </summary>
+        public static string Users_NewUserButton {
+            get {
+                return ResourceManager.GetString("Users_NewUserButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New team.
+        /// </summary>
+        public static string Users_NewTeamButton {
+            get {
+                return ResourceManager.GetString("Users_NewTeamButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SYSTEM.
+        /// </summary>
+        public static string Users_SystemBadge {
+            get {
+                return ResourceManager.GetString("Users_SystemBadge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MASTER.
+        /// </summary>
+        public static string Users_MasterBadge {
+            get {
+                return ResourceManager.GetString("Users_MasterBadge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        public static string Users_SecurityGeneral {
+            get {
+                return ResourceManager.GetString("Users_SecurityGeneral", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Free.
+        /// </summary>
+        public static string Users_SecurityFree {
+            get {
+                return ResourceManager.GetString("Users_SecurityFree", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to FREE users administer the project: they bypass access control and can open ADMIN..
+        /// </summary>
+        public static string Users_SecurityFreeHint {
+            get {
+                return ResourceManager.GetString("Users_SecurityFreeHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to GENERAL users work in the design modules under the team/ACR rules..
+        /// </summary>
+        public static string Users_SecurityGeneralHint {
+            get {
+                return ResourceManager.GetString("Users_SecurityGeneralHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no team.
+        /// </summary>
+        public static string Users_NoTeams {
+            get {
+                return ResourceManager.GetString("Users_NoTeams", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no members.
+        /// </summary>
+        public static string Users_NoMembers {
+            get {
+                return ResourceManager.GetString("Users_NoMembers", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Members:.
+        /// </summary>
+        public static string Users_MembersLabel {
+            get {
+                return ResourceManager.GetString("Users_MembersLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} member(s).
+        /// </summary>
+        public static string Users_MemberCount {
+            get {
+                return ResourceManager.GetString("Users_MemberCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add to a team.
+        /// </summary>
+        public static string Users_AddToTeamTooltip {
+            get {
+                return ResourceManager.GetString("Users_AddToTeamTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add a member.
+        /// </summary>
+        public static string Users_AddMemberTooltip {
+            get {
+                return ResourceManager.GetString("Users_AddMemberTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from this team.
+        /// </summary>
+        public static string Users_RemoveMemberTooltip {
+            get {
+                return ResourceManager.GetString("Users_RemoveMemberTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Set password.
+        /// </summary>
+        public static string Users_PasswordTooltip {
+            get {
+                return ResourceManager.GetString("Users_PasswordTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Change security level (Free ⇄ General).
+        /// </summary>
+        public static string Users_SecurityTooltip {
+            get {
+                return ResourceManager.GetString("Users_SecurityTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit description.
+        /// </summary>
+        public static string Users_DescriptionTooltip {
+            get {
+                return ResourceManager.GetString("Users_DescriptionTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete user.
+        /// </summary>
+        public static string Users_DeleteTooltip {
+            get {
+                return ResourceManager.GetString("Users_DeleteTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete team.
+        /// </summary>
+        public static string Users_DeleteTeamTooltip {
+            get {
+                return ResourceManager.GetString("Users_DeleteTeamTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete user.
+        /// </summary>
+        public static string Users_DeleteTitle {
+            get {
+                return ResourceManager.GetString("Users_DeleteTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete user {0} from project {1}? This cannot be undone..
+        /// </summary>
+        public static string Users_DeleteBody {
+            get {
+                return ResourceManager.GetString("Users_DeleteBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Users_DeleteConfirm {
+            get {
+                return ResourceManager.GetString("Users_DeleteConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Set password for {0}.
+        /// </summary>
+        public static string Users_PasswordTitle {
+            get {
+                return ResourceManager.GetString("Users_PasswordTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The new password takes effect immediately for {0} in project {1}..
+        /// </summary>
+        public static string Users_PasswordBody {
+            get {
+                return ResourceManager.GetString("Users_PasswordBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New password.
+        /// </summary>
+        public static string Users_PasswordLabel {
+            get {
+                return ResourceManager.GetString("Users_PasswordLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Repeat password.
+        /// </summary>
+        public static string Users_PasswordRepeatLabel {
+            get {
+                return ResourceManager.GetString("Users_PasswordRepeatLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Up to 32 characters; no spaces, quotes or the | character..
+        /// </summary>
+        public static string Users_PasswordRules {
+            get {
+                return ResourceManager.GetString("Users_PasswordRules", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the new password..
+        /// </summary>
+        public static string Users_PasswordEmpty {
+            get {
+                return ResourceManager.GetString("Users_PasswordEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The two passwords do not match..
+        /// </summary>
+        public static string Users_PasswordMismatch {
+            get {
+                return ResourceManager.GetString("Users_PasswordMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Set password.
+        /// </summary>
+        public static string Users_PasswordConfirm {
+            get {
+                return ResourceManager.GetString("Users_PasswordConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the password of [{0}]….
+        /// </summary>
+        public static string Users_ChangingPassword {
+            get {
+                return ResourceManager.GetString("Users_ChangingPassword", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Change security level.
+        /// </summary>
+        public static string Users_SecurityTitle {
+            get {
+                return ResourceManager.GetString("Users_SecurityTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make {0} a GENERAL user? It will no longer be able to administer the project..
+        /// </summary>
+        public static string Users_SecurityToGeneralBody {
+            get {
+                return ResourceManager.GetString("Users_SecurityToGeneralBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make {0} a FREE user? FREE users bypass all access control and can open ADMIN..
+        /// </summary>
+        public static string Users_SecurityToFreeBody {
+            get {
+                return ResourceManager.GetString("Users_SecurityToFreeBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make {0}.
+        /// </summary>
+        public static string Users_SecurityConfirm {
+            get {
+                return ResourceManager.GetString("Users_SecurityConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the security level of [{0}]….
+        /// </summary>
+        public static string Users_ChangingSecurity {
+            get {
+                return ResourceManager.GetString("Users_ChangingSecurity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Description of {0}.
+        /// </summary>
+        public static string Users_DescriptionTitle {
+            get {
+                return ResourceManager.GetString("Users_DescriptionTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the description of [{0}]….
+        /// </summary>
+        public static string Users_UpdatingDescription {
+            get {
+                return ResourceManager.GetString("Users_UpdatingDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add {0} to a team.
+        /// </summary>
+        public static string Users_AddToTeamTitle {
+            get {
+                return ResourceManager.GetString("Users_AddToTeamTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Team.
+        /// </summary>
+        public static string Users_TeamLabel {
+            get {
+                return ResourceManager.GetString("Users_TeamLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User.
+        /// </summary>
+        public static string Users_UserLabel {
+            get {
+                return ResourceManager.GetString("Users_UserLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Team name.
+        /// </summary>
+        public static string Users_TeamNameLabel {
+            get {
+                return ResourceManager.GetString("Users_TeamNameLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to e.g. PIPING.
+        /// </summary>
+        public static string Users_TeamNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Users_TeamNamePlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
+        public static string Users_AddToTeamConfirm {
+            get {
+                return ResourceManager.GetString("Users_AddToTeamConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adding [{0}] to team [{1}]….
+        /// </summary>
+        public static string Users_AddingToTeam {
+            get {
+                return ResourceManager.GetString("Users_AddingToTeam", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from team.
+        /// </summary>
+        public static string Users_RemoveMemberTitle {
+            get {
+                return ResourceManager.GetString("Users_RemoveMemberTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove {0} from team {1}?.
+        /// </summary>
+        public static string Users_RemoveMemberBody {
+            get {
+                return ResourceManager.GetString("Users_RemoveMemberBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove.
+        /// </summary>
+        public static string Users_RemoveMemberConfirm {
+            get {
+                return ResourceManager.GetString("Users_RemoveMemberConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Removing [{0}] from team [{1}]….
+        /// </summary>
+        public static string Users_RemovingMember {
+            get {
+                return ResourceManager.GetString("Users_RemovingMember", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New team in {0}.
+        /// </summary>
+        public static string Users_NewTeamTitle {
+            get {
+                return ResourceManager.GetString("Users_NewTeamTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Create team.
+        /// </summary>
+        public static string Users_NewTeamConfirm {
+            get {
+                return ResourceManager.GetString("Users_NewTeamConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Creating team [{0}]….
+        /// </summary>
+        public static string Users_CreatingTeam {
+            get {
+                return ResourceManager.GetString("Users_CreatingTeam", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete team.
+        /// </summary>
+        public static string Users_DeleteTeamTitle {
+            get {
+                return ResourceManager.GetString("Users_DeleteTeamTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete team {0} ({1} member(s))? Databases owned by the team keep ADMIN from deleting it..
+        /// </summary>
+        public static string Users_DeleteTeamBody {
+            get {
+                return ResourceManager.GetString("Users_DeleteTeamBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete team.
+        /// </summary>
+        public static string Users_DeleteTeamConfirm {
+            get {
+                return ResourceManager.GetString("Users_DeleteTeamConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting team [{0}]….
+        /// </summary>
+        public static string Users_DeletingTeam {
+            get {
+                return ResourceManager.GetString("Users_DeletingTeam", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add a member to {0}.
+        /// </summary>
+        public static string Users_AddMemberTitle {
+            get {
+                return ResourceManager.GetString("Users_AddMemberTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add member.
+        /// </summary>
+        public static string Users_AddMemberConfirm {
+            get {
+                return ResourceManager.GetString("Users_AddMemberConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The user is created through AVEVA Administration and can log into E3D right away..
+        /// </summary>
+        public static string Users_NewIntro {
+            get {
+                return ResourceManager.GetString("Users_NewIntro", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New user in {0}.
+        /// </summary>
+        public static string Users_NewTitle {
+            get {
+                return ResourceManager.GetString("Users_NewTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to (no team).
+        /// </summary>
+        public static string Users_NoTeamOption {
+            get {
+                return ResourceManager.GetString("Users_NoTeamOption", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User names are 1–32 letters, digits or underscores..
+        /// </summary>
+        public static string Users_NameInvalid {
+            get {
+                return ResourceManager.GetString("Users_NameInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Team names are 1–32 letters, digits or underscores..
+        /// </summary>
+        public static string Users_TeamNameInvalid {
+            get {
+                return ResourceManager.GetString("Users_TeamNameInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] can administer project [{1}]..
+        /// </summary>
+        public static string Admin_VerifyOk {
+            get {
+                return ResourceManager.GetString("Admin_VerifyOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User [{0}] was created..
+        /// </summary>
+        public static string Admin_UserCreatedNoTeam {
+            get {
+                return ResourceManager.GetString("Admin_UserCreatedNoTeam", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Password of [{0}] changed..
+        /// </summary>
+        public static string Admin_PasswordChanged {
+            get {
+                return ResourceManager.GetString("Admin_PasswordChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] is now a {1} user..
+        /// </summary>
+        public static string Admin_SecurityChanged {
+            get {
+                return ResourceManager.GetString("Admin_SecurityChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Description of [{0}] updated..
+        /// </summary>
+        public static string Admin_DescriptionChanged {
+            get {
+                return ResourceManager.GetString("Admin_DescriptionChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User [{0}] was removed from team [{1}]..
+        /// </summary>
+        public static string Admin_UserRemovedFromTeam {
+            get {
+                return ResourceManager.GetString("Admin_UserRemovedFromTeam", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Team [{0}] was created..
+        /// </summary>
+        public static string Admin_TeamCreated {
+            get {
+                return ResourceManager.GetString("Admin_TeamCreated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Team [{0}] was deleted..
+        /// </summary>
+        public static string Admin_TeamDeleted {
+            get {
+                return ResourceManager.GetString("Admin_TeamDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not open project [{0}]: the administrator login is wrong or the project databases are not reachable. Check the administrator login above..
+        /// </summary>
+        public static string Admin_ErrConnect {
+            get {
+                return ResourceManager.GetString("Admin_ErrConnect", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Project [{0}] is read-only for this administrator..
+        /// </summary>
+        public static string Admin_ErrReadOnly {
+            get {
+                return ResourceManager.GetString("Admin_ErrReadOnly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AVEVA Administration did not answer in time (is a licence available?)..
+        /// </summary>
+        public static string Admin_ErrTimeout {
+            get {
+                return ResourceManager.GetString("Admin_ErrTimeout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AVEVA Administration was not found: {0}.
+        /// </summary>
+        public static string Admin_ErrExeMissing {
+            get {
+                return ResourceManager.GetString("Admin_ErrExeMissing", resourceCulture);
             }
         }
 

@@ -142,3 +142,43 @@ public class InverseBoolToVisibilityConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+public class InverseBoolConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;
+}
+
+/// <summary>
+/// A stable accent colour for a name (project, user, team): the same ten-colour palette the web UI used, picked
+/// by a hash of the text so an item keeps its colour across sessions and pages.
+/// </summary>
+public class PaletteConverter : IValueConverter
+{
+    private static readonly SolidColorBrush[] Palette = CreatePalette(
+        "#4F8CFF", "#2DD4A7", "#F5B85C", "#FF5D6C", "#B07BFF", "#36B6E8", "#FF8F6B", "#8BD66B", "#E86B9A", "#9AA8FF");
+
+    private static SolidColorBrush[] CreatePalette(params string[] hex)
+    {
+        var brushes = new SolidColorBrush[hex.Length];
+        for (int i = 0; i < hex.Length; i++)
+        {
+            brushes[i] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex[i]));
+            brushes[i].Freeze();
+        }
+        return brushes;
+    }
+
+    public static SolidColorBrush ForName(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return Palette[0];
+        int hash = 0;
+        foreach (char c in name.ToUpperInvariant()) hash = (hash * 31 + c) & 0x7FFFFFFF;
+        return Palette[hash % Palette.Length];
+    }
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => ForName(value?.ToString());
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}

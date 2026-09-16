@@ -156,8 +156,64 @@ public class Program
                 return await UserCommands.ExecuteDeleteAsync(context, service, username, force);
             }
 
+            case "verify":
+            {
+                if (args.Count < 1)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin user verify <project>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                return await UserCommands.ExecuteChangeAsync(context, () => service.VerifyCredentialsAsync(context),
+                    $"Checking administrator access to project '{context.Project}'...",
+                    $"'{context.AdminUser}' can administer project '{context.Project}'.");
+            }
+
+            case "password":
+            {
+                if (args.Count < 3)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin user password <project> <user> <new-password>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string username = args[1].ToUpperInvariant();
+                return await UserCommands.ExecuteChangeAsync(context, () => service.SetPasswordAsync(context, username, args[2]),
+                    $"Changing the password of '{username}' in project '{context.Project}'...",
+                    $"Password of '{username}' changed.");
+            }
+
+            case "security":
+            {
+                if (args.Count < 3)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin user security <project> <user> <Free|General>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string username = args[1].ToUpperInvariant();
+                return await UserCommands.ExecuteChangeAsync(context, () => service.SetSecurityAsync(context, username, args[2]),
+                    $"Setting '{username}' to {args[2]} in project '{context.Project}'...",
+                    $"'{username}' is now a {args[2].ToUpperInvariant()} user.");
+            }
+
+            case "describe":
+            {
+                if (args.Count < 3)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin user describe <project> <user> <text>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string username = args[1].ToUpperInvariant();
+                string text = string.Join(' ', args.Skip(2));
+                return await UserCommands.ExecuteChangeAsync(context, () => service.SetDescriptionAsync(context, username, text),
+                    $"Updating the description of '{username}'...",
+                    $"Description of '{username}' updated.");
+            }
+
             default:
-                Console.Error.WriteLine($"Unknown user action '{action}'. Valid actions: list, add, delete");
+                Console.Error.WriteLine($"Unknown user action '{action}'. Valid actions: list, add, delete, verify, password, security, describe");
                 return 1;
         }
     }
@@ -196,8 +252,56 @@ public class Program
                 return await TeamCommands.ExecuteAddUserAsync(context, service, team, username);
             }
 
+            case "remove-user":
+            {
+                if (args.Count < 3)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin team remove-user <project> <team> <user>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string team = args[1].ToUpperInvariant();
+                string username = args[2].ToUpperInvariant();
+                return await UserCommands.ExecuteChangeAsync(context, () => service.RemoveUserFromTeamAsync(context, team, username),
+                    $"Removing '{username}' from team '{team}'...",
+                    $"'{username}' removed from team '{team}'.");
+            }
+
+            case "add":
+            {
+                if (args.Count < 2)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin team add <project> <team> [--desc <text>]");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string team = args[1].ToUpperInvariant();
+                string? desc = null;
+                for (int i = 2; i < args.Count; i++)
+                {
+                    if (args[i].Equals("--desc", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count) desc = args[++i];
+                }
+                return await UserCommands.ExecuteChangeAsync(context, () => service.CreateTeamAsync(context, team, desc),
+                    $"Creating team '{team}' in project '{context.Project}'...",
+                    $"Team '{team}' created.");
+            }
+
+            case "delete":
+            {
+                if (args.Count < 2)
+                {
+                    Console.Error.WriteLine("Usage: e3d-admin team delete <project> <team>");
+                    return 1;
+                }
+                context.Project = args[0].ToUpperInvariant();
+                string team = args[1].ToUpperInvariant();
+                return await UserCommands.ExecuteChangeAsync(context, () => service.DeleteTeamAsync(context, team),
+                    $"Deleting team '{team}' from project '{context.Project}'...",
+                    $"Team '{team}' deleted.");
+            }
+
             default:
-                Console.Error.WriteLine($"Unknown team action '{action}'. Valid actions: list, add-user");
+                Console.Error.WriteLine($"Unknown team action '{action}'. Valid actions: list, add, delete, add-user, remove-user");
                 return 1;
         }
     }
@@ -257,8 +361,15 @@ USAGE:
   e3d-admin user list <project>
   e3d-admin user add <project> <user> --team <team> [--password <pwd>] [--security <Free|General>] [--desc <text>]
   e3d-admin user delete <project> <user> [--force]
+  e3d-admin user verify <project>
+  e3d-admin user password <project> <user> <new-password>
+  e3d-admin user security <project> <user> <Free|General>
+  e3d-admin user describe <project> <user> <text>
   e3d-admin team list <project>
+  e3d-admin team add <project> <team> [--desc <text>]
+  e3d-admin team delete <project> <team>
   e3d-admin team add-user <project> <team> <user>
+  e3d-admin team remove-user <project> <team> <user>
 
 GLOBAL OPTIONS:
   --admin-user <user>   Administrator login name (default: env E3D_ADMIN_USER or SYSTEM)

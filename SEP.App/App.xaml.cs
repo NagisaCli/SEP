@@ -9,7 +9,6 @@ using SEP.App.Services;
 using SEP.App.ViewModels;
 using SEP.App.Views;
 using SEP.App.Views.Pages;
-using Wpf.Ui.Appearance;
 
 namespace SEP.App;
 
@@ -60,21 +59,14 @@ public partial class App : Application
 
         try
         {
-            Log("Applying Dark Theme");
-            ApplicationThemeManager.Apply(ApplicationTheme.Dark);
-            Log("Theme applied");
-        }
-        catch (Exception ex)
-        {
-            Log($"Apply theme failed: {ex.Message}");
-        }
-
-        try
-        {
             Log("Configuring DI");
             var services = new ServiceCollection();
 
             services.AddSingleton<SepDataStore>();
+            services.AddSingleton<AdminCredentialStore>();
+            services.AddSingleton<AdminListingCache>();
+            services.AddSingleton<ThemeService>();
+            services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IProjectCatalog, ProjectCatalog>();
             services.AddSingleton<IE3dProjectService, E3dProjectService>();
             services.AddSingleton<IE3dLauncherService, E3dLauncherService>();
@@ -98,10 +90,11 @@ public partial class App : Application
             Services = services.BuildServiceProvider();
             Log("DI built successfully");
 
-            // UI language must be in effect before any view-model or window is created.
+            // UI language and theme must be in effect before any view-model or window is created.
             var catalog = Services.GetRequiredService<IProjectCatalog>();
             string language = catalog.Data.Settings.Language;
             Loc.Instance.Apply(language);
+            Services.GetRequiredService<ThemeService>().Apply(catalog.Data.Settings.Theme);
             Log($"UI language: setting={language} culture={Loc.Instance.Culture.Name}; data dir={Services.GetRequiredService<SepDataStore>().DataDir}; libraries={catalog.Libraries.Count} projects={catalog.Projects.Count}");
 
             Log("Resolving MainWindow");

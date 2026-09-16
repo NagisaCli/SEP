@@ -33,6 +33,8 @@ public sealed class SepSettings
     [JsonPropertyName("last_launched")] public string LastLaunched { get; set; } = string.Empty;
     // Keys below are only used by this client.
     [JsonPropertyName("language")] public string Language { get; set; } = "auto";
+    /// <summary>"auto" (follow Windows), "dark" or "light".</summary>
+    [JsonPropertyName("theme")] public string Theme { get; set; } = "auto";
     [JsonPropertyName("auto_start")] public bool AutoStart { get; set; }
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }

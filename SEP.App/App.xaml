@@ -8,6 +8,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Wpf.Ui.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/Dark.xaml" />
+                <!-- SEP semantic brushes (swapped by ThemeService) and the styles built on them -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/SepTheme.Dark.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/SepStyles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters -->
@@ -21,6 +25,8 @@
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:PaletteConverter x:Key="PaletteConverter" />
 
             <!-- Palette Overrides -->
             <SolidColorBrush x:Key="SepBrandCyanBrush" Color="#00E5FF" />

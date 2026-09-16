@@ -4,162 +4,378 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:loc="clr-namespace:SEP.App.Localization"
       xmlns:beh="clr-namespace:SEP.App.Behaviors"
-      Title="{loc:Tr Users_PageTitle}"
-      Background="#0D1117" Foreground="#FFFFFF">
+      xmlns:controls="clr-namespace:SEP.App.Controls"
+      xmlns:models="clr-namespace:SEP.App.Models"
+      Title="{loc:Tr Nav_UserAdmin}"
+      Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid Margin="24,16,24,24">
+    <Page.Resources>
+        <!-- membership chip with a remove button -->
+        <DataTemplate x:Key="MembershipChip" DataType="{x:Type models:TeamMembership}">
+            <Border Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="1"
+                    CornerRadius="999" Padding="8,1,2,1" Margin="0,2,6,2">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding TeamLabel}" FontSize="11" Foreground="{DynamicResource SepText2Brush}" VerticalAlignment="Center" />
+                    <ui:Button Appearance="Transparent" Padding="3" Margin="2,0,0,0" MinWidth="0" MinHeight="0" Width="18" Height="18"
+                               Icon="{ui:SymbolIcon Symbol=Dismiss12}" ToolTip="{loc:Tr Users_RemoveMemberTooltip}" AutomationProperties.Name="{loc:Tr Users_RemoveMemberTooltip}"
+                               Command="{Binding DataContext.RemoveMembershipCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                               CommandParameter="{Binding}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="MemberChip" DataType="{x:Type models:TeamMembership}">
+            <Border Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="1"
+                    CornerRadius="999" Padding="8,1,2,1" Margin="0,2,6,2">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding User}" FontSize="11" FontFamily="{StaticResource SepMonoFont}" Foreground="{DynamicResource SepText2Brush}" VerticalAlignment="Center" />
+                    <ui:Button Appearance="Transparent" Padding="3" Margin="2,0,0,0" MinWidth="0" MinHeight="0" Width="18" Height="18"
+                               Icon="{ui:SymbolIcon Symbol=Dismiss12}" ToolTip="{loc:Tr Users_RemoveMemberTooltip}" AutomationProperties.Name="{loc:Tr Users_RemoveMemberTooltip}"
+                               Command="{Binding DataContext.RemoveMembershipCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                               CommandParameter="{Binding}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid Margin="24,16,24,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Top Bar: Project Selector -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{loc:Tr Users_PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,24,0" VerticalAlignment="Center" />
-
-                <TextBlock Text="{loc:Tr Users_CurrentProject}" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox MinWidth="200" ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Display" VerticalAlignment="Center" />
-
-                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshUsersCommand}" Margin="10,0,0,0" ToolTip="{loc:Tr Users_RefreshTooltip}" />
+            <StackPanel>
+                <TextBlock Text="{loc:Tr Users_PageTitle}" Style="{StaticResource SepPageTitle}" />
+                <TextBlock Text="{loc:Tr Users_PageSubtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,2,0,0" />
             </StackPanel>
-
-            <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="#00E5FF" VerticalAlignment="Center" FontSize="13" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{loc:Tr Users_CurrentProject}" Style="{StaticResource SepMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox x:Name="ProjectCombo" ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Display" MinWidth="230" />
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Margin="8,0,0,0" ToolTip="{loc:Tr Users_RefreshTooltip}" AutomationProperties.Name="{loc:Tr Users_RefreshTooltip}" Command="{Binding RefreshCommand}" />
+            </StackPanel>
         </Grid>
 
-        <!-- Main Master-Detail Split -->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*" MinWidth="360" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="5*" MinWidth="380" />
-            </Grid.ColumnDefinitions>
-
-            <!-- Left: User List Card -->
-            <Border Grid.Column="0" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
+        <!-- Administrator credentials -->
+        <Border Grid.Row="1" Style="{StaticResource SepCard}" Padding="14,10" Margin="0,0,0,12"
+                Visibility="{Binding HasProject, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel>
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="34" Height="34" CornerRadius="9" Background="{DynamicResource SepWarningSoftBrush}" VerticalAlignment="Center">
+                        <ui:SymbolIcon Symbol="Key24" Foreground="{DynamicResource SepWarningBrush}" FontSize="18" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{loc:Tr Users_CredHeader}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
+                            <controls:Badge Content="{Binding CredentialSummary}" Margin="10,0,0,0" FontFamily="{StaticResource SepMonoFont}">
+                                <controls:Badge.Style>
+                                    <Style TargetType="controls:Badge">
+                                        <Setter Property="Tone" Value="Neutral" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasSavedCredentials}" Value="True">
+                                                <Setter Property="Tone" Value="Success" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </controls:Badge.Style>
+                            </controls:Badge>
+                        </StackPanel>
+                        <TextBlock Text="{loc:Tr Users_CredHint}" Style="{StaticResource SepCaption}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ui:Button Grid.Column="2" Appearance="Secondary" Command="{Binding ToggleCredentialsCommand}" VerticalAlignment="Center">
+                        <ui:Button.Content>
+                            <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                <Binding Path="ShowCredentials" />
+                                <Binding Path="[Common_Close]" Source="{x:Static loc:Loc.Instance}" />
+                                <Binding Path="[Users_CredChange]" Source="{x:Static loc:Loc.Instance}" />
+                            </MultiBinding>
+                        </ui:Button.Content>
+                    </ui:Button>
+                </Grid>
 
-                    <Grid Grid.Row="0" Margin="0,0,0,12">
-                        <TextBlock Text="{loc:Tr Users_ListHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" />
-                        <TextBlock HorizontalAlignment="Right" Foreground="#8B949E" VerticalAlignment="Center">
-                            <TextBlock.Text>
-                                <MultiBinding Converter="{StaticResource FormatConverter}">
-                                    <Binding Path="[Users_CountFormat]" Source="{x:Static loc:Loc.Instance}" />
-                                    <Binding Path="Users.Count" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </Grid>
+                <!-- expanded editor -->
+                <Border Margin="0,12,0,0" Style="{StaticResource SepCardInner}" Visibility="{Binding ShowCredentials, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{loc:Tr Users_CredUserLabel}" Style="{StaticResource SepLabel}" />
+                                <ui:TextBox x:Name="AdminUserBox" Text="{Binding AdminUser, UpdateSourceTrigger=PropertyChanged}" CharacterCasing="Upper" FontFamily="{StaticResource SepMonoFont}" PlaceholderText="SYSTEM" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{loc:Tr Users_CredPasswordLabel}" Style="{StaticResource SepLabel}" />
+                                <ui:PasswordBox x:Name="AdminPasswordBox" Password="{Binding AdminPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
+                                <ui:Button Appearance="Secondary" Content="{loc:Tr Users_CredTest}" Command="{Binding TestCredentialsCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Primary" Content="{loc:Tr Users_CredSave}" Command="{Binding SaveCredentialsCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Secondary" Content="{loc:Tr Users_CredForget}" Command="{Binding ForgetCredentialsCommand}"
+                                           Visibility="{Binding HasSavedCredentials, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="0,0,8,0"
+                                             Visibility="{Binding IsTestingCredentials, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <TextBlock Text="{Binding CredentialStatus}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CredentialStatusIsError}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock Text="{loc:Tr Users_CredStorageNote}" Style="{StaticResource SepCaption}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}" BorderThickness="0" Background="Transparent"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"
-                              ScrollViewer.CanContentScroll="False" beh:SmoothScroll.IsEnabled="True">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,2" Padding="10,8" Background="#0D1117" BorderBrush="#253040" BorderThickness="1" CornerRadius="6">
+        <!-- Tabs + search + actions -->
+        <Grid Grid.Row="2" Margin="0,0,0,10" Visibility="{Binding HasProject, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="UsersTab" Style="{StaticResource SepTabButton}" IsChecked="{Binding IsUsersTab}" GroupName="AdminTabs">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="People24" Margin="0,0,6,0" />
+                        <TextBlock Text="{loc:Tr Users_TabUsers}" />
+                        <controls:Badge Content="{Binding UserCount}" Margin="8,0,0,0" />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="TeamsTab" Style="{StaticResource SepTabButton}" GroupName="AdminTabs" Click="OnTeamsTabClick">
+                    <RadioButton.IsChecked>
+                        <Binding Path="IsUsersTab" Converter="{StaticResource InverseBoolConverter}" Mode="OneWay" />
+                    </RadioButton.IsChecked>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="PeopleTeam24" Margin="0,0,6,0" />
+                        <TextBlock Text="{loc:Tr Users_TabTeams}" />
+                        <controls:Badge Content="{Binding TeamCount}" Margin="8,0,0,0" />
+                    </StackPanel>
+                </RadioButton>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <ui:TextBox x:Name="UserFilterBox" Width="200" Icon="{ui:SymbolIcon Symbol=Search24}" PlaceholderText="{loc:Tr Users_FilterPlaceholder}" Margin="0,0,10,0"
+                            Text="{Binding UserFilter, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IsUsersTab, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:TextBox Width="200" Icon="{ui:SymbolIcon Symbol=Search24}" PlaceholderText="{loc:Tr Users_FilterTeamsPlaceholder}" Margin="0,0,10,0"
+                            Text="{Binding TeamFilter, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding IsUsersTab, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=PersonAdd24}" Content="{loc:Tr Users_NewUserButton}" Command="{Binding CreateUserCommand}"
+                           Visibility="{Binding IsUsersTab, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=PeopleAdd24}" Content="{loc:Tr Users_NewTeamButton}" Command="{Binding CreateTeamCommand}"
+                           Visibility="{Binding IsUsersTab, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Lists -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False"
+                      beh:SmoothScroll.IsEnabled="True" Focusable="True">
+            <Grid>
+                <!-- no project -->
+                <Border Style="{StaticResource SepCard}" Visibility="{Binding HasProject, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <TextBlock Text="{loc:Tr Users_NoCode}" Style="{StaticResource SepPageSubtitle}" />
+                </Border>
+
+                <StackPanel Visibility="{Binding HasProject, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <!-- users -->
+                    <ItemsControl ItemsSource="{Binding Users}" Visibility="{Binding IsUsersTab, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:UserRow}">
+                                <Border Style="{StaticResource SepRow}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-
-                                        <Border Background="#1F2937" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontFamily="Cascadia Code, Consolas" FontWeight="Bold" Foreground="#00E5FF" FontSize="13" />
+                                        <Border Style="{StaticResource SepAvatar}" Background="{Binding Name, Converter={StaticResource PaletteConverter}}" VerticalAlignment="Top">
+                                            <TextBlock Text="{Binding Initials}" Style="{StaticResource SepAvatarText}" Foreground="#FFFFFF" />
                                         </Border>
-
-                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#D1D5DB" TextTrimming="CharacterEllipsis" />
-                                            <TextBlock FontSize="11" Foreground="#9CA3AF">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource FormatConverter}">
-                                                        <Binding Path="[Users_TeamsFormat]" Source="{x:Static loc:Loc.Instance}" />
-                                                        <Binding Path="Teams" Converter="{StaticResource JoinConverter}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                        <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontFamily="{StaticResource SepMonoFont}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                <controls:Badge Margin="8,0,0,0">
+                                                    <controls:Badge.Style>
+                                                        <Style TargetType="controls:Badge">
+                                                            <Setter Property="Tone" Value="Info" />
+                                                            <Setter Property="Content" Value="{loc:Tr Users_SecurityGeneral}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsFree}" Value="True">
+                                                                    <Setter Property="Tone" Value="Warning" />
+                                                                    <Setter Property="Content" Value="{loc:Tr Users_SecurityFree}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </controls:Badge.Style>
+                                                </controls:Badge>
+                                                <controls:Badge Content="{loc:Tr Users_SystemBadge}" Tone="Purple" Margin="6,0,0,0"
+                                                                Visibility="{Binding IsSystem, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="10,0,0,0"
+                                                                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource SepMuted}" Margin="0,2,0,0"
+                                                       Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBlock Text="{loc:Tr Users_TeamsLabel}" Style="{StaticResource SepCaption}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                <ItemsControl ItemsSource="{Binding Memberships}" ItemTemplate="{StaticResource MembershipChip}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                </ItemsControl>
+                                                <TextBlock Text="{loc:Tr Users_NoTeams}" Style="{StaticResource SepCaption}" VerticalAlignment="Center"
+                                                           Visibility="{Binding HasTeams, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" MinWidth="0" MinHeight="0" Width="22" Height="22" Padding="2"
+                                                           Icon="{ui:SymbolIcon Symbol=Add12}" ToolTip="{loc:Tr Users_AddToTeamTooltip}" AutomationProperties.Name="{loc:Tr Users_AddToTeamTooltip}"
+                                                           Command="{Binding DataContext.AddToTeamCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            </StackPanel>
                                         </StackPanel>
-
-                                        <Border Grid.Column="2" CornerRadius="4" Padding="6,2" Background="#111827" BorderBrush="#374151" BorderThickness="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Security}" FontSize="11" Foreground="#93C5FD" />
-                                        </Border>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Key24}" ToolTip="{loc:Tr Users_PasswordTooltip}" AutomationProperties.Name="{loc:Tr Users_PasswordTooltip}"
+                                                       Command="{Binding DataContext.SetPasswordCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Shield24}" ToolTip="{loc:Tr Users_SecurityTooltip}" AutomationProperties.Name="{loc:Tr Users_SecurityTooltip}"
+                                                       Command="{Binding DataContext.ToggleSecurityCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Edit24}" ToolTip="{loc:Tr Users_DescriptionTooltip}" AutomationProperties.Name="{loc:Tr Users_DescriptionTooltip}"
+                                                       Command="{Binding DataContext.EditDescriptionCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete24}" ToolTip="{loc:Tr Users_DeleteTooltip}" AutomationProperties.Name="{loc:Tr Users_DeleteTooltip}"
+                                                       Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
+                                                       Visibility="{Binding IsSystem, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-            </Border>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-            <!-- Right: Details & Create Card -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                    <!-- teams -->
+                    <ItemsControl ItemsSource="{Binding Teams}" Visibility="{Binding IsUsersTab, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:TeamRow}">
+                                <Border Style="{StaticResource SepRow}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource SepAvatar}" Background="{Binding Label, Converter={StaticResource PaletteConverter}}" VerticalAlignment="Top">
+                                            <ui:SymbolIcon Symbol="PeopleTeam24" Foreground="#FFFFFF" FontSize="18" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Label}" Style="{StaticResource SepBody}" FontFamily="{StaticResource SepMonoFont}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                <controls:Badge Margin="8,0,0,0">
+                                                    <controls:Badge.Content>
+                                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                                            <Binding Path="[Users_MemberCount]" Source="{x:Static loc:Loc.Instance}" />
+                                                            <Binding Path="MemberCount" />
+                                                        </MultiBinding>
+                                                    </controls:Badge.Content>
+                                                </controls:Badge>
+                                                <controls:Badge Content="{loc:Tr Users_MasterBadge}" Tone="Purple" Margin="6,0,0,0"
+                                                                Visibility="{Binding IsMaster, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="10,0,0,0"
+                                                                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource SepMuted}" Margin="0,2,0,0"
+                                                       Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBlock Text="{loc:Tr Users_MembersLabel}" Style="{StaticResource SepCaption}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                <ItemsControl ItemsSource="{Binding Memberships}" ItemTemplate="{StaticResource MemberChip}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                </ItemsControl>
+                                                <TextBlock Text="{loc:Tr Users_NoMembers}" Style="{StaticResource SepCaption}" VerticalAlignment="Center"
+                                                           Visibility="{Binding HasMembers, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" MinWidth="0" MinHeight="0" Width="22" Height="22" Padding="2"
+                                                           Icon="{ui:SymbolIcon Symbol=Add12}" ToolTip="{loc:Tr Users_AddMemberTooltip}" AutomationProperties.Name="{loc:Tr Users_AddMemberTooltip}"
+                                                           Command="{Binding DataContext.AddMemberCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PersonAdd24}" ToolTip="{loc:Tr Users_AddMemberTooltip}" AutomationProperties.Name="{loc:Tr Users_AddMemberTooltip}"
+                                                       Command="{Binding DataContext.AddMemberCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete24}" ToolTip="{loc:Tr Users_DeleteTeamTooltip}" AutomationProperties.Name="{loc:Tr Users_DeleteTeamTooltip}"
+                                                       Command="{Binding DataContext.DeleteTeamCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
+                                                       Visibility="{Binding IsMaster, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                <!-- Selected User Inspector -->
-                <Border Grid.Row="0" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16"
-                        Visibility="{Binding SelectedUser, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel>
-                        <TextBlock Text="{loc:Tr Users_SelectedHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,10" />
-
-                        <Grid Margin="0,0,0,8">
-                            <TextBlock Text="{loc:Tr Users_NameLabel}" Foreground="#8B949E" />
-                            <TextBlock Text="{Binding SelectedUser.Name}" FontFamily="Cascadia Code" FontWeight="Bold" Foreground="#00E5FF" HorizontalAlignment="Right" />
-                        </Grid>
-                        <Grid Margin="0,0,0,8">
-                            <TextBlock Text="{loc:Tr Users_SecurityLabel}" Foreground="#8B949E" />
-                            <TextBlock Text="{Binding SelectedUser.Security}" Foreground="#FFFFFF" HorizontalAlignment="Right" />
-                        </Grid>
-                        <Grid Margin="0,0,0,8">
-                            <TextBlock Text="{loc:Tr Users_TeamsLabel}" Foreground="#8B949E" />
-                            <TextBlock Text="{Binding SelectedUser.Teams, Converter={StaticResource JoinConverter}}" Foreground="#FFFFFF" HorizontalAlignment="Right" />
-                        </Grid>
-
-                        <ui:Button Appearance="Danger" Content="{loc:Tr Users_DeleteButton}" HorizontalAlignment="Right" Margin="0,8,0,0"
-                                   Command="{Binding DeleteUserCommand}" CommandParameter="{Binding SelectedUser}" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Add User Form -->
-                <Border Grid.Row="2" Background="#161B22" BorderBrush="#253040" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel>
-                        <TextBlock Text="{loc:Tr Users_NewHeader}" FontSize="15" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,0,0,14" />
-
-                        <TextBlock Text="{loc:Tr Users_NewNameLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewNamePlaceholder}" Text="{Binding NewUserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
-
-                        <TextBlock Text="{loc:Tr Users_NewTeamLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewTeamPlaceholder}" Text="{Binding NewUserTeam, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
-
-                        <TextBlock Text="{loc:Tr Users_NewPasswordLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:PasswordBox Margin="0,0,0,10" />
-
-                        <TextBlock Text="{loc:Tr Users_NewSecurityLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ComboBox SelectedValue="{Binding NewUserSecurity}" SelectedValuePath="Content" Margin="0,0,0,10">
-                            <ComboBoxItem Content="General" IsSelected="True" />
-                            <ComboBoxItem Content="Free" />
-                        </ComboBox>
-
-                        <TextBlock Text="{loc:Tr Users_NewDescLabel}" Foreground="#8B949E" Margin="0,0,0,4" />
-                        <ui:TextBox PlaceholderText="{loc:Tr Users_NewDescPlaceholder}" Text="{Binding NewUserDesc, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
-
-                        <ui:Button Appearance="Primary" Content="{loc:Tr Users_CreateButton}" Command="{Binding AddUserCommand}" HorizontalAlignment="Stretch" />
-                    </StackPanel>
-                </Border>
+                    <!-- empty / not loaded -->
+                    <Border Style="{StaticResource SepCardInner}" Padding="20" Visibility="{Binding HasLoaded, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="0,0,10,0"
+                                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" MaxWidth="700" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
+        </ScrollViewer>
+
+        <!-- Status line -->
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="0,0,8,0"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" ToolTip="{Binding StatusMessage}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource SepStatusText}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <controls:Badge Grid.Column="2" Content="{Binding ListedAtText}" Margin="12,0,0,0"
+                            Visibility="{Binding ListedAtText, Converter={StaticResource StringToVisibilityConverter}}">
+                <controls:Badge.Style>
+                    <Style TargetType="controls:Badge">
+                        <Setter Property="Tone" Value="Success" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFromCache}" Value="True">
+                                <Setter Property="Tone" Value="Neutral" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:Badge.Style>
+            </controls:Badge>
         </Grid>
     </Grid>
 </Page>

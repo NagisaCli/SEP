@@ -461,32 +461,8 @@
   <data name="Users_RefreshTooltip" xml:space="preserve">
     <value>刷新人员清单</value>
   </data>
-  <data name="Users_ListHeader" xml:space="preserve">
-    <value>工程用户列表</value>
-  </data>
-  <data name="Users_CountFormat" xml:space="preserve">
-    <value>共 {0} 人</value>
-  </data>
-  <data name="Users_TeamsFormat" xml:space="preserve">
-    <value>团队: {0}</value>
-  </data>
-  <data name="Users_SelectedHeader" xml:space="preserve">
-    <value>选中用户信息</value>
-  </data>
-  <data name="Users_NameLabel" xml:space="preserve">
-    <value>用户代号:</value>
-  </data>
-  <data name="Users_SecurityLabel" xml:space="preserve">
-    <value>安全等级:</value>
-  </data>
   <data name="Users_TeamsLabel" xml:space="preserve">
     <value>所属团队:</value>
-  </data>
-  <data name="Users_DeleteButton" xml:space="preserve">
-    <value>🗑️ 删除此用户</value>
-  </data>
-  <data name="Users_NewHeader" xml:space="preserve">
-    <value>新建工程用户</value>
   </data>
   <data name="Users_NewNameLabel" xml:space="preserve">
     <value>用户名称 (代号)</value>
@@ -497,11 +473,8 @@
   <data name="Users_NewTeamLabel" xml:space="preserve">
     <value>分配初始团队</value>
   </data>
-  <data name="Users_NewTeamPlaceholder" xml:space="preserve">
-    <value>如 *MASTER 或 *PIPING</value>
-  </data>
   <data name="Users_NewPasswordLabel" xml:space="preserve">
-    <value>登录初始密码 (可选，默认空)</value>
+    <value>初始密码（可选）</value>
   </data>
   <data name="Users_NewSecurityLabel" xml:space="preserve">
     <value>用户安全等级</value>
@@ -524,9 +497,6 @@
   <data name="Users_LoadFailed" xml:space="preserve">
     <value>读取失败: {0}</value>
   </data>
-  <data name="Users_InputRequired" xml:space="preserve">
-    <value>请输入用户名和初始团队！</value>
-  </data>
   <data name="Users_Adding" xml:space="preserve">
     <value>正在向 [{0}] 添加用户 [{1}]...</value>
   </data>
@@ -536,20 +506,337 @@
   <data name="Admin_UserCreated" xml:space="preserve">
     <value>用户 [{0}] 成功创建并分配至团队 [{1}]！</value>
   </data>
-  <data name="Admin_CreateFailed" xml:space="preserve">
-    <value>创建用户失败: {0}</value>
-  </data>
   <data name="Admin_UserDeleted" xml:space="preserve">
     <value>用户 [{0}] 已成功删除！</value>
-  </data>
-  <data name="Admin_DeleteFailed" xml:space="preserve">
-    <value>删除用户失败: {0}</value>
   </data>
   <data name="Admin_UserAddedToTeam" xml:space="preserve">
     <value>用户 [{0}] 已加入团队 [{1}]！</value>
   </data>
-  <data name="Admin_TeamAssignFailed" xml:space="preserve">
-    <value>分配团队失败: {0}</value>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>收起</value>
+  </data>
+  <data name="Common_ValueRequired" xml:space="preserve">
+    <value>请输入内容。</value>
+  </data>
+  <data name="Users_PageSubtitle" xml:space="preserve">
+    <value>通过 AVEVA Administration 管理工程用户、安全等级与团队成员。</value>
+  </data>
+  <data name="Users_CredHeader" xml:space="preserve">
+    <value>管理员登录</value>
+  </data>
+  <data name="Users_CredHint" xml:space="preserve">
+    <value>读取和修改用户需要该工程的 FREE 用户（通常为 SYSTEM）。</value>
+  </data>
+  <data name="Users_CredChange" xml:space="preserve">
+    <value>修改…</value>
+  </data>
+  <data name="Users_CredSaved" xml:space="preserve">
+    <value>{0} · 已保存</value>
+  </data>
+  <data name="Users_CredDefault" xml:space="preserve">
+    <value>{0} · 默认</value>
+  </data>
+  <data name="Users_CredUserLabel" xml:space="preserve">
+    <value>管理员（FREE 用户）</value>
+  </data>
+  <data name="Users_CredPasswordLabel" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="Users_CredTest" xml:space="preserve">
+    <value>测试</value>
+  </data>
+  <data name="Users_CredSave" xml:space="preserve">
+    <value>保存并使用</value>
+  </data>
+  <data name="Users_CredForget" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="Users_CredStorageNote" xml:space="preserve">
+    <value>仅保存在本机，并按当前 Windows 账户加密（sep_admin_creds.json）。</value>
+  </data>
+  <data name="Users_CredUserRequired" xml:space="preserve">
+    <value>请输入管理员用户名。</value>
+  </data>
+  <data name="Users_CredTesting" xml:space="preserve">
+    <value>正在用该凭证打开工程…</value>
+  </data>
+  <data name="Users_CredSaveAnywayTitle" xml:space="preserve">
+    <value>凭证未通过验证</value>
+  </data>
+  <data name="Users_CredSaveAnywayBody" xml:space="preserve">
+    <value>{0}
+
+仍然保存？</value>
+  </data>
+  <data name="Users_CredSaveAnyway" xml:space="preserve">
+    <value>仍然保存</value>
+  </data>
+  <data name="Users_CredSaveFailed" xml:space="preserve">
+    <value>凭证保存失败：{0}</value>
+  </data>
+  <data name="Users_CredSavedMsg" xml:space="preserve">
+    <value>已为工程 [{1}] 保存管理员 [{0}]。</value>
+  </data>
+  <data name="Users_CredForgotten" xml:space="preserve">
+    <value>已清除 [{0}] 的凭证，将使用 SYSTEM/XXXXXX。</value>
+  </data>
+  <data name="Users_CachedShown" xml:space="preserve">
+    <value>[{0}] 显示 {1} 的缓存清单，正在向 ADMIN 获取最新…</value>
+  </data>
+  <data name="Users_CachedFresh" xml:space="preserve">
+    <value>[{0}] {1} 名用户与 {2} 个团队，列于 {3}。点击刷新可重新向 ADMIN 获取。</value>
+  </data>
+  <data name="Users_ListedCached" xml:space="preserve">
+    <value>缓存于 {0}</value>
+  </data>
+  <data name="Users_ListedLive" xml:space="preserve">
+    <value>ADMIN {0}</value>
+  </data>
+  <data name="Users_TabUsers" xml:space="preserve">
+    <value>用户</value>
+  </data>
+  <data name="Users_TabTeams" xml:space="preserve">
+    <value>团队</value>
+  </data>
+  <data name="Users_FilterPlaceholder" xml:space="preserve">
+    <value>筛选用户…</value>
+  </data>
+  <data name="Users_FilterTeamsPlaceholder" xml:space="preserve">
+    <value>筛选团队…</value>
+  </data>
+  <data name="Users_NewUserButton" xml:space="preserve">
+    <value>新建用户</value>
+  </data>
+  <data name="Users_NewTeamButton" xml:space="preserve">
+    <value>新建团队</value>
+  </data>
+  <data name="Users_SystemBadge" xml:space="preserve">
+    <value>SYSTEM</value>
+  </data>
+  <data name="Users_MasterBadge" xml:space="preserve">
+    <value>MASTER</value>
+  </data>
+  <data name="Users_SecurityGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Users_SecurityFree" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  <data name="Users_SecurityFreeHint" xml:space="preserve">
+    <value>FREE 用户可管理工程：不受访问控制限制，并可进入 ADMIN。</value>
+  </data>
+  <data name="Users_SecurityGeneralHint" xml:space="preserve">
+    <value>GENERAL 用户按团队/ACR 规则在设计模块中工作。</value>
+  </data>
+  <data name="Users_NoTeams" xml:space="preserve">
+    <value>无团队</value>
+  </data>
+  <data name="Users_NoMembers" xml:space="preserve">
+    <value>无成员</value>
+  </data>
+  <data name="Users_MembersLabel" xml:space="preserve">
+    <value>成员:</value>
+  </data>
+  <data name="Users_MemberCount" xml:space="preserve">
+    <value>{0} 名成员</value>
+  </data>
+  <data name="Users_AddToTeamTooltip" xml:space="preserve">
+    <value>加入团队</value>
+  </data>
+  <data name="Users_AddMemberTooltip" xml:space="preserve">
+    <value>添加成员</value>
+  </data>
+  <data name="Users_RemoveMemberTooltip" xml:space="preserve">
+    <value>从该团队移除</value>
+  </data>
+  <data name="Users_PasswordTooltip" xml:space="preserve">
+    <value>设置密码</value>
+  </data>
+  <data name="Users_SecurityTooltip" xml:space="preserve">
+    <value>切换安全等级（Free ⇄ General）</value>
+  </data>
+  <data name="Users_DescriptionTooltip" xml:space="preserve">
+    <value>编辑描述</value>
+  </data>
+  <data name="Users_DeleteTooltip" xml:space="preserve">
+    <value>删除用户</value>
+  </data>
+  <data name="Users_DeleteTeamTooltip" xml:space="preserve">
+    <value>删除团队</value>
+  </data>
+  <data name="Users_DeleteTitle" xml:space="preserve">
+    <value>删除用户</value>
+  </data>
+  <data name="Users_DeleteBody" xml:space="preserve">
+    <value>从工程 {1} 删除用户 {0}？此操作无法撤销。</value>
+  </data>
+  <data name="Users_DeleteConfirm" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Users_PasswordTitle" xml:space="preserve">
+    <value>设置 {0} 的密码</value>
+  </data>
+  <data name="Users_PasswordBody" xml:space="preserve">
+    <value>新密码将立即对工程 {1} 中的 {0} 生效。</value>
+  </data>
+  <data name="Users_PasswordLabel" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="Users_PasswordRepeatLabel" xml:space="preserve">
+    <value>重复密码</value>
+  </data>
+  <data name="Users_PasswordRules" xml:space="preserve">
+    <value>最多 32 个字符；不能包含空格、引号或 | 字符。</value>
+  </data>
+  <data name="Users_PasswordEmpty" xml:space="preserve">
+    <value>请输入新密码。</value>
+  </data>
+  <data name="Users_PasswordMismatch" xml:space="preserve">
+    <value>两次输入的密码不一致。</value>
+  </data>
+  <data name="Users_PasswordConfirm" xml:space="preserve">
+    <value>设置密码</value>
+  </data>
+  <data name="Users_ChangingPassword" xml:space="preserve">
+    <value>正在修改 [{0}] 的密码…</value>
+  </data>
+  <data name="Users_SecurityTitle" xml:space="preserve">
+    <value>更改安全等级</value>
+  </data>
+  <data name="Users_SecurityToGeneralBody" xml:space="preserve">
+    <value>将 {0} 改为 GENERAL 用户？其将无法再管理工程。</value>
+  </data>
+  <data name="Users_SecurityToFreeBody" xml:space="preserve">
+    <value>将 {0} 改为 FREE 用户？FREE 用户不受访问控制限制，并可进入 ADMIN。</value>
+  </data>
+  <data name="Users_SecurityConfirm" xml:space="preserve">
+    <value>改为 {0}</value>
+  </data>
+  <data name="Users_ChangingSecurity" xml:space="preserve">
+    <value>正在更改 [{0}] 的安全等级…</value>
+  </data>
+  <data name="Users_DescriptionTitle" xml:space="preserve">
+    <value>{0} 的描述</value>
+  </data>
+  <data name="Users_UpdatingDescription" xml:space="preserve">
+    <value>正在更新 [{0}] 的描述…</value>
+  </data>
+  <data name="Users_AddToTeamTitle" xml:space="preserve">
+    <value>将 {0} 加入团队</value>
+  </data>
+  <data name="Users_TeamLabel" xml:space="preserve">
+    <value>团队</value>
+  </data>
+  <data name="Users_UserLabel" xml:space="preserve">
+    <value>用户</value>
+  </data>
+  <data name="Users_TeamNameLabel" xml:space="preserve">
+    <value>团队名称</value>
+  </data>
+  <data name="Users_TeamNamePlaceholder" xml:space="preserve">
+    <value>如 PIPING</value>
+  </data>
+  <data name="Users_AddToTeamConfirm" xml:space="preserve">
+    <value>加入</value>
+  </data>
+  <data name="Users_AddingToTeam" xml:space="preserve">
+    <value>正在将 [{0}] 加入团队 [{1}]…</value>
+  </data>
+  <data name="Users_RemoveMemberTitle" xml:space="preserve">
+    <value>从团队移除</value>
+  </data>
+  <data name="Users_RemoveMemberBody" xml:space="preserve">
+    <value>将 {0} 从团队 {1} 移除？</value>
+  </data>
+  <data name="Users_RemoveMemberConfirm" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="Users_RemovingMember" xml:space="preserve">
+    <value>正在将 [{0}] 从团队 [{1}] 移除…</value>
+  </data>
+  <data name="Users_NewTeamTitle" xml:space="preserve">
+    <value>在 {0} 中新建团队</value>
+  </data>
+  <data name="Users_NewTeamConfirm" xml:space="preserve">
+    <value>创建团队</value>
+  </data>
+  <data name="Users_CreatingTeam" xml:space="preserve">
+    <value>正在创建团队 [{0}]…</value>
+  </data>
+  <data name="Users_DeleteTeamTitle" xml:space="preserve">
+    <value>删除团队</value>
+  </data>
+  <data name="Users_DeleteTeamBody" xml:space="preserve">
+    <value>删除团队 {0}（{1} 名成员）？若团队拥有数据库，ADMIN 将拒绝删除。</value>
+  </data>
+  <data name="Users_DeleteTeamConfirm" xml:space="preserve">
+    <value>删除团队</value>
+  </data>
+  <data name="Users_DeletingTeam" xml:space="preserve">
+    <value>正在删除团队 [{0}]…</value>
+  </data>
+  <data name="Users_AddMemberTitle" xml:space="preserve">
+    <value>向 {0} 添加成员</value>
+  </data>
+  <data name="Users_AddMemberConfirm" xml:space="preserve">
+    <value>添加成员</value>
+  </data>
+  <data name="Users_NewIntro" xml:space="preserve">
+    <value>用户将通过 AVEVA Administration 创建，创建后即可登录 E3D。</value>
+  </data>
+  <data name="Users_NewTitle" xml:space="preserve">
+    <value>在 {0} 中新建用户</value>
+  </data>
+  <data name="Users_NoTeamOption" xml:space="preserve">
+    <value>（不分配团队）</value>
+  </data>
+  <data name="Users_NameInvalid" xml:space="preserve">
+    <value>用户名为 1~32 位字母、数字或下划线。</value>
+  </data>
+  <data name="Users_TeamNameInvalid" xml:space="preserve">
+    <value>团队名为 1~32 位字母、数字或下划线。</value>
+  </data>
+  <data name="Admin_VerifyOk" xml:space="preserve">
+    <value>[{0}] 可以管理工程 [{1}]。</value>
+  </data>
+  <data name="Admin_UserCreatedNoTeam" xml:space="preserve">
+    <value>用户 [{0}] 已创建。</value>
+  </data>
+  <data name="Admin_PasswordChanged" xml:space="preserve">
+    <value>[{0}] 的密码已修改。</value>
+  </data>
+  <data name="Admin_SecurityChanged" xml:space="preserve">
+    <value>[{0}] 现在是 {1} 用户。</value>
+  </data>
+  <data name="Admin_DescriptionChanged" xml:space="preserve">
+    <value>[{0}] 的描述已更新。</value>
+  </data>
+  <data name="Admin_UserRemovedFromTeam" xml:space="preserve">
+    <value>用户 [{0}] 已从团队 [{1}] 移除。</value>
+  </data>
+  <data name="Admin_TeamCreated" xml:space="preserve">
+    <value>团队 [{0}] 已创建。</value>
+  </data>
+  <data name="Admin_TeamDeleted" xml:space="preserve">
+    <value>团队 [{0}] 已删除。</value>
+  </data>
+  <data name="Admin_ErrConnect" xml:space="preserve">
+    <value>无法打开工程 [{0}]：管理员登录错误或工程数据库不可达。请检查上方的管理员登录。</value>
+  </data>
+  <data name="Admin_ErrReadOnly" xml:space="preserve">
+    <value>该管理员对工程 [{0}] 只有只读权限。</value>
+  </data>
+  <data name="Admin_ErrTimeout" xml:space="preserve">
+    <value>AVEVA Administration 未及时响应（许可证是否可用？）。</value>
+  </data>
+  <data name="Admin_ErrExeMissing" xml:space="preserve">
+    <value>未找到 AVEVA Administration：{0}</value>
   </data>
   <data name="Settings_PathsHeader" xml:space="preserve">
     <value>AVEVA E3D 核心环境路径</value>

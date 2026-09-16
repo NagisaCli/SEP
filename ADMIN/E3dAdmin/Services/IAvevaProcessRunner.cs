@@ -6,6 +6,6 @@ public record ProcessRunResult(int ExitCode, string StandardOutput, string Stand
 
 public interface IAvevaProcessRunner
 {
-    Task<ProcessRunResult> RunMacroAsync(AdminContext context, string macroContent, int timeoutSeconds = 30);
+    Task<ProcessRunResult> RunMacroAsync(AdminContext context, string macroContent, int timeoutSeconds = 0);
     string Sanitize(string input, params string?[] sensitiveTokens);
 }

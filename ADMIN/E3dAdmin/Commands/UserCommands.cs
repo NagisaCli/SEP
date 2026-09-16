@@ -137,4 +137,34 @@ public static class UserCommands
             throw;
         }
     }
+    /// <summary>Runs one change and prints the outcome in the selected format (used by the newer verbs).</summary>
+    public static async Task<int> ExecuteChangeAsync(AdminContext context, Func<Task> action, string doing, string done)
+    {
+        bool isJson = context.OutputFormat == "json";
+        try
+        {
+            if (!isJson) Console.WriteLine(doing);
+            await action();
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { ok = true, project = context.Project, message = done }, _jsonOpts));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"SUCCESS: {done}");
+                Console.ResetColor();
+            }
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            if (isJson)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { ok = false, error = ex.Message }, _jsonOpts));
+                return 1;
+            }
+            throw;
+        }
+    }
 }

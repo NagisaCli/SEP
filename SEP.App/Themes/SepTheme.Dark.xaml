@@ -1,0 +1,60 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Semantic colours of the SEP dark theme. Pages reference the *Brush keys with DynamicResource so the
+         light theme (SepTheme.Light.xaml) can be swapped in at run time. -->
+    <Color x:Key="SepPageColor">#0F1218</Color>
+    <Color x:Key="SepSurfaceColor">#171B23</Color>
+    <Color x:Key="SepSurface2Color">#1E232D</Color>
+    <Color x:Key="SepSurfaceHoverColor">#242A36</Color>
+    <Color x:Key="SepInputColor">#11151C</Color>
+    <Color x:Key="SepBorderColor">#2A313D</Color>
+    <Color x:Key="SepBorderStrongColor">#3B4453</Color>
+    <Color x:Key="SepTextColor">#F3F5F7</Color>
+    <Color x:Key="SepText2Color">#A3ACBA</Color>
+    <Color x:Key="SepText3Color">#6E7887</Color>
+    <Color x:Key="SepAccentColor">#2DD4FF</Color>
+    <Color x:Key="SepAccentStrongColor">#0EA5C9</Color>
+    <Color x:Key="SepAccentSoftColor">#0F2C36</Color>
+    <Color x:Key="SepOnAccentColor">#06171C</Color>
+    <Color x:Key="SepSuccessColor">#34D399</Color>
+    <Color x:Key="SepSuccessSoftColor">#0F2E24</Color>
+    <Color x:Key="SepWarningColor">#FBBF24</Color>
+    <Color x:Key="SepWarningSoftColor">#33280F</Color>
+    <Color x:Key="SepDangerColor">#F87171</Color>
+    <Color x:Key="SepDangerSoftColor">#3A1719</Color>
+    <Color x:Key="SepInfoColor">#7DB4FF</Color>
+    <Color x:Key="SepInfoSoftColor">#15263F</Color>
+    <Color x:Key="SepPurpleColor">#C4A6FF</Color>
+    <Color x:Key="SepPurpleSoftColor">#2A1F45</Color>
+
+    <SolidColorBrush x:Key="SepPageBrush" Color="{StaticResource SepPageColor}" />
+    <SolidColorBrush x:Key="SepSurfaceBrush" Color="{StaticResource SepSurfaceColor}" />
+    <SolidColorBrush x:Key="SepSurface2Brush" Color="{StaticResource SepSurface2Color}" />
+    <SolidColorBrush x:Key="SepSurfaceHoverBrush" Color="{StaticResource SepSurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SepInputBrush" Color="{StaticResource SepInputColor}" />
+    <SolidColorBrush x:Key="SepBorderBrush" Color="{StaticResource SepBorderColor}" />
+    <SolidColorBrush x:Key="SepBorderStrongBrush" Color="{StaticResource SepBorderStrongColor}" />
+    <SolidColorBrush x:Key="SepTextBrush" Color="{StaticResource SepTextColor}" />
+    <SolidColorBrush x:Key="SepText2Brush" Color="{StaticResource SepText2Color}" />
+    <SolidColorBrush x:Key="SepText3Brush" Color="{StaticResource SepText3Color}" />
+    <SolidColorBrush x:Key="SepAccentBrush" Color="{StaticResource SepAccentColor}" />
+    <SolidColorBrush x:Key="SepAccentStrongBrush" Color="{StaticResource SepAccentStrongColor}" />
+    <SolidColorBrush x:Key="SepAccentSoftBrush" Color="{StaticResource SepAccentSoftColor}" />
+    <SolidColorBrush x:Key="SepOnAccentBrush" Color="{StaticResource SepOnAccentColor}" />
+    <SolidColorBrush x:Key="SepSuccessBrush" Color="{StaticResource SepSuccessColor}" />
+    <SolidColorBrush x:Key="SepSuccessSoftBrush" Color="{StaticResource SepSuccessSoftColor}" />
+    <SolidColorBrush x:Key="SepWarningBrush" Color="{StaticResource SepWarningColor}" />
+    <SolidColorBrush x:Key="SepWarningSoftBrush" Color="{StaticResource SepWarningSoftColor}" />
+    <SolidColorBrush x:Key="SepDangerBrush" Color="{StaticResource SepDangerColor}" />
+    <SolidColorBrush x:Key="SepDangerSoftBrush" Color="{StaticResource SepDangerSoftColor}" />
+    <SolidColorBrush x:Key="SepInfoBrush" Color="{StaticResource SepInfoColor}" />
+    <SolidColorBrush x:Key="SepInfoSoftBrush" Color="{StaticResource SepInfoSoftColor}" />
+    <SolidColorBrush x:Key="SepPurpleBrush" Color="{StaticResource SepPurpleColor}" />
+    <SolidColorBrush x:Key="SepPurpleSoftBrush" Color="{StaticResource SepPurpleSoftColor}" />
+
+    <!-- Accent gradient for hero elements (launch button, active project). -->
+    <LinearGradientBrush x:Key="SepAccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2DD4FF" Offset="0" />
+        <GradientStop Color="#3B82F6" Offset="1" />
+    </LinearGradientBrush>
+</ResourceDictionary>
