@@ -1,27 +1,27 @@
-# Build artifacts
-build/
+# .NET build output
+**/bin/
+**/obj/
 dist/
-*.spec
-__pycache__/
-*.pyc
+bin_publish/
+*.pdb
 
-# Runtime caches
+# Runtime data / logs the app writes next to a portable exe (real data lives in %APPDATA%\SEP)
 e3d_paths.json
 e3d_projects.json
+e3d_projects.json.bak*
+sep_admin_creds.json
+sep_user_cache.json
 .sep_runtime.json
+.portable
+*.log
 
 # IDE
+.vs/
 .vscode/
 .idea/
 *.swp
-switch_e3d_project.exe
+*.user
 
-# .NET Build artifacts
-**/bin/
-**/obj/
-bin_publish/
-*.log
-
-# 本地生成的旧版 exe 与个人快捷方式（正式发布走 GitHub Releases）
+# Local build of the exe and personal shortcut (releases go through GitHub Releases)
 /SEP.exe
 /SEP.lnk
