@@ -99,7 +99,7 @@ Details were written to sep_debug.log</value>
     <value>Active project: </value>
   </data>
   <data name="Main_LaunchButton" xml:space="preserve">
-    <value>🚀 Launch E3D now</value>
+    <value>Launch E3D now</value>
   </data>
   <data name="Main_LaunchTooltip" xml:space="preserve">
     <value>Switch to the active project and launch E3D</value>
@@ -135,16 +135,16 @@ Details were written to sep_debug.log</value>
     <value>All</value>
   </data>
   <data name="Projects_FilterLocal" xml:space="preserve">
-    <value>💻 Local</value>
+    <value>Local</value>
   </data>
   <data name="Projects_FilterUnc" xml:space="preserve">
-    <value>🌐 Network</value>
+    <value>Network</value>
   </data>
   <data name="Projects_SearchPlaceholder" xml:space="preserve">
     <value>Search code or path...</value>
   </data>
   <data name="Projects_CreateButton" xml:space="preserve">
-    <value>✨ New project</value>
+    <value>New project</value>
   </data>
   <data name="Projects_RefreshTooltip" xml:space="preserve">
     <value>Refresh project list</value>
@@ -156,7 +156,7 @@ Details were written to sep_debug.log</value>
     <value>● Active project</value>
   </data>
   <data name="Projects_SwitchAndLaunch" xml:space="preserve">
-    <value>🚀 Switch &amp; launch E3D</value>
+    <value>Switch &amp; launch</value>
   </data>
   <data name="Projects_MoreTooltip" xml:space="preserve">
     <value>Decommission &amp; manage</value>
@@ -171,10 +171,10 @@ Details were written to sep_debug.log</value>
     <value>Switching active project to [{0}] and launching E3D...</value>
   </data>
   <data name="Project_LockActive" xml:space="preserve">
-    <value>⚠ Active database lock</value>
+    <value>locked</value>
   </data>
   <data name="Project_LockFree" xml:space="preserve">
-    <value>✓ No locks</value>
+    <value>No locks</value>
   </data>
   <data name="Project_SourceLocal" xml:space="preserve">
     <value>Local</value>
@@ -183,7 +183,7 @@ Details were written to sep_debug.log</value>
     <value>Network (UNC)</value>
   </data>
   <data name="Projects_FilterMine" xml:space="preserve">
-    <value>★ My projects</value>
+    <value>My projects</value>
   </data>
   <data name="Projects_Loaded" xml:space="preserve">
     <value>{0} project(s) in {1} library(ies)</value>
@@ -204,7 +204,7 @@ Details were written to sep_debug.log</value>
     <value>Add a library: folder, \\server\share or evarsXXX.bat</value>
   </data>
   <data name="Lib_AddButton" xml:space="preserve">
-    <value>➕ Add library</value>
+    <value>Add library</value>
   </data>
   <data name="Lib_Rescan" xml:space="preserve">
     <value>Rescan this library</value>
@@ -213,7 +213,7 @@ Details were written to sep_debug.log</value>
     <value>Remove library from the list (nothing is deleted on disk)</value>
   </data>
   <data name="Lib_LoadWhole" xml:space="preserve">
-    <value>▶ Load whole library</value>
+    <value>Load whole library</value>
   </data>
   <data name="Lib_OpenFolder" xml:space="preserve">
     <value>Open folder</value>
@@ -417,22 +417,22 @@ Details were written to sep_debug.log</value>
     <value>Health Check &amp; Lock Inspection</value>
   </data>
   <data name="Diag_Rerun" xml:space="preserve">
-    <value>🔄 Re-run check</value>
+    <value>Re-run check</value>
   </data>
   <data name="Diag_UnlockAll" xml:space="preserve">
-    <value>🛡️ Clear all stale locks</value>
+    <value>Clear all stale locks</value>
   </data>
   <data name="Diag_CoreMetrics" xml:space="preserve">
     <value>Core environment checks</value>
   </data>
   <data name="Diag_LocksHeader" xml:space="preserve">
-    <value>Database lock files across projects (active session locks)</value>
+    <value>Session locks</value>
   </data>
   <data name="Diag_LocksCountFormat" xml:space="preserve">
     <value>{0} lock(s) found</value>
   </data>
   <data name="Diag_UnlockButton" xml:space="preserve">
-    <value>🔓 Unlock</value>
+    <value>Unlock</value>
   </data>
   <data name="Diag_Running" xml:space="preserve">
     <value>Running environment check and lock scan...</value>
@@ -486,7 +486,7 @@ Details were written to sep_debug.log</value>
     <value>e.g. Piping lead</value>
   </data>
   <data name="Users_CreateButton" xml:space="preserve">
-    <value>➕ Create user</value>
+    <value>Create user</value>
   </data>
   <data name="Users_Loading" xml:space="preserve">
     <value>Reading users and teams for [{0}]...</value>
@@ -884,13 +884,13 @@ Save them anyway?</value>
     <value>SEP · AVEVA E3D Smart Project Manager</value>
   </data>
   <data name="Settings_AboutArch" xml:space="preserve">
-    <value>Architecture: C# .NET 10 (DirectWrite / Windows 11 Mica)</value>
+    <value>.NET 10 WPF client with Fluent (WPF-UI) styling and Windows 11 Mica; shares its data files with the SEP Python tool.</value>
   </data>
   <data name="Settings_AboutStyle" xml:space="preserve">
-    <value>Design: professional &amp; minimal (Obsidian Deep &amp; Fluent 2.0)</value>
+    <value>Dark and light themes follow Windows; English and Simplified Chinese switch live.</value>
   </data>
   <data name="Settings_SaveButton" xml:space="preserve">
-    <value>💾 Save &amp; apply settings</value>
+    <value>Save &amp; apply</value>
   </data>
   <data name="Settings_Saved" xml:space="preserve">
     <value>Settings saved.</value>
@@ -920,10 +920,10 @@ Save them anyway?</value>
     <value>Clone configuration from an existing project</value>
   </data>
   <data name="Create_Hint" xml:space="preserve">
-    <value>💡 The 000/ISO/DWG/MAC/PIC/DFLTS folder skeleton and evars.bat are generated automatically, and the project is registered in ProjectInfo.xml and projects.ini.</value>
+    <value>The 000/ISO/DWG/MAC/PIC/DFLTS folder skeleton and evars.bat are generated automatically, and the project is registered in ProjectInfo.xml and projects.ini.</value>
   </data>
   <data name="Create_Button" xml:space="preserve">
-    <value>✨ Create project</value>
+    <value>Create project</value>
   </data>
   <data name="Decommission_Title" xml:space="preserve">
     <value>Decommission &amp; Archive</value>
@@ -944,6 +944,1203 @@ Save them anyway?</value>
     <value>Archive folder:</value>
   </data>
   <data name="Decommission_Button" xml:space="preserve">
-    <value>📦 Confirm decommission</value>
+    <value>Decommission</value>
+  </data>
+  <data name="Common_Browse" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
+  <data name="Nav_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Nav_MyProjects" xml:space="preserve">
+    <value>My Projects</value>
+  </data>
+  <data name="Nav_Plugins" xml:space="preserve">
+    <value>Plug-ins</value>
+  </data>
+  <data name="Nav_Tools" xml:space="preserve">
+    <value>Diagnostics &amp; Tools</value>
+  </data>
+  <data name="Main_LaunchMenuTooltip" xml:space="preserve">
+    <value>More launch options</value>
+  </data>
+  <data name="Main_MenuLaunchAllMine" xml:space="preserve">
+    <value>Load all my projects and launch E3D</value>
+  </data>
+  <data name="Main_MenuLaunchOnly" xml:space="preserve">
+    <value>Launch E3D without switching</value>
+  </data>
+  <data name="Main_ModeAll" xml:space="preserve">
+    <value>all my projects</value>
+  </data>
+  <data name="Main_ModeLibrary" xml:space="preserve">
+    <value>whole library</value>
+  </data>
+  <data name="Launch_AllName" xml:space="preserve">
+    <value>All my projects</value>
+  </data>
+  <data name="Launch_AllStarting" xml:space="preserve">
+    <value>Loading all my projects and launching E3D…</value>
+  </data>
+  <data name="Launch_AllLoaded" xml:space="preserve">
+    <value>{0} project(s) loaded into E3D.</value>
+  </data>
+  <data name="Launch_AllSkipped" xml:space="preserve">
+    <value>Skipped (unreachable): {0}.</value>
+  </data>
+  <data name="Launch_NoMyProjects" xml:space="preserve">
+    <value>My Projects is empty — add projects with the star button first.</value>
+  </data>
+  <data name="Project_AddedToMine" xml:space="preserve">
+    <value>{0} added to My Projects.</value>
+  </data>
+  <data name="Project_RemovedFromMine" xml:space="preserve">
+    <value>{0} removed from My Projects.</value>
+  </data>
+  <data name="Project_PathCopied" xml:space="preserve">
+    <value>Copied: {0}</value>
+  </data>
+  <data name="Project_MenuEdit" xml:space="preserve">
+    <value>Edit details…</value>
+  </data>
+  <data name="Project_MenuUsers" xml:space="preserve">
+    <value>Users &amp; permissions</value>
+  </data>
+  <data name="Project_MenuCopyPath" xml:space="preserve">
+    <value>Copy evars path</value>
+  </data>
+  <data name="Project_MenuDecommission" xml:space="preserve">
+    <value>Decommission…</value>
+  </data>
+  <data name="Projects_PageSubtitle" xml:space="preserve">
+    <value>Every project of every library, with switch-and-launch, favourites, categories and batch edits.</value>
+  </data>
+  <data name="Projects_VisibleCount" xml:space="preserve">
+    <value>{0} shown</value>
+  </data>
+  <data name="Lib_AddHeader" xml:space="preserve">
+    <value>Add a project library</value>
+  </data>
+  <data name="Lib_AddHint" xml:space="preserve">
+    <value>A folder that contains projects (each with an evarsXXX.bat), local or UNC.</value>
+  </data>
+  <data name="Lib_AddTooltip" xml:space="preserve">
+    <value>Add a local or network folder that contains projects</value>
+  </data>
+  <data name="Lib_BrowseTitle" xml:space="preserve">
+    <value>Choose the project library folder</value>
+  </data>
+  <data name="Lib_ExpandAll" xml:space="preserve">
+    <value>Expand all libraries</value>
+  </data>
+  <data name="Lib_CollapseAll" xml:space="preserve">
+    <value>Collapse all libraries</value>
+  </data>
+  <data name="Lib_ToggleTooltip" xml:space="preserve">
+    <value>Show or hide the projects of this library</value>
+  </data>
+  <data name="Lib_LoadWholeTooltip" xml:space="preserve">
+    <value>Load every project of this library into E3D (mode: whole library)</value>
+  </data>
+  <data name="Lib_Unreachable" xml:space="preserve">
+    <value>unreachable</value>
+  </data>
+  <data name="Lib_EmptyTitle" xml:space="preserve">
+    <value>No project library yet</value>
+  </data>
+  <data name="Lib_NoVisibleProjects" xml:space="preserve">
+    <value>No project matches the current filter ({0} hidden).</value>
+  </data>
+  <data name="Lib_RemoveTitle" xml:space="preserve">
+    <value>Remove library</value>
+  </data>
+  <data name="Lib_RemoveBody" xml:space="preserve">
+    <value>Remove "{0}" from SEP? Nothing on disk is touched; the projects just disappear from the list (and from My Projects).</value>
+  </data>
+  <data name="Lib_RemoveConfirm" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Filter_AnyCategory" xml:space="preserve">
+    <value>Any category</value>
+  </data>
+  <data name="Filter_AnyStatus" xml:space="preserve">
+    <value>Any status</value>
+  </data>
+  <data name="Filter_AnyTag" xml:space="preserve">
+    <value>Any tag</value>
+  </data>
+  <data name="Filter_Clear" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Batch_Toggle" xml:space="preserve">
+    <value>Select several projects (batch mode)</value>
+  </data>
+  <data name="Batch_Selected" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="Batch_SelectVisible" xml:space="preserve">
+    <value>Select shown</value>
+  </data>
+  <data name="Batch_SelectNone" xml:space="preserve">
+    <value>Select none</value>
+  </data>
+  <data name="Batch_AddToMine" xml:space="preserve">
+    <value>Add to My Projects</value>
+  </data>
+  <data name="Batch_RemoveFromMine" xml:space="preserve">
+    <value>Remove from My Projects</value>
+  </data>
+  <data name="Batch_Edit" xml:space="preserve">
+    <value>Edit selected…</value>
+  </data>
+  <data name="Batch_AddedToMine" xml:space="preserve">
+    <value>{0} project(s) added to My Projects.</value>
+  </data>
+  <data name="Batch_RemovedFromMine" xml:space="preserve">
+    <value>{0} project(s) removed from My Projects.</value>
+  </data>
+  <data name="Batch_Edited" xml:space="preserve">
+    <value>{0} project(s) updated.</value>
+  </data>
+  <data name="Category_Unnamed" xml:space="preserve">
+    <value>Unnamed</value>
+  </data>
+  <data name="Category_NameRequired" xml:space="preserve">
+    <value>A category needs a name.</value>
+  </data>
+  <data name="Category_NotFound" xml:space="preserve">
+    <value>Category not found.</value>
+  </data>
+  <data name="Category_Duplicate" xml:space="preserve">
+    <value>A category named "{0}" already exists.</value>
+  </data>
+  <data name="Category_Saved" xml:space="preserve">
+    <value>Category saved.</value>
+  </data>
+  <data name="Category_None" xml:space="preserve">
+    <value>Uncategorised</value>
+  </data>
+  <data name="Category_Manage" xml:space="preserve">
+    <value>Manage categories</value>
+  </data>
+  <data name="Category_NewPlaceholder" xml:space="preserve">
+    <value>New category name</value>
+  </data>
+  <data name="Category_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Category_ColorTooltip" xml:space="preserve">
+    <value>Click to change the colour</value>
+  </data>
+  <data name="Category_Delete" xml:space="preserve">
+    <value>Delete category</value>
+  </data>
+  <data name="Category_DeleteBody" xml:space="preserve">
+    <value>Delete "{0}"? Projects in it become uncategorised.</value>
+  </data>
+  <data name="Category_Deleted" xml:space="preserve">
+    <value>Category "{0}" deleted.</value>
+  </data>
+  <data name="Category_Added" xml:space="preserve">
+    <value>Category "{0}" added.</value>
+  </data>
+  <data name="Category_Usage" xml:space="preserve">
+    <value>{0} project(s)</value>
+  </data>
+  <data name="Status_InProgress" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="Status_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Status_OnHold" xml:space="preserve">
+    <value>On hold</value>
+  </data>
+  <data name="Status_Archived" xml:space="preserve">
+    <value>Archived</value>
+  </data>
+  <data name="Status_None" xml:space="preserve">
+    <value>No status</value>
+  </data>
+  <data name="Edit_Title" xml:space="preserve">
+    <value>Edit {0}</value>
+  </data>
+  <data name="Edit_BatchTitle" xml:space="preserve">
+    <value>Edit {0} projects</value>
+  </data>
+  <data name="Edit_BatchHint" xml:space="preserve">
+    <value>Only the fields ticked "Apply" are written to every selected project.</value>
+  </data>
+  <data name="Edit_DisplayName" xml:space="preserve">
+    <value>Display name</value>
+  </data>
+  <data name="Edit_DisplayNamePlaceholder" xml:space="preserve">
+    <value>Friendly name shown instead of the code</value>
+  </data>
+  <data name="Edit_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Edit_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Edit_Owner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="Edit_OwnerPlaceholder" xml:space="preserve">
+    <value>Who is responsible</value>
+  </data>
+  <data name="Edit_Tags" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="Edit_TagsPlaceholder" xml:space="preserve">
+    <value>Comma-separated tags</value>
+  </data>
+  <data name="Edit_TagsAppend" xml:space="preserve">
+    <value>Append to existing tags instead of replacing</value>
+  </data>
+  <data name="Edit_Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Edit_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Edit_DescriptionPlaceholder" xml:space="preserve">
+    <value>One line about the project</value>
+  </data>
+  <data name="Edit_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Edit_NotesPlaceholder" xml:space="preserve">
+    <value>Anything worth remembering (paths, contacts, caveats)</value>
+  </data>
+  <data name="My_PageSubtitle" xml:space="preserve">
+    <value>The projects "load all" puts into E3D at once, in this order.</value>
+  </data>
+  <data name="My_CountFormat" xml:space="preserve">
+    <value>{0} project(s)</value>
+  </data>
+  <data name="My_LaunchAll" xml:space="preserve">
+    <value>Load all &amp; launch</value>
+  </data>
+  <data name="My_LaunchAllTooltip" xml:space="preserve">
+    <value>Write every project below into custom_evars.bat and launch E3D</value>
+  </data>
+  <data name="My_ProbeSessions" xml:space="preserve">
+    <value>Who is online</value>
+  </data>
+  <data name="My_ProbeSessionsTooltip" xml:space="preserve">
+    <value>Check SEP sessions and lock owners for these projects</value>
+  </data>
+  <data name="My_ClearButton" xml:space="preserve">
+    <value>Clear My Projects</value>
+  </data>
+  <data name="My_ClearTitle" xml:space="preserve">
+    <value>Clear My Projects</value>
+  </data>
+  <data name="My_ClearBody" xml:space="preserve">
+    <value>Remove all {0} project(s) from My Projects?</value>
+  </data>
+  <data name="My_ClearConfirm" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="My_Cleared" xml:space="preserve">
+    <value>My Projects cleared.</value>
+  </data>
+  <data name="My_Hint" xml:space="preserve">
+    <value>Star a project anywhere to add it here. "Load all" registers every project of this list in E3D at once, so you can open any of them from the E3D login window.</value>
+  </data>
+  <data name="My_EmptyTitle" xml:space="preserve">
+    <value>My Projects is empty</value>
+  </data>
+  <data name="My_EmptyBody" xml:space="preserve">
+    <value>Star the projects you work on; they show up here and on the overview for one-click launching.</value>
+  </data>
+  <data name="My_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="My_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="My_Offline" xml:space="preserve">
+    <value>offline</value>
+  </data>
+  <data name="My_OfflineTooltip" xml:space="preserve">
+    <value>The library of this project could not be reached; it will be skipped by "load all".</value>
+  </data>
+  <data name="Overview_Title" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Overview_Subtitle" xml:space="preserve">
+    <value>What is set up, who is online and where to go next.</value>
+  </data>
+  <data name="Overview_Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="Overview_Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Overview_DismissAll" xml:space="preserve">
+    <value>Dismiss all</value>
+  </data>
+  <data name="Overview_Projects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Overview_LibrariesFormat" xml:space="preserve">
+    <value>across {0} libraries</value>
+  </data>
+  <data name="Overview_MyHint" xml:space="preserve">
+    <value>ready for "load all"</value>
+  </data>
+  <data name="Overview_Online" xml:space="preserve">
+    <value>Online now</value>
+  </data>
+  <data name="Overview_LockedFormat" xml:space="preserve">
+    <value>{0} locked by a session</value>
+  </data>
+  <data name="Overview_Active" xml:space="preserve">
+    <value>Active project</value>
+  </data>
+  <data name="Overview_ActiveHint" xml:space="preserve">
+    <value>pick a project and launch</value>
+  </data>
+  <data name="Overview_ModeSingle" xml:space="preserve">
+    <value>single project</value>
+  </data>
+  <data name="Overview_Install" xml:space="preserve">
+    <value>E3D installation</value>
+  </data>
+  <data name="Overview_InstallOk" xml:space="preserve">
+    <value>Found</value>
+  </data>
+  <data name="Overview_InstallMissing" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="Overview_Unreachable" xml:space="preserve">
+    <value>Unreachable libraries</value>
+  </data>
+  <data name="Overview_UnreachableHint" xml:space="preserve">
+    <value>showing cached projects</value>
+  </data>
+  <data name="Overview_QuickLaunch" xml:space="preserve">
+    <value>Quick launch</value>
+  </data>
+  <data name="Overview_SeeAll" xml:space="preserve">
+    <value>See all</value>
+  </data>
+  <data name="Overview_Recent" xml:space="preserve">
+    <value>Recently discovered</value>
+  </data>
+  <data name="Overview_OnlineNow" xml:space="preserve">
+    <value>Online now</value>
+  </data>
+  <data name="Overview_NobodyOnline" xml:space="preserve">
+    <value>Nobody is connected to a project right now.</value>
+  </data>
+  <data name="Overview_ByCategory" xml:space="preserve">
+    <value>By category</value>
+  </data>
+  <data name="Overview_ByStatus" xml:space="preserve">
+    <value>By status</value>
+  </data>
+  <data name="Overview_Shortcuts" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="Plugins_Title" xml:space="preserve">
+    <value>Plug-ins</value>
+  </data>
+  <data name="Plugins_Subtitle" xml:space="preserve">
+    <value>PML / PML.NET plug-in folders wired into E3D through custom_evars.bat.</value>
+  </data>
+  <data name="Plugins_FilterPlaceholder" xml:space="preserve">
+    <value>Filter plug-ins or symbols…</value>
+  </data>
+  <data name="Plugins_New" xml:space="preserve">
+    <value>New plug-in</value>
+  </data>
+  <data name="Plugins_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Plugins_ImportFolder" xml:space="preserve">
+    <value>From a folder…</value>
+  </data>
+  <data name="Plugins_ImportZip" xml:space="preserve">
+    <value>From a zip archive…</value>
+  </data>
+  <data name="Plugins_Rescan" xml:space="preserve">
+    <value>Rescan plug-ins</value>
+  </data>
+  <data name="Plugins_DirLabel" xml:space="preserve">
+    <value>Plug-in folder</value>
+  </data>
+  <data name="Plugins_CountFormat" xml:space="preserve">
+    <value>{0} plug-ins, {1} enabled</value>
+  </data>
+  <data name="Plugins_EnableAll" xml:space="preserve">
+    <value>Enable all</value>
+  </data>
+  <data name="Plugins_DisableAll" xml:space="preserve">
+    <value>Disable all</value>
+  </data>
+  <data name="Plugins_RebuildAll" xml:space="preserve">
+    <value>Rebuild indexes</value>
+  </data>
+  <data name="Plugins_RebuildAllTooltip" xml:space="preserve">
+    <value>Regenerate pml.index for every plug-in with a pmllib folder</value>
+  </data>
+  <data name="Plugins_ChangeDir" xml:space="preserve">
+    <value>Change folder…</value>
+  </data>
+  <data name="Plugins_TabList" xml:space="preserve">
+    <value>Plug-ins</value>
+  </data>
+  <data name="Plugins_TabConflicts" xml:space="preserve">
+    <value>Conflicts</value>
+  </data>
+  <data name="Plugins_TabChain" xml:space="preserve">
+    <value>Resolution chain</value>
+  </data>
+  <data name="Plugins_TabMacro" xml:space="preserve">
+    <value>Hot-load macro</value>
+  </data>
+  <data name="Plugins_EmptyTitle" xml:space="preserve">
+    <value>No plug-ins found</value>
+  </data>
+  <data name="Plugins_EmptyBody" xml:space="preserve">
+    <value>Each sub-folder of the plug-in folder with a pmllib, pmlui, bin or dflts folder is a plug-in. Create one or import a folder / zip.</value>
+  </data>
+  <data name="Plugins_Details" xml:space="preserve">
+    <value>Show details</value>
+  </data>
+  <data name="Plugins_Enabled" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="Plugins_Disabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="Plugins_IndexStale" xml:space="preserve">
+    <value>index needs rebuild</value>
+  </data>
+  <data name="Plugins_DiagnosticsTooltip" xml:space="preserve">
+    <value>Problems found in this plug-in</value>
+  </data>
+  <data name="Plugins_SymbolCounts" xml:space="preserve">
+    <value>{0} forms · {1} objects · {2} functions · {3} macros · {4} assemblies</value>
+  </data>
+  <data name="Plugins_RebuildIndex" xml:space="preserve">
+    <value>Rebuild pml.index</value>
+  </data>
+  <data name="Plugins_DiagnosticsHeader" xml:space="preserve">
+    <value>Problems</value>
+  </data>
+  <data name="Plugins_EntryHeader" xml:space="preserve">
+    <value>Entry commands (paste into the E3D command line)</value>
+  </data>
+  <data name="Plugins_CopyEntry" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Plugins_SymbolsHeader" xml:space="preserve">
+    <value>Definitions</value>
+  </data>
+  <data name="Plugins_NoSymbols" xml:space="preserve">
+    <value>No PML definitions found in this plug-in.</value>
+  </data>
+  <data name="Plugins_IndexInfo" xml:space="preserve">
+    <value>pml.index: {0} · {1} indexed / {2} .pml files</value>
+  </data>
+  <data name="Plugins_ConflictsHint" xml:space="preserve">
+    <value>Two enabled plug-ins define the same name. E3D takes the first on PMLLIB (the winner shown) and silently ignores the rest.</value>
+  </data>
+  <data name="Plugins_NoConflicts" xml:space="preserve">
+    <value>No conflicts between the enabled plug-ins.</value>
+  </data>
+  <data name="Plugins_ConflictLine" xml:space="preserve">
+    <value>Defined in {0} — E3D uses {1}.</value>
+  </data>
+  <data name="Plugins_ChainHint" xml:space="preserve">
+    <value>The order E3D resolves PMLLIB / PMLUI / PMLNET / defaults paths, as custom_evars.bat sets them up.</value>
+  </data>
+  <data name="Plugins_MacroHint" xml:space="preserve">
+    <value>Loads every enabled plug-in into a running E3D session without restarting.</value>
+  </data>
+  <data name="Plugins_CopyRun" xml:space="preserve">
+    <value>Copy $m command</value>
+  </data>
+  <data name="Plugins_CopyRunTooltip" xml:space="preserve">
+    <value>Copies "$m &lt;macro path&gt;" for the E3D command line</value>
+  </data>
+  <data name="Plugins_CopyMacro" xml:space="preserve">
+    <value>Copy macro text</value>
+  </data>
+  <data name="Plugins_Scanning" xml:space="preserve">
+    <value>Scanning plug-ins…</value>
+  </data>
+  <data name="Plugins_ScanDone" xml:space="preserve">
+    <value>{0} plug-ins, {1} enabled · {2}</value>
+  </data>
+  <data name="Plugins_ScanFailed" xml:space="preserve">
+    <value>Plug-in scan failed: {0}</value>
+  </data>
+  <data name="Plugins_MacroCopied" xml:space="preserve">
+    <value>Hot-load macro copied.</value>
+  </data>
+  <data name="Plugins_RunCopied" xml:space="preserve">
+    <value>$m command copied — paste it into the E3D command line.</value>
+  </data>
+  <data name="Plugins_NewTitle" xml:space="preserve">
+    <value>New plug-in</value>
+  </data>
+  <data name="Plugins_NewBody" xml:space="preserve">
+    <value>Creates a skeleton (pmllib + bin) in the plug-in folder and enables it.</value>
+  </data>
+  <data name="Plugins_NewNameLabel" xml:space="preserve">
+    <value>Plug-in name</value>
+  </data>
+  <data name="Plugins_NewConfirm" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Plugins_ImportFolderTitle" xml:space="preserve">
+    <value>Choose the plug-in folder to import</value>
+  </data>
+  <data name="Plugins_ImportZipTitle" xml:space="preserve">
+    <value>Choose the plug-in zip archive</value>
+  </data>
+  <data name="Plugins_PickDirTitle" xml:space="preserve">
+    <value>Choose the plug-in root folder</value>
+  </data>
+  <data name="Plugins_DiagUnreadable" xml:space="preserve">
+    <value>Could not read the folder: {0}</value>
+  </data>
+  <data name="Plugins_DiagIndexOutdated" xml:space="preserve">
+    <value>pml.index is outdated ({0} indexed, {1} files) — rebuild it.</value>
+  </data>
+  <data name="Plugins_DiagIndexError" xml:space="preserve">
+    <value>pml.index could not be read: {0}</value>
+  </data>
+  <data name="Plugins_DiagIndexMissing" xml:space="preserve">
+    <value>pml.index is missing — E3D will not see the PML files until it is built.</value>
+  </data>
+  <data name="Plugins_DiagSingleDll" xml:space="preserve">
+    <value>Only one assembly in bin — check that its dependencies are present.</value>
+  </data>
+  <data name="Plugins_WriteFailed" xml:space="preserve">
+    <value>custom_evars.bat could not be updated: {0}</value>
+  </data>
+  <data name="Plugins_AllEnabled" xml:space="preserve">
+    <value>{0} plug-in(s) enabled.</value>
+  </data>
+  <data name="Plugins_AllDisabled" xml:space="preserve">
+    <value>All plug-ins disabled.</value>
+  </data>
+  <data name="Plugins_IndexNoDir" xml:space="preserve">
+    <value>no pmllib folder</value>
+  </data>
+  <data name="Plugins_IndexNoFiles" xml:space="preserve">
+    <value>no .pml files to index</value>
+  </data>
+  <data name="Plugins_IndexRebuilt" xml:space="preserve">
+    <value>pml.index rebuilt ({0} files).</value>
+  </data>
+  <data name="Plugins_IndexWriteFailed" xml:space="preserve">
+    <value>pml.index could not be written: {0}</value>
+  </data>
+  <data name="Plugins_IndexAllDone" xml:space="preserve">
+    <value>{0} index(es) rebuilt.</value>
+  </data>
+  <data name="Plugins_NameInvalid" xml:space="preserve">
+    <value>The plug-in name must contain letters or digits.</value>
+  </data>
+  <data name="Plugins_AlreadyExists" xml:space="preserve">
+    <value>A plug-in named "{0}" already exists.</value>
+  </data>
+  <data name="Plugins_Created" xml:space="preserve">
+    <value>Plug-in "{0}" created.</value>
+  </data>
+  <data name="Plugins_CreateFailed" xml:space="preserve">
+    <value>The plug-in could not be created: {0}</value>
+  </data>
+  <data name="Plugins_ImportMissing" xml:space="preserve">
+    <value>Nothing to import at {0}.</value>
+  </data>
+  <data name="Plugins_Imported" xml:space="preserve">
+    <value>Plug-in "{0}" imported and enabled.</value>
+  </data>
+  <data name="Plugins_ImportFailed" xml:space="preserve">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="Tools_Title" xml:space="preserve">
+    <value>Diagnostics &amp; Tools</value>
+  </data>
+  <data name="Tools_Subtitle" xml:space="preserve">
+    <value>Health checks and one-click repairs for the E3D configuration, network libraries and session locks.</value>
+  </data>
+  <data name="Tools_ConfigTitle" xml:space="preserve">
+    <value>E3D configuration</value>
+  </data>
+  <data name="Tools_ConfigBody" xml:space="preserve">
+    <value>Checks evars.init and custom_evars.bat for dead paths, offline mounts and syntax that breaks E3D at start-up.</value>
+  </data>
+  <data name="Tools_CheckButton" xml:space="preserve">
+    <value>Check</value>
+  </data>
+  <data name="Tools_FixConfigTooltip" xml:space="preserve">
+    <value>Comment out the lines the check flagged (a .sep.bak backup is written first)</value>
+  </data>
+  <data name="Tools_NetTitle" xml:space="preserve">
+    <value>Library reachability</value>
+  </data>
+  <data name="Tools_NetBody" xml:space="preserve">
+    <value>For a UNC library: host, port 445, workstation service, share access and guest policy. For a local one: existence and permissions.</value>
+  </data>
+  <data name="Tools_DiagnoseButton" xml:space="preserve">
+    <value>Diagnose</value>
+  </data>
+  <data name="Tools_DiagnoseAllButton" xml:space="preserve">
+    <value>All libraries</value>
+  </data>
+  <data name="Tools_UserDataBody" xml:space="preserve">
+    <value>Removes the caches E3D keeps per user (session leftovers, temp files) that cause slow starts and stale forms.</value>
+  </data>
+  <data name="Tools_CadBody" xml:space="preserve">
+    <value>Repairs the CAD font mapping E3D uses for drawings when characters show up as boxes.</value>
+  </data>
+  <data name="Tools_ReindexBody" xml:space="preserve">
+    <value>Regenerates pml.index for every enabled plug-in so E3D sees new or renamed PML files.</value>
+  </data>
+  <data name="Tools_ReindexButton" xml:space="preserve">
+    <value>Rebuild indexes</value>
+  </data>
+  <data name="Tools_InstallTitle" xml:space="preserve">
+    <value>E3D installation</value>
+  </data>
+  <data name="Tools_InstallBody" xml:space="preserve">
+    <value>Where evars.bat and the E3D executables are expected; change it in Settings if E3D was installed elsewhere.</value>
+  </data>
+  <data name="Tools_LocksBody" xml:space="preserve">
+    <value>Lock files left behind by crashed sessions block other users. Scan all projects and remove orphaned locks.</value>
+  </data>
+  <data name="Tools_ScanLocks" xml:space="preserve">
+    <value>Scan locks</value>
+  </data>
+  <data name="Tools_FixesHeader" xml:space="preserve">
+    <value>Suggested fixes</value>
+  </data>
+  <data name="Tools_NeedsAdmin" xml:space="preserve">
+    <value>needs administrator</value>
+  </data>
+  <data name="Tools_FixRun" xml:space="preserve">
+    <value>Run fix</value>
+  </data>
+  <data name="Tools_CopyCommands" xml:space="preserve">
+    <value>Copy the commands</value>
+  </data>
+  <data name="Tools_CommandsCopied" xml:space="preserve">
+    <value>Commands copied.</value>
+  </data>
+  <data name="Tools_FixNeedsAdmin" xml:space="preserve">
+    <value>This fix needs administrator rights; Windows will ask for elevation.</value>
+  </data>
+  <data name="Tools_FixManual" xml:space="preserve">
+    <value>"{0}" has to be done by hand — the commands are listed below.</value>
+  </data>
+  <data name="Tools_Checking" xml:space="preserve">
+    <value>Checking the E3D configuration…</value>
+  </data>
+  <data name="Tools_Fixing" xml:space="preserve">
+    <value>Applying the fix…</value>
+  </data>
+  <data name="Tools_Cleaning" xml:space="preserve">
+    <value>Cleaning USERDATA…</value>
+  </data>
+  <data name="Tools_Reindexing" xml:space="preserve">
+    <value>Rebuilding plug-in indexes…</value>
+  </data>
+  <data name="Tools_Diagnosing" xml:space="preserve">
+    <value>Diagnosing…</value>
+  </data>
+  <data name="Tools_ConfigReportTitle" xml:space="preserve">
+    <value>E3D configuration check</value>
+  </data>
+  <data name="Tools_ConfigReportOk" xml:space="preserve">
+    <value>Everything looks fine.</value>
+  </data>
+  <data name="Tools_ConfigReportProblems" xml:space="preserve">
+    <value>{0} problem(s) found.</value>
+  </data>
+  <data name="Tools_NetReportTitle" xml:space="preserve">
+    <value>Library diagnosis: {0}</value>
+  </data>
+  <data name="Tools_NetAllTitle" xml:space="preserve">
+    <value>All libraries</value>
+  </data>
+  <data name="Tools_NetAllOk" xml:space="preserve">
+    <value>Every library is reachable.</value>
+  </data>
+  <data name="Tools_NetAllProblems" xml:space="preserve">
+    <value>{0} problem(s) across the libraries.</value>
+  </data>
+  <data name="Tools_FixConfigTitle" xml:space="preserve">
+    <value>Clean the E3D configuration</value>
+  </data>
+  <data name="Tools_FixConfigStep" xml:space="preserve">
+    <value>Comment out the flagged lines in evars.init / custom_evars.bat and drop dead entries from the SEP managed block.</value>
+  </data>
+  <data name="Tools_FixConfigConfirm" xml:space="preserve">
+    <value>The flagged lines are commented out (marked [SEP DISABLED]) and a .sep.bak copy of each file is kept. Continue?</value>
+  </data>
+  <data name="Tools_FixConfigButton" xml:space="preserve">
+    <value>Clean up</value>
+  </data>
+  <data name="Tools_UserDataTitle" xml:space="preserve">
+    <value>Clean USERDATA</value>
+  </data>
+  <data name="Tools_UserDataConfirm" xml:space="preserve">
+    <value>Delete the cache folders under {0}? E3D must not be running.</value>
+  </data>
+  <data name="Tools_UserDataButton" xml:space="preserve">
+    <value>Clean</value>
+  </data>
+  <data name="Tools_CadTitle" xml:space="preserve">
+    <value>Fix CAD fonts</value>
+  </data>
+  <data name="Tools_CadConfirm" xml:space="preserve">
+    <value>Update the font mapping files in the E3D installation (backups are kept)?</value>
+  </data>
+  <data name="Tools_CadButton" xml:space="preserve">
+    <value>Fix fonts</value>
+  </data>
+  <data name="Tools_ReindexTitle" xml:space="preserve">
+    <value>Plug-in indexes</value>
+  </data>
+  <data name="Lock_ConfirmBody" xml:space="preserve">
+    <value>Delete lock file {0} of project {1}? Only do this when nobody is working in that session.</value>
+  </data>
+  <data name="Lock_ConfirmAllBody" xml:space="preserve">
+    <value>Delete all {0} lock file(s)? Only do this when nobody is working in those sessions.</value>
+  </data>
+  <data name="Tools_CheckCoreFiles" xml:space="preserve">
+    <value>E3D core files</value>
+  </data>
+  <data name="Tools_CheckCoreFilesOk" xml:space="preserve">
+    <value>evars.bat and the executables found in {0}</value>
+  </data>
+  <data name="Tools_CheckCoreFilesMissing" xml:space="preserve">
+    <value>evars.bat or the executables are missing in {0} — check the install folder in Settings</value>
+  </data>
+  <data name="Tools_CheckEvarsInit" xml:space="preserve">
+    <value>evars.init paths</value>
+  </data>
+  <data name="Tools_CheckEvarsInitOk" xml:space="preserve">
+    <value>every path in evars.init exists</value>
+  </data>
+  <data name="Tools_CheckEvarsInitDead" xml:space="preserve">
+    <value>{0} path(s) in evars.init do not exist</value>
+  </data>
+  <data name="Tools_CheckCustomEvars" xml:space="preserve">
+    <value>custom_evars.bat health</value>
+  </data>
+  <data name="Tools_CheckCustomOk" xml:space="preserve">
+    <value>no problems found</value>
+  </data>
+  <data name="Tools_CheckCustomAbsent" xml:space="preserve">
+    <value>custom_evars.bat does not exist yet (it is created on the first launch)</value>
+  </data>
+  <data name="Tools_CheckCustomDead" xml:space="preserve">
+    <value>{0} invalid line(s)</value>
+  </data>
+  <data name="Tools_CheckCustomOffline" xml:space="preserve">
+    <value>{0} offline mount(s)</value>
+  </data>
+  <data name="Tools_CheckMyProjects" xml:space="preserve">
+    <value>My Projects</value>
+  </data>
+  <data name="Tools_CheckMyProjectsOk" xml:space="preserve">
+    <value>{0} project(s), all reachable</value>
+  </data>
+  <data name="Tools_CheckMyProjectsOffline" xml:space="preserve">
+    <value>{0} project(s) are unreachable and would be skipped by "load all"</value>
+  </data>
+  <data name="Tools_ReasonParentheses" xml:space="preserve">
+    <value>unbalanced parentheses break the batch parser</value>
+  </data>
+  <data name="Tools_ReasonQuotedSet" xml:space="preserve">
+    <value>quoted "set" value — the quotes end up inside the variable</value>
+  </data>
+  <data name="Tools_ReasonUndefinedVar" xml:space="preserve">
+    <value>refers to %{0}%, which is not defined</value>
+  </data>
+  <data name="Tools_ReasonOfflineMount" xml:space="preserve">
+    <value>network drive is offline; "net use" will hang the launch</value>
+  </data>
+  <data name="Tools_ReasonUncOnline" xml:space="preserve">
+    <value>network path reachable</value>
+  </data>
+  <data name="Tools_ReasonUncOffline" xml:space="preserve">
+    <value>network path unreachable</value>
+  </data>
+  <data name="Tools_ReasonLocalExists" xml:space="preserve">
+    <value>path exists</value>
+  </data>
+  <data name="Tools_ReasonLocalMissing" xml:space="preserve">
+    <value>path does not exist</value>
+  </data>
+  <data name="Tools_ChangeDisabledDead" xml:space="preserve">
+    <value>disabled dead path</value>
+  </data>
+  <data name="Tools_ChangeDisabledMount" xml:space="preserve">
+    <value>disabled offline mount</value>
+  </data>
+  <data name="Tools_ChangeDisabledProject" xml:space="preserve">
+    <value>disabled unreachable project</value>
+  </data>
+  <data name="Tools_ChangeDisabledSyntax" xml:space="preserve">
+    <value>disabled invalid line</value>
+  </data>
+  <data name="Tools_ChangeDisabledVar" xml:space="preserve">
+    <value>disabled reference to an undefined variable</value>
+  </data>
+  <data name="Tools_ChangeFixedQuotes" xml:space="preserve">
+    <value>removed quotes from set</value>
+  </data>
+  <data name="Tools_ChangeManagedRemoved" xml:space="preserve">
+    <value>removed from the SEP managed block</value>
+  </data>
+  <data name="Tools_FixDone" xml:space="preserve">
+    <value>{0} change(s) applied; backups end with .sep.bak.</value>
+  </data>
+  <data name="Tools_FixNothing" xml:space="preserve">
+    <value>Nothing needed fixing.</value>
+  </data>
+  <data name="Tools_FixFailed" xml:space="preserve">
+    <value>{0} could not be fixed: {1}</value>
+  </data>
+  <data name="Tools_UserDataMissing" xml:space="preserve">
+    <value>USERDATA folder not found: {0}</value>
+  </data>
+  <data name="Tools_UserDataDone" xml:space="preserve">
+    <value>{0} item(s) removed, {1} KB freed.</value>
+  </data>
+  <data name="Tools_UserDataClean" xml:space="preserve">
+    <value>USERDATA was already clean.</value>
+  </data>
+  <data name="Tools_UserDataError" xml:space="preserve">
+    <value>Cleaning stopped: {0}</value>
+  </data>
+  <data name="Tools_CadNotFound" xml:space="preserve">
+    <value>No font or support folder found in the E3D installation.</value>
+  </data>
+  <data name="Tools_CadDone" xml:space="preserve">
+    <value>{0} font mapping file(s) updated.</value>
+  </data>
+  <data name="Tools_CadUpToDate" xml:space="preserve">
+    <value>The font mapping is already up to date.</value>
+  </data>
+  <data name="Tools_NetPath" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="Tools_NetExists" xml:space="preserve">
+    <value>Folder exists</value>
+  </data>
+  <data name="Tools_NetReadable" xml:space="preserve">
+    <value>Readable</value>
+  </data>
+  <data name="Tools_NetReadableOk" xml:space="preserve">
+    <value>the folder can be listed</value>
+  </data>
+  <data name="Tools_NetReadableNo" xml:space="preserve">
+    <value>the folder cannot be listed — permissions?</value>
+  </data>
+  <data name="Tools_NetWritable" xml:space="preserve">
+    <value>Writable</value>
+  </data>
+  <data name="Tools_NetWritableOk" xml:space="preserve">
+    <value>files can be created (needed for locks and sessions)</value>
+  </data>
+  <data name="Tools_NetWritableNo" xml:space="preserve">
+    <value>read-only — locks and SEP sessions cannot be written</value>
+  </data>
+  <data name="Tools_NetShareReachable" xml:space="preserve">
+    <value>Share reachable</value>
+  </data>
+  <data name="Tools_NetShareUnreachable" xml:space="preserve">
+    <value>the UNC path cannot be opened</value>
+  </data>
+  <data name="Tools_NetHost" xml:space="preserve">
+    <value>Host name</value>
+  </data>
+  <data name="Tools_NetHostNone" xml:space="preserve">
+    <value>no host in the path</value>
+  </data>
+  <data name="Tools_NetHostOk" xml:space="preserve">
+    <value>{0} resolves</value>
+  </data>
+  <data name="Tools_NetHostFail" xml:space="preserve">
+    <value>{0} does not resolve (DNS / hosts file)</value>
+  </data>
+  <data name="Tools_NetPort" xml:space="preserve">
+    <value>SMB port 445</value>
+  </data>
+  <data name="Tools_NetPortOk" xml:space="preserve">
+    <value>port 445 on {0} accepts connections</value>
+  </data>
+  <data name="Tools_NetPortFail" xml:space="preserve">
+    <value>port 445 on {0} is closed or filtered ({1})</value>
+  </data>
+  <data name="Tools_NetPortSkipped" xml:space="preserve">
+    <value>skipped — host unresolved</value>
+  </data>
+  <data name="Tools_NetService" xml:space="preserve">
+    <value>Workstation service</value>
+  </data>
+  <data name="Tools_NetServiceRunning" xml:space="preserve">
+    <value>LanmanWorkstation is running</value>
+  </data>
+  <data name="Tools_NetServiceStopped" xml:space="preserve">
+    <value>LanmanWorkstation is stopped — no SMB shares can be opened</value>
+  </data>
+  <data name="Tools_NetServiceUnknown" xml:space="preserve">
+    <value>state could not be read</value>
+  </data>
+  <data name="Tools_NetShare" xml:space="preserve">
+    <value>Share access</value>
+  </data>
+  <data name="Tools_NetShareOk" xml:space="preserve">
+    <value>{0} is connected</value>
+  </data>
+  <data name="Tools_NetShareConnected" xml:space="preserve">
+    <value>connected with "net use"</value>
+  </data>
+  <data name="Tools_NetShareNoRead" xml:space="preserve">
+    <value>connected but the folder cannot be read</value>
+  </data>
+  <data name="Tools_NetShareSkipped" xml:space="preserve">
+    <value>skipped — host or port unreachable</value>
+  </data>
+  <data name="Tools_NetGuest" xml:space="preserve">
+    <value>Guest access policy</value>
+  </data>
+  <data name="Tools_NetGuestOn" xml:space="preserve">
+    <value>insecure guest logons are allowed</value>
+  </data>
+  <data name="Tools_NetGuestOff" xml:space="preserve">
+    <value>insecure guest logons are blocked (default on Windows 11) — shares without accounts fail</value>
+  </data>
+  <data name="Tools_NetGuestUnknown" xml:space="preserve">
+    <value>policy could not be read</value>
+  </data>
+  <data name="Tools_NetProjects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Tools_NetProjectsSkipped" xml:space="preserve">
+    <value>skipped — folder unreachable</value>
+  </data>
+  <data name="Tools_FixPermTitle" xml:space="preserve">
+    <value>Check permissions</value>
+  </data>
+  <data name="Tools_FixPermStep" xml:space="preserve">
+    <value>Grant your account read access to the folder (or ask the owner).</value>
+  </data>
+  <data name="Tools_FixDnsTitle" xml:space="preserve">
+    <value>Fix host resolution</value>
+  </data>
+  <data name="Tools_FixDnsStep" xml:space="preserve">
+    <value>Add {0} to C:\Windows\System32\drivers\etc\hosts or use the IP address in the library path.</value>
+  </data>
+  <data name="Tools_FixPortTitle" xml:space="preserve">
+    <value>Open SMB port 445</value>
+  </data>
+  <data name="Tools_FixPortStep1" xml:space="preserve">
+    <value>Check the firewall on the server and between the networks for TCP 445.</value>
+  </data>
+  <data name="Tools_FixPortStep2" xml:space="preserve">
+    <value>Make sure "File and Printer Sharing" is enabled on the server.</value>
+  </data>
+  <data name="Tools_FixServiceTitle" xml:space="preserve">
+    <value>Start the Workstation service</value>
+  </data>
+  <data name="Tools_FixServiceStep" xml:space="preserve">
+    <value>Start the LanmanWorkstation service (administrator).</value>
+  </data>
+  <data name="Tools_FixGuestTitle" xml:space="preserve">
+    <value>Allow insecure guest logons</value>
+  </data>
+  <data name="Tools_FixGuestStep1" xml:space="preserve">
+    <value>Windows 11 blocks shares that do not require a password.</value>
+  </data>
+  <data name="Tools_FixGuestStep2" xml:space="preserve">
+    <value>Set AllowInsecureGuestAuth = 1 under HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters (administrator).</value>
+  </data>
+  <data name="Tools_FixSessionsTitle" xml:space="preserve">
+    <value>Clear the session limit</value>
+  </data>
+  <data name="Tools_FixSessionsStep" xml:space="preserve">
+    <value>{0} reports too many sessions — drop the stale SMB sessions on this PC.</value>
+  </data>
+  <data name="Tools_FixReconnectTitle" xml:space="preserve">
+    <value>Reconnect with different credentials</value>
+  </data>
+  <data name="Tools_FixReconnectStep" xml:space="preserve">
+    <value>Windows already has a connection to {0} with another account; disconnect it and connect again.</value>
+  </data>
+  <data name="Tools_FixStructureTitle" xml:space="preserve">
+    <value>Check the folder layout</value>
+  </data>
+  <data name="Tools_FixStructureStep" xml:space="preserve">
+    <value>A library must contain project folders with evarsXXX.bat files.</value>
+  </data>
+  <data name="Tools_GuestAlready" xml:space="preserve">
+    <value>Insecure guest logons are already allowed.</value>
+  </data>
+  <data name="Tools_GuestEnabled" xml:space="preserve">
+    <value>Insecure guest logons are now allowed; reconnect the share.</value>
+  </data>
+  <data name="Tools_GuestFailed" xml:space="preserve">
+    <value>The registry value could not be set (elevation refused?).</value>
+  </data>
+  <data name="Tools_GuestFailedWith" xml:space="preserve">
+    <value>The registry value could not be set: {0}</value>
+  </data>
+  <data name="Tools_ReconnectUncOnly" xml:space="preserve">
+    <value>Only network shares can be reconnected.</value>
+  </data>
+  <data name="Tools_ReconnectFailed" xml:space="preserve">
+    <value>The share could not be reconnected.</value>
+  </data>
+  <data name="Tools_ReconnectDone" xml:space="preserve">
+    <value>{0} reconnected.</value>
+  </data>
+  <data name="Tools_NetErrTimeout" xml:space="preserve">
+    <value>timed out</value>
+  </data>
+  <data name="Tools_NetErr5" xml:space="preserve">
+    <value>access denied (5)</value>
+  </data>
+  <data name="Tools_NetErr53" xml:space="preserve">
+    <value>network path not found (53)</value>
+  </data>
+  <data name="Tools_NetErr67" xml:space="preserve">
+    <value>network name not found (67)</value>
+  </data>
+  <data name="Tools_NetErr71" xml:space="preserve">
+    <value>too many sessions on the server (71)</value>
+  </data>
+  <data name="Tools_NetErr86" xml:space="preserve">
+    <value>wrong password / credentials (86)</value>
+  </data>
+  <data name="Tools_NetErr1219" xml:space="preserve">
+    <value>already connected with different credentials (1219)</value>
+  </data>
+  <data name="Tools_NetErr1231" xml:space="preserve">
+    <value>network unreachable (1231)</value>
+  </data>
+  <data name="Tools_NetErr1331" xml:space="preserve">
+    <value>account disabled (1331)</value>
+  </data>
+  <data name="Tools_NetErrOther" xml:space="preserve">
+    <value>net use failed with code {0}</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>Appearance, E3D paths and where SEP keeps its data.</value>
+  </data>
+  <data name="Settings_PreferencesHint" xml:space="preserve">
+    <value>Language and theme apply immediately.</value>
+  </data>
+  <data name="Settings_ThemeLabel" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_ThemeAuto" xml:space="preserve">
+    <value>Follow Windows</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_AutoStartHint" xml:space="preserve">
+    <value>Adds SEP to the Windows Run key for your account after saving.</value>
+  </data>
+  <data name="Settings_PathsHint" xml:space="preserve">
+    <value>Detected automatically; override only when E3D lives somewhere unusual. Save to apply.</value>
+  </data>
+  <data name="Settings_LocalProjectsDirHint" xml:space="preserve">
+    <value>The library whose custom_evars.bat receives single-project launches and the plug-in block.</value>
+  </data>
+  <data name="Settings_PluginsDirLabel" xml:space="preserve">
+    <value>Plug-in folder</value>
+  </data>
+  <data name="Settings_PluginsDirPlaceholder" xml:space="preserve">
+    <value>D:\AVEVA\Plugins (leave empty to detect)</value>
+  </data>
+  <data name="Settings_LnkPlaceholder" xml:space="preserve">
+    <value>Leave empty to find the E3D shortcut automatically</value>
+  </data>
+  <data name="Settings_DataHeader" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Settings_DataHint" xml:space="preserve">
+    <value>Libraries, my projects, categories and credentials, shared with the Python tool.</value>
+  </data>
+  <data name="Settings_PortableBadge" xml:space="preserve">
+    <value>portable</value>
+  </data>
+  <data name="Settings_Export" xml:space="preserve">
+    <value>Export bundle…</value>
+  </data>
+  <data name="Settings_ExportTooltip" xml:space="preserve">
+    <value>Save libraries, projects, categories and paths as one JSON file to move to another PC</value>
+  </data>
+  <data name="Settings_Import" xml:space="preserve">
+    <value>Import bundle…</value>
+  </data>
+  <data name="Settings_ImportTooltip" xml:space="preserve">
+    <value>Replace the current data with a bundle exported on another PC</value>
+  </data>
+  <data name="Settings_ExportTitle" xml:space="preserve">
+    <value>Export SEP bundle</value>
+  </data>
+  <data name="Settings_Exported" xml:space="preserve">
+    <value>Bundle exported to {0}</value>
+  </data>
+  <data name="Settings_ExportFailed" xml:space="preserve">
+    <value>Export failed: {0}</value>
+  </data>
+  <data name="Settings_ImportTitle" xml:space="preserve">
+    <value>Import SEP bundle</value>
+  </data>
+  <data name="Settings_ImportInvalid" xml:space="preserve">
+    <value>This file is not a SEP bundle.</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>Replace the current data with {0} libraries and {1} projects from {2}? The current data is overwritten.</value>
+  </data>
+  <data name="Settings_ImportButton" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Settings_ImportRemappedTitle" xml:space="preserve">
+    <value>Paths remapped during import</value>
+  </data>
+  <data name="Settings_Imported" xml:space="preserve">
+    <value>Imported {0} libraries and {1} projects.</value>
+  </data>
+  <data name="Settings_ImportFailed" xml:space="preserve">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="Settings_DevicePathsHeader" xml:space="preserve">
+    <value>Paths on this PC</value>
+  </data>
+  <data name="Settings_PathFound" xml:space="preserve">
+    <value>found</value>
+  </data>
+  <data name="Settings_PathMissing" xml:space="preserve">
+    <value>missing</value>
+  </data>
+  <data name="Settings_DriveLabel" xml:space="preserve">
+    <value>AVEVA folder on {0}</value>
+  </data>
+  <data name="Lib_NoProjects" xml:space="preserve">
+    <value>No project found in this library.</value>
+  </data>
+  <data name="Decommission_Hint" xml:space="preserve">
+    <value>Archive the project as a zip, unregister it from E3D and optionally delete the folder.</value>
   </data>
 </root>

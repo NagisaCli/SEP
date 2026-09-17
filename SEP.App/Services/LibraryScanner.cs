@@ -232,7 +232,10 @@ public static class LibraryScanner
         {
             var locks = new List<string>();
             foreach (var d in Directory.EnumerateDirectories(projectDir, "*000"))
+            {
                 locks.AddRange(Directory.EnumerateFiles(d, "*.lck"));
+                locks.AddRange(Directory.EnumerateFiles(d, "*.lok"));
+            }
             return locks;
         }
         catch

@@ -1,10 +1,11 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using SEP.App.ViewModels;
+using Wpf.Ui.Controls;
 
 namespace SEP.App.Views.Dialogs;
 
-public partial class CreateProjectDialog : Window
+public partial class CreateProjectDialog : FluentWindow
 {
     private readonly CreateProjectDialogViewModel _viewModel;
 
@@ -13,6 +14,7 @@ public partial class CreateProjectDialog : Window
         InitializeComponent();
         _viewModel = App.Services.GetRequiredService<CreateProjectDialogViewModel>();
         DataContext = _viewModel;
+        Loaded += (_, _) => CodeField.Focus();
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e)
@@ -23,11 +25,16 @@ public partial class CreateProjectDialog : Window
 
     private async void OnCreateClick(object sender, RoutedEventArgs e)
     {
-        await _viewModel.CreateAsync();
-        if (_viewModel.IsSuccess)
+        CreateButton.IsEnabled = false;
+        try
         {
-            DialogResult = true;
-            Close();
+            await _viewModel.CreateAsync();
+            if (_viewModel.IsSuccess)
+            {
+                DialogResult = true;
+                Close();
+            }
         }
+        finally { CreateButton.IsEnabled = true; }
     }
 }

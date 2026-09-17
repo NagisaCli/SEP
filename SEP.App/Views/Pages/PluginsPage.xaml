@@ -1,0 +1,428 @@
+<Page x:Class="SEP.App.Views.Pages.PluginsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:loc="clr-namespace:SEP.App.Localization"
+      xmlns:beh="clr-namespace:SEP.App.Behaviors"
+      xmlns:controls="clr-namespace:SEP.App.Controls"
+      xmlns:models="clr-namespace:SEP.App.Models"
+      xmlns:vm="clr-namespace:SEP.App.ViewModels"
+      Title="{loc:Tr Nav_Plugins}"
+      Foreground="{DynamicResource SepTextBrush}">
+
+    <Page.Resources>
+        <!-- one PML symbol with its call command -->
+        <DataTemplate x:Key="SymbolRow" DataType="{x:Type models:PluginSymbol}">
+            <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <controls:Badge Content="{Binding Kind}" Margin="0,0,8,0" />
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontFamily="{StaticResource SepMonoFont}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding File}" Style="{StaticResource SepCaption}" Margin="10,0,0,0" VerticalAlignment="Center" ToolTip="{Binding Path}" />
+                </StackPanel>
+                <ui:Button Grid.Column="1" Style="{StaticResource SepIconButton}" MinWidth="26" MinHeight="26" Padding="3" Icon="{ui:SymbolIcon Symbol=Copy20}"
+                           ToolTip="{Binding CallCommand}" AutomationProperties.Name="{Binding CallCommand}" Visibility="{Binding CallCommand, Converter={StaticResource StringToVisibilityConverter}}"
+                           Command="{Binding DataContext.CopyTextCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding CallCommand}" />
+            </Grid>
+        </DataTemplate>
+
+        <Style x:Key="FeatureBadge" TargetType="controls:Badge">
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="24,16,24,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{loc:Tr Plugins_Title}" Style="{StaticResource SepPageTitle}" />
+                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
+                <TextBlock Text="{loc:Tr Plugins_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,2,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <ui:TextBox x:Name="FilterBox" Width="200" Icon="{ui:SymbolIcon Symbol=Search24}" PlaceholderText="{loc:Tr Plugins_FilterPlaceholder}" ClearButtonEnabled="True" Margin="0,0,10,0"
+                            Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add24}" Content="{loc:Tr Plugins_New}" Command="{Binding CreateCommand}" Margin="0,0,8,0" />
+                <ui:DropDownButton Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" Content="{loc:Tr Plugins_Import}" Margin="0,0,8,0">
+                    <ui:DropDownButton.Flyout>
+                        <ContextMenu>
+                            <MenuItem Header="{loc:Tr Plugins_ImportFolder}" Icon="{ui:SymbolIcon Symbol=Folder24}" Command="{Binding ImportFolderCommand}" />
+                            <MenuItem Header="{loc:Tr Plugins_ImportZip}" Icon="{ui:SymbolIcon Symbol=FolderZip24}" Command="{Binding ImportZipCommand}" />
+                        </ContextMenu>
+                    </ui:DropDownButton.Flyout>
+                </ui:DropDownButton>
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshCommand}" ToolTip="{loc:Tr Plugins_Rescan}" AutomationProperties.Name="{loc:Tr Plugins_Rescan}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Directory + bulk actions -->
+        <Border Grid.Row="1" Style="{StaticResource SepCard}" Padding="14,10" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border Width="34" Height="34" CornerRadius="9" Background="{DynamicResource SepPurpleSoftBrush}" VerticalAlignment="Center">
+                    <ui:SymbolIcon Symbol="PuzzlePiece24" Foreground="{DynamicResource SepPurpleBrush}" FontSize="18" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{loc:Tr Plugins_DirLabel}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
+                        <controls:Badge Margin="10,0,0,0">
+                            <controls:Badge.Content>
+                                <MultiBinding Converter="{StaticResource FormatConverter}">
+                                    <Binding Path="[Plugins_CountFormat]" Source="{x:Static loc:Loc.Instance}" />
+                                    <Binding Path="Total" />
+                                    <Binding Path="EnabledCount" />
+                                </MultiBinding>
+                            </controls:Badge.Content>
+                        </controls:Badge>
+                    </StackPanel>
+                    <TextBlock Text="{Binding PluginsDir}" Style="{StaticResource SepMono}" FontSize="12" Margin="0,2,0,0" ToolTip="{Binding PluginsDir}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Appearance="Secondary" Content="{loc:Tr Plugins_EnableAll}" Margin="0,0,6,0" Command="{Binding SetAllCommand}">
+                        <ui:Button.CommandParameter><sys:Boolean xmlns:sys="clr-namespace:System;assembly=System.Runtime">True</sys:Boolean></ui:Button.CommandParameter>
+                    </ui:Button>
+                    <ui:Button Appearance="Secondary" Content="{loc:Tr Plugins_DisableAll}" Margin="0,0,6,0" Command="{Binding SetAllCommand}">
+                        <ui:Button.CommandParameter><sys:Boolean xmlns:sys="clr-namespace:System;assembly=System.Runtime">False</sys:Boolean></ui:Button.CommandParameter>
+                    </ui:Button>
+                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=DocumentSync24}" Content="{loc:Tr Plugins_RebuildAll}" Margin="0,0,6,0" Command="{Binding RebuildAllIndexesCommand}" ToolTip="{loc:Tr Plugins_RebuildAllTooltip}" />
+                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" Content="{loc:Tr Plugins_ChangeDir}" Command="{Binding ChangeDirCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Panel tabs -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <RadioButton x:Name="ListTab" Style="{StaticResource SepTabButton}" GroupName="PluginTabs" IsChecked="{Binding ShowList, Mode=OneWay}" Click="OnListTab">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="AppsList24" Margin="0,0,6,0" />
+                    <TextBlock Text="{loc:Tr Plugins_TabList}" />
+                </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="ConflictsTab" Style="{StaticResource SepTabButton}" GroupName="PluginTabs" IsChecked="{Binding ShowConflicts, Mode=OneWay}" Click="OnConflictsTab">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Warning24" Margin="0,0,6,0" />
+                    <TextBlock Text="{loc:Tr Plugins_TabConflicts}" />
+                    <controls:Badge Content="{Binding ConflictCount}" Margin="8,0,0,0" Visibility="{Binding ConflictCount, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                        <controls:Badge.Style>
+                            <Style TargetType="controls:Badge">
+                                <Setter Property="Tone" Value="Warning" />
+                            </Style>
+                        </controls:Badge.Style>
+                    </controls:Badge>
+                </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="ChainTab" Style="{StaticResource SepTabButton}" GroupName="PluginTabs" IsChecked="{Binding ShowChain, Mode=OneWay}" Click="OnChainTab">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Link24" Margin="0,0,6,0" />
+                    <TextBlock Text="{loc:Tr Plugins_TabChain}" />
+                </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="MacroTab" Style="{StaticResource SepTabButton}" GroupName="PluginTabs" IsChecked="{Binding ShowMacro, Mode=OneWay}" Click="OnMacroTab">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Code24" Margin="0,0,6,0" />
+                    <TextBlock Text="{loc:Tr Plugins_TabMacro}" />
+                </StackPanel>
+            </RadioButton>
+        </StackPanel>
+
+        <!-- Panels -->
+        <Grid Grid.Row="3">
+            <!-- list -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True"
+                          Visibility="{Binding ShowList, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Margin="0,0,10,0">
+                    <Border Style="{StaticResource SepCard}" Padding="28" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <ui:SymbolIcon Symbol="PuzzlePiece48" FontSize="40" Foreground="{DynamicResource SepText3Brush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{loc:Tr Plugins_EmptyTitle}" Style="{StaticResource SepSectionTitle}" HorizontalAlignment="Center" Margin="0,10,0,4" />
+                            <TextBlock Text="{loc:Tr Plugins_EmptyBody}" Style="{StaticResource SepPageSubtitle}" TextAlignment="Center" MaxWidth="560" />
+                        </StackPanel>
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:PluginInfo}">
+                                <Border Style="{StaticResource SepRow}">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <ui:Button Style="{StaticResource SepIconButton}" Command="{Binding DataContext.ToggleExpandedCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
+                                                       ToolTip="{loc:Tr Plugins_Details}" AutomationProperties.Name="{Binding Name}">
+                                                <ui:SymbolIcon FontSize="16">
+                                                    <ui:SymbolIcon.Style>
+                                                        <Style TargetType="ui:SymbolIcon">
+                                                            <Setter Property="Symbol" Value="ChevronRight24" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                    <Setter Property="Symbol" Value="ChevronDown24" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ui:SymbolIcon.Style>
+                                                </ui:SymbolIcon>
+                                            </ui:Button>
+                                            <Border Grid.Column="1" Style="{StaticResource SepAvatar}" Background="{Binding Name, Converter={StaticResource PaletteConverter}}" Margin="4,0,0,0">
+                                                <TextBlock Text="{Binding Initials}" Style="{StaticResource SepAvatarText}" Foreground="#FFFFFF" />
+                                            </Border>
+                                            <StackPanel Grid.Column="2" Margin="12,0,10,0" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                    <controls:Badge Margin="8,0,0,0" Content="{loc:Tr Plugins_Enabled}" Tone="Success" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    <controls:Badge Margin="8,0,0,0" Content="{loc:Tr Plugins_Disabled}" Visibility="{Binding Enabled, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                    <controls:Badge Margin="6,0,0,0" Tone="Warning" Content="{loc:Tr Plugins_IndexStale}" Visibility="{Binding IndexNeedsRebuild, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlIndexStatus}" />
+                                                    <controls:Badge Margin="6,0,0,0" Tone="Danger" Content="{Binding Diagnostics.Count}" Visibility="{Binding HasDiagnostics, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{loc:Tr Plugins_DiagnosticsTooltip}" />
+                                                    <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="8,0,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="pmllib" Tone="Accent" Visibility="{Binding HasPmlLib, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlLibPath}" />
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="pmlui" Tone="Purple" Visibility="{Binding HasPmlUi, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlUiPath}" />
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="pml.net" Tone="Info" Visibility="{Binding HasPmlNet, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlNetPath}" />
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="dflts" Visibility="{Binding HasDflts, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding DfltsPath}" />
+                                                    <TextBlock Style="{StaticResource SepCaption}" VerticalAlignment="Center" Margin="4,0,0,0">
+                                                        <TextBlock.Text>
+                                                            <MultiBinding Converter="{StaticResource FormatConverter}">
+                                                                <Binding Path="[Plugins_SymbolCounts]" Source="{x:Static loc:Loc.Instance}" />
+                                                                <Binding Path="FormCount" />
+                                                                <Binding Path="ObjectCount" />
+                                                                <Binding Path="FunctionCount" />
+                                                                <Binding Path="MacroCount" />
+                                                                <Binding Path="AssemblyCount" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Path}" Style="{StaticResource SepMono}" Margin="0,3,0,0" ToolTip="{Binding Path}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
+                                                <ui:ToggleSwitch IsChecked="{Binding Enabled, Mode=OneWay}" AutomationProperties.Name="{Binding Name}" Margin="0,0,6,0"
+                                                                 Command="{Binding DataContext.ToggleCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=DocumentSync24}" ToolTip="{loc:Tr Plugins_RebuildIndex}" AutomationProperties.Name="{loc:Tr Plugins_RebuildIndex}"
+                                                           Visibility="{Binding HasPmlLib, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                           Command="{Binding DataContext.RebuildIndexCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" ToolTip="{loc:Tr Projects_OpenFolderTooltip}" AutomationProperties.Name="{loc:Tr Projects_OpenFolderTooltip}"
+                                                           Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- details -->
+                                        <Border Style="{StaticResource SepCardInner}" Margin="0,10,0,0" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <StackPanel>
+                                                <!-- diagnostics -->
+                                                <StackPanel Visibility="{Binding HasDiagnostics, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,10">
+                                                    <TextBlock Text="{loc:Tr Plugins_DiagnosticsHeader}" Style="{StaticResource SepLabel}" Foreground="{DynamicResource SepDangerBrush}" />
+                                                    <ItemsControl ItemsSource="{Binding Diagnostics}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,1" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                                <!-- entry commands -->
+                                                <StackPanel Visibility="{Binding HasEntryCommands, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,10">
+                                                    <Grid>
+                                                        <TextBlock Text="{loc:Tr Plugins_EntryHeader}" Style="{StaticResource SepLabel}" />
+                                                        <ui:Button Appearance="Transparent" Content="{loc:Tr Plugins_CopyEntry}" HorizontalAlignment="Right" Padding="6,2" FontSize="11" VerticalAlignment="Top"
+                                                                   Command="{Binding DataContext.CopyTextCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding EntryCommandsText}" />
+                                                    </Grid>
+                                                    <Border Style="{StaticResource SepWell}">
+                                                        <TextBlock Text="{Binding EntryCommandsText}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" FontSize="12" TextWrapping="Wrap" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <!-- symbols -->
+                                                <TextBlock Text="{loc:Tr Plugins_SymbolsHeader}" Style="{StaticResource SepLabel}" />
+                                                <ItemsControl ItemsSource="{Binding AllSymbols}" ItemTemplate="{StaticResource SymbolRow}" />
+                                                <TextBlock Text="{loc:Tr Plugins_NoSymbols}">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SepCaption}">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding FormCount}" Value="0" />
+                                                                        <Condition Binding="{Binding ObjectCount}" Value="0" />
+                                                                        <Condition Binding="{Binding FunctionCount}" Value="0" />
+                                                                        <Condition Binding="{Binding MacroCount}" Value="0" />
+                                                                        <Condition Binding="{Binding AssemblyCount}" Value="0" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <!-- index -->
+                                                <TextBlock Style="{StaticResource SepCaption}" Margin="0,8,0,0" Visibility="{Binding HasPmlLib, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                                            <Binding Path="[Plugins_IndexInfo]" Source="{x:Static loc:Loc.Instance}" />
+                                                            <Binding Path="PmlIndexStatus" />
+                                                            <Binding Path="PmlIndexCount" />
+                                                            <Binding Path="PmlFileCount" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- conflicts -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True"
+                          Visibility="{Binding ShowConflicts, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Margin="0,0,10,0">
+                    <Border Style="{StaticResource SepCard}" Padding="20" Visibility="{Binding ConflictCount, Converter={StaticResource NonZeroToVisibilityConverter}}" Margin="0,0,0,10"
+                            Background="{DynamicResource SepWarningSoftBrush}" BorderBrush="{DynamicResource SepWarningBrush}">
+                        <TextBlock Text="{loc:Tr Plugins_ConflictsHint}" Style="{StaticResource SepBody}" TextWrapping="Wrap" />
+                    </Border>
+                    <Border Padding="24">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource SepCard}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ConflictCount}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center">
+                            <ui:SymbolIcon Symbol="CheckmarkCircle48" FontSize="36" Foreground="{DynamicResource SepSuccessBrush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="{loc:Tr Plugins_NoConflicts}" Style="{StaticResource SepPageSubtitle}" Margin="0,8,0,0" TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Conflicts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:PluginConflict}">
+                                <Border Style="{StaticResource SepRow}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <controls:Badge Content="{Binding Kind}" Tone="Warning" VerticalAlignment="Top" Margin="0,2,10,0" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Symbol}" Style="{StaticResource SepBody}" FontFamily="{StaticResource SepMonoFont}" FontWeight="SemiBold" />
+                                            <TextBlock Style="{StaticResource SepMuted}" Margin="0,3,0,0" TextWrapping="Wrap">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource FormatConverter}">
+                                                        <Binding Path="[Plugins_ConflictLine]" Source="{x:Static loc:Loc.Instance}" />
+                                                        <Binding Path="PluginsText" />
+                                                        <Binding Path="Winner" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- resolution chain -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True"
+                          Visibility="{Binding ShowChain, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Margin="0,0,10,0">
+                    <TextBlock Text="{loc:Tr Plugins_ChainHint}" Style="{StaticResource SepPageSubtitle}" Margin="0,0,0,10" />
+                    <Border Style="{StaticResource SepCard}" Padding="0">
+                        <ItemsControl ItemsSource="{Binding Chain}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ChainEntry}">
+                                    <Border BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="0,0,0,1" Padding="14,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36" />
+                                                <ColumnDefinition Width="150" />
+                                                <ColumnDefinition Width="150" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Index}" Style="{StaticResource SepCaption}" FontFamily="{StaticResource SepMonoFont}" VerticalAlignment="Center" />
+                                            <controls:Badge Grid.Column="1" Content="{Binding Variable}" Tone="Accent" HorizontalAlignment="Left" FontFamily="{StaticResource SepMonoFont}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Source}" Style="{StaticResource SepBody}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Path}" Style="{StaticResource SepMono}" FontSize="12" VerticalAlignment="Center" ToolTip="{Binding Path}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- hot-load macro -->
+            <Grid Visibility="{Binding ShowMacro, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Style="{StaticResource SepCard}" Padding="14,10" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{loc:Tr Plugins_MacroHint}" Style="{StaticResource SepBody}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding MacroPath}" Style="{StaticResource SepMono}" Margin="0,4,0,0" ToolTip="{Binding MacroPath}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Copy24}" Content="{loc:Tr Plugins_CopyRun}" Command="{Binding CopyRunCommandCommand}" Margin="0,0,8,0" ToolTip="{loc:Tr Plugins_CopyRunTooltip}" />
+                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Copy24}" Content="{loc:Tr Plugins_CopyMacro}" Command="{Binding CopyMacroCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource SepCard}" Padding="0">
+                    <ui:TextBox Text="{Binding MacroText, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" FontFamily="{StaticResource SepMonoFont}" FontSize="12"
+                                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" BorderThickness="0" Background="Transparent" TextWrapping="NoWrap" />
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- status -->
+        <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" Margin="0,8,0,0" ToolTip="{Binding StatusMessage}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource SepStatusText}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+    </Grid>
+</Page>

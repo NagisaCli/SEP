@@ -30,11 +30,13 @@ public class E3dLauncherService : IE3dLauncherService
     private static readonly TimeSpan PathCheckTimeout = TimeSpan.FromSeconds(6);
 
     private readonly IProjectCatalog _catalog;
+    private readonly SessionService _sessions;
     private string? _cachedShortcut;   // resolved once per process: the Start Menu walk is slow
 
-    public E3dLauncherService(IProjectCatalog catalog)
+    public E3dLauncherService(IProjectCatalog catalog, SessionService sessions)
     {
         _catalog = catalog;
+        _sessions = sessions;
     }
 
     public async Task<(bool Success, string Message)> SwitchAndLaunchAsync(ProjectItem project)
@@ -42,6 +44,7 @@ public class E3dLauncherService : IE3dLauncherService
         var (ok, msg) = await Task.Run(() => SwitchSingle(project));
         if (!ok) return (false, msg);
         var launch = await LaunchE3dProcessAsync();
+        if (launch.Success) _sessions.Register(new[] { project });
         return (launch.Success, $"[{project.Name}] {launch.Message}");
     }
 
@@ -51,6 +54,59 @@ public class E3dLauncherService : IE3dLauncherService
         if (!ok) return (false, msg);
         var launch = await LaunchE3dProcessAsync();
         return (launch.Success, $"[{library.Name}] {launch.Message}");
+    }
+
+    public async Task<(bool Success, string Message)> LoadMyProjectsAndLaunchAsync()
+    {
+        var (ok, msg) = await Task.Run(SwitchAll);
+        if (!ok) return (false, msg);
+        var launch = await LaunchE3dProcessAsync();
+        if (launch.Success) _sessions.Register(_catalog.MyProjects);
+        return (launch.Success, $"{msg} {launch.Message}");
+    }
+
+    public Task<(bool Success, string Message)> SwitchAsync(ProjectItem project) => Task.Run(() => SwitchSingle(project));
+
+    /// <summary>Mode "all" (e3d_launcher.write_mode): the managed block lists every project of "my projects".</summary>
+    private (bool, string) SwitchAll()
+    {
+        var mine = _catalog.MyProjects;
+        if (mine.Count == 0) return (false, Strings.Launch_NoMyProjects);
+
+        var backups = new Dictionary<string, byte[]?>();
+        try
+        {
+            var bats = new List<string>();
+            var skipped = new List<string>();
+            foreach (var p in mine)
+            {
+                if (p.BatPath.IndexOfAny(DangerousBatChars) >= 0) return (false, string.Format(Strings.Launch_UnsafePath, p.BatPath));
+                // An offline project would make every E3D start wait on its "if exist"; leave it out and say so.
+                if (ExistsWithin(p.BatPath, PathCheckTimeout)) bats.Add(p.BatPath); else skipped.Add(p.Name);
+            }
+            if (bats.Count == 0) return (false, string.Format(Strings.Launch_ProjectFileUnreachable, string.Join(", ", skipped)));
+
+            string localDir = _catalog.LocalProjectsDir;
+            Directory.CreateDirectory(localDir);
+            string customEvars = CustomEvarsPath(localDir);
+
+            var (evarsBat, evarsInit) = RequireEvars();
+            Backup(backups, customEvars, evarsBat, evarsInit);
+
+            WriteManagedBlock(customEvars, bats);
+            SetProjectsDir(evarsBat, localDir);
+            SetProjectsDir(evarsInit, localDir);
+
+            _catalog.SetLastLaunchedAll();
+            string msg = string.Format(Strings.Launch_AllLoaded, bats.Count);
+            if (skipped.Count > 0) msg += " " + string.Format(Strings.Launch_AllSkipped, string.Join(", ", skipped));
+            return (true, msg);
+        }
+        catch (Exception ex)
+        {
+            Restore(backups);
+            return (false, string.Format(Strings.Launch_SwitchFailed, ex.Message));
+        }
     }
 
     private (bool, string) SwitchSingle(ProjectItem project)

@@ -63,7 +63,14 @@ public sealed class ThemeService
 
         try
         {
-            ApplicationThemeManager.Apply(dark ? ApplicationTheme.Dark : ApplicationTheme.Light, WindowBackdropType.Mica, updateAccent: false);
+            var theme = dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+            ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, updateAccent: false);
+            // WPF-UI's Primary buttons, toggles and selection highlights take the SEP accent, not the Windows one.
+            // (Buttons already on screen keep their old fill until their page is re-created; new pages pick the new accent up.)
+            if (app.TryFindResource("SepAccentStrongColor") is System.Windows.Media.Color accent)
+            {
+                ApplicationAccentColorManager.Apply(accent, theme);
+            }
         }
         catch (Exception ex)
         {
@@ -71,4 +78,5 @@ public sealed class ThemeService
         }
         Changed?.Invoke(this, EventArgs.Empty);
     }
+
 }

@@ -1,0 +1,220 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                    xmlns:loc="clr-namespace:SEP.App.Localization"
+                    xmlns:controls="clr-namespace:SEP.App.Controls"
+                    xmlns:beh="clr-namespace:SEP.App.Behaviors"
+                    xmlns:models="clr-namespace:SEP.App.Models">
+
+    <!-- Context menu shared by every card. PlacementTarget.Tag carries the page's ProjectActions, PlacementTarget.DataContext the project. -->
+    <ContextMenu x:Key="ProjectCardMenu" x:Shared="False">
+        <MenuItem Header="{loc:Tr Projects_SwitchAndLaunch}" Icon="{ui:SymbolIcon Symbol=Rocket24}"
+                  Command="{Binding PlacementTarget.Tag.LaunchCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <MenuItem Icon="{ui:SymbolIcon Symbol=Star24}"
+                  Command="{Binding PlacementTarget.Tag.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+            <MenuItem.Header>
+                <MultiBinding Converter="{StaticResource SwitchConverter}">
+                    <Binding Path="PlacementTarget.DataContext.IsFavorite" RelativeSource="{RelativeSource AncestorType=ContextMenu}" />
+                    <Binding Path="[Project_RemoveFromMine]" Source="{x:Static loc:Loc.Instance}" />
+                    <Binding Path="[Project_AddToMine]" Source="{x:Static loc:Loc.Instance}" />
+                </MultiBinding>
+            </MenuItem.Header>
+        </MenuItem>
+        <MenuItem Header="{loc:Tr Project_MenuEdit}" Icon="{ui:SymbolIcon Symbol=Edit24}"
+                  Command="{Binding PlacementTarget.Tag.EditCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <MenuItem Header="{loc:Tr Project_MenuUsers}" Icon="{ui:SymbolIcon Symbol=People24}"
+                  Command="{Binding PlacementTarget.Tag.ShowUsersCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <Separator />
+        <MenuItem Header="{loc:Tr Projects_OpenFolderTooltip}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}"
+                  Command="{Binding PlacementTarget.Tag.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <MenuItem Header="{loc:Tr Project_MenuCopyPath}" Icon="{ui:SymbolIcon Symbol=Copy24}"
+                  Command="{Binding PlacementTarget.Tag.CopyPathCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <Separator />
+        <MenuItem Header="{loc:Tr Project_MenuDecommission}" Icon="{ui:SymbolIcon Symbol=ArchiveArrowBack24}"
+                  Command="{Binding PlacementTarget.Tag.DecommissionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+    </ContextMenu>
+
+    <!-- Tag chip -->
+    <DataTemplate x:Key="TagChip">
+        <Border Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="1" CornerRadius="999" Padding="7,1" Margin="0,2,4,2">
+            <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{DynamicResource SepText2Brush}" />
+        </Border>
+    </DataTemplate>
+
+    <!-- The project card: category stripe, badge, title, meta pills, actions. Expects DataContext.Actions on the hosting Page. -->
+    <DataTemplate x:Key="ProjectCardTemplate" DataType="{x:Type models:ProjectItem}">
+        <Border Width="312" Margin="0,0,12,12" BorderThickness="1" CornerRadius="12" Padding="0"
+                RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" ContextMenu="{StaticResource ProjectCardMenu}"
+                Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}">
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
+                    <TranslateTransform x:Name="CardSlide" Y="0" />
+                </TransformGroup>
+            </Border.RenderTransform>
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- brushes stay DynamicResource setters: a storyboard cannot animate to a theme colour (it must freeze) -->
+                    <Setter Property="BorderBrush" Value="{DynamicResource SepBorderBrush}" />
+                    <Setter Property="Background" Value="{DynamicResource SepSurfaceBrush}" />
+                    <Style.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.18" />
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" From="8" To="0" Duration="0:0:0.2">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource SepAccentStrongBrush}" />
+                            <Setter Property="Background" Value="{DynamicResource SepSurfaceHoverBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1.012" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1.012" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <!-- category colour stripe -->
+                <Border CornerRadius="12,0,0,12" Margin="0,0,0,0">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasCategory}" Value="True">
+                                    <Setter Property="Background" Value="{Binding Category.Color, Converter={StaticResource HexToBrushConverter}}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+
+                <Grid Grid.Column="1" Margin="12,12,14,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- header -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,6,0" VerticalAlignment="Center" MinWidth="0" Padding="0"
+                                  Visibility="{Binding DataContext.BatchMode, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <Border Grid.Column="1" Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
+                            <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" Foreground="#FFFFFF" FontSize="12" />
+                        </Border>
+                        <StackPanel Grid.Column="2" Margin="10,0,6,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" ToolTip="{Binding Title}" />
+                            <TextBlock Style="{StaticResource SepMono}" ToolTip="{Binding BatPath}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                        <Binding Path="HasDisplayName" />
+                                        <Binding Path="Name" />
+                                        <Binding Path="ProjectDir" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                        <ui:Button Grid.Column="3" Style="{StaticResource SepIconButton}" Padding="4" MinWidth="28" MinHeight="28"
+                                   Command="{Binding DataContext.Actions.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
+                            <ui:Button.ToolTip>
+                                <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                    <Binding Path="IsFavorite" />
+                                    <Binding Path="[Project_RemoveFromMine]" Source="{x:Static loc:Loc.Instance}" />
+                                    <Binding Path="[Project_AddToMine]" Source="{x:Static loc:Loc.Instance}" />
+                                </MultiBinding>
+                            </ui:Button.ToolTip>
+                            <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="16" Foreground="{DynamicResource SepWarningBrush}" />
+                        </ui:Button>
+                    </Grid>
+
+                    <!-- meta pills -->
+                    <WrapPanel Grid.Row="1" Margin="0,8,0,8" Orientation="Horizontal">
+                        <controls:Badge Content="{loc:Tr Projects_ActiveBadge}" Tone="Success" IsSolid="True" Margin="0,2,6,2"
+                                        Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <controls:Badge Tone="Info" Margin="0,2,6,2" Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <controls:Badge.Content>
+                                <MultiBinding Converter="{StaticResource StatusLabelConverter}">
+                                    <Binding Path="Status" />
+                                    <Binding Path="[Status_None]" Source="{x:Static loc:Loc.Instance}" />
+                                </MultiBinding>
+                            </controls:Badge.Content>
+                        </controls:Badge>
+                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding HasCategory, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Content="{Binding Category.Name}" Foreground="{Binding Category.Color, Converter={StaticResource HexToBrushConverter}}" />
+                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding HasOwner, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Person12" Margin="0,0,3,0" FontSize="11" />
+                                <TextBlock Text="{Binding Owner}" />
+                            </StackPanel>
+                        </controls:Badge>
+                        <controls:Badge Tone="Warning" Margin="0,2,6,2" Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr Project_LockActive}" />
+                        <controls:Badge Tone="Purple" Margin="0,2,6,2" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
+                                <TextBlock Text="{Binding OnlineCount}" />
+                            </StackPanel>
+                        </controls:Badge>
+                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr Project_Cached}" />
+                        <ItemsControl ItemsSource="{Binding Tags}" ItemTemplate="{StaticResource TagChip}" Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </WrapPanel>
+
+                    <!-- actions -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch" Padding="10,5"
+                                   Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                        <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_OpenFolderTooltip}"
+                                   Command="{Binding DataContext.Actions.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                        <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_MoreTooltip}"
+                                   AutomationProperties.Name="{loc:Tr Projects_MoreTooltip}" beh:ClickMenu.IsEnabled="True" ContextMenu="{StaticResource ProjectCardMenu}"
+                                   Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>

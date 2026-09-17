@@ -1,9 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using SEP.App.Models;
 using SEP.App.ViewModels;
-using SEP.App.Views.Dialogs;
 
 namespace SEP.App.Views.Pages;
 
@@ -26,19 +24,4 @@ public partial class ProjectsPage : Page
     private void OnFilterMineClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Mine";
     private void OnFilterLocalClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Local";
     private void OnFilterUncClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Unc";
-
-    private void OnCreateProjectClick(object sender, RoutedEventArgs e)
-    {
-        var dlg = new CreateProjectDialog { Owner = Window.GetWindow(this) };
-        dlg.ShowDialog();   // the catalog rescans the library itself after a successful creation
-    }
-
-    private void OnProjectMoreClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement fe && fe.Tag is ProjectItem item)
-        {
-            var dlg = new DecommissionDialog(item) { Owner = Window.GetWindow(this) };
-            dlg.ShowDialog();
-        }
-    }
 }

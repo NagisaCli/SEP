@@ -99,7 +99,7 @@
     <value>活动工程: </value>
   </data>
   <data name="Main_LaunchButton" xml:space="preserve">
-    <value>🚀 立即唤起 E3D</value>
+    <value>立即唤起 E3D</value>
   </data>
   <data name="Main_LaunchTooltip" xml:space="preserve">
     <value>一键唤起当前活动工程</value>
@@ -135,16 +135,16 @@
     <value>全部工程</value>
   </data>
   <data name="Projects_FilterLocal" xml:space="preserve">
-    <value>💻 本地工程</value>
+    <value>本地</value>
   </data>
   <data name="Projects_FilterUnc" xml:space="preserve">
-    <value>🌐 网络UNC</value>
+    <value>网络 UNC</value>
   </data>
   <data name="Projects_SearchPlaceholder" xml:space="preserve">
     <value>快速搜索代号/路径...</value>
   </data>
   <data name="Projects_CreateButton" xml:space="preserve">
-    <value>✨ 新建工程</value>
+    <value>新建工程</value>
   </data>
   <data name="Projects_RefreshTooltip" xml:space="preserve">
     <value>刷新工程清单</value>
@@ -156,7 +156,7 @@
     <value>● 当前活动工程</value>
   </data>
   <data name="Projects_SwitchAndLaunch" xml:space="preserve">
-    <value>🚀 切换环境并启动 E3D</value>
+    <value>切换并唤起</value>
   </data>
   <data name="Projects_MoreTooltip" xml:space="preserve">
     <value>下线归档与管理</value>
@@ -171,10 +171,10 @@
     <value>正在切换活动工程为 [{0}] 并唤起 E3D...</value>
   </data>
   <data name="Project_LockActive" xml:space="preserve">
-    <value>⚠ 存在数据库活跃锁</value>
+    <value>已锁定</value>
   </data>
   <data name="Project_LockFree" xml:space="preserve">
-    <value>✓ 无锁就绪</value>
+    <value>无锁</value>
   </data>
   <data name="Project_SourceLocal" xml:space="preserve">
     <value>本地</value>
@@ -183,7 +183,7 @@
     <value>网络UNC</value>
   </data>
   <data name="Projects_FilterMine" xml:space="preserve">
-    <value>★ 我的项目</value>
+    <value>我的项目</value>
   </data>
   <data name="Projects_Loaded" xml:space="preserve">
     <value>{1} 个路径库，共 {0} 个项目</value>
@@ -204,7 +204,7 @@
     <value>添加路径库：文件夹、\\服务器\共享 或 evarsXXX.bat</value>
   </data>
   <data name="Lib_AddButton" xml:space="preserve">
-    <value>➕ 添加路径库</value>
+    <value>添加项目库</value>
   </data>
   <data name="Lib_Rescan" xml:space="preserve">
     <value>重新扫描该路径库</value>
@@ -213,7 +213,7 @@
     <value>从列表移除路径库（不删除任何文件）</value>
   </data>
   <data name="Lib_LoadWhole" xml:space="preserve">
-    <value>▶ 整库载入</value>
+    <value>整库载入</value>
   </data>
   <data name="Lib_OpenFolder" xml:space="preserve">
     <value>打开文件夹</value>
@@ -417,22 +417,22 @@
     <value>全景体检与锁排查</value>
   </data>
   <data name="Diag_Rerun" xml:space="preserve">
-    <value>🔄 重新体检</value>
+    <value>重新体检</value>
   </data>
   <data name="Diag_UnlockAll" xml:space="preserve">
-    <value>🛡️ 一键清理所有残留锁</value>
+    <value>清理全部残留锁</value>
   </data>
   <data name="Diag_CoreMetrics" xml:space="preserve">
     <value>核心环境诊断指标</value>
   </data>
   <data name="Diag_LocksHeader" xml:space="preserve">
-    <value>跨工程数据库锁文件巡检 (Active Session Locks)</value>
+    <value>会话锁文件</value>
   </data>
   <data name="Diag_LocksCountFormat" xml:space="preserve">
     <value>检测到 {0} 个锁</value>
   </data>
   <data name="Diag_UnlockButton" xml:space="preserve">
-    <value>🔓 解锁</value>
+    <value>解锁</value>
   </data>
   <data name="Diag_Running" xml:space="preserve">
     <value>正在执行环境体检与锁文件扫描...</value>
@@ -486,7 +486,7 @@
     <value>如 管道专业负责人</value>
   </data>
   <data name="Users_CreateButton" xml:space="preserve">
-    <value>➕ 立即创建用户</value>
+    <value>创建用户</value>
   </data>
   <data name="Users_Loading" xml:space="preserve">
     <value>正在读取 [{0}] 用户与团队清单...</value>
@@ -884,13 +884,13 @@
     <value>SEP · AVEVA E3D 现代智能工程管理系统</value>
   </data>
   <data name="Settings_AboutArch" xml:space="preserve">
-    <value>架构：C# .NET 10 (DirectWrite / Windows 11 Mica 渲染)</value>
+    <value>.NET 10 WPF 客户端，Fluent (WPF-UI) 风格与 Windows 11 Mica 背景；与 SEP Python 工具共用数据文件。</value>
   </data>
   <data name="Settings_AboutStyle" xml:space="preserve">
-    <value>设计风格：专业稳定 · 艺术极简 (Obsidian Deep &amp; Fluent 2.0)</value>
+    <value>深色/浅色主题跟随 Windows；中英文可即时切换。</value>
   </data>
   <data name="Settings_SaveButton" xml:space="preserve">
-    <value>💾 保存并应用所有设置</value>
+    <value>保存并应用</value>
   </data>
   <data name="Settings_Saved" xml:space="preserve">
     <value>设置保存成功！</value>
@@ -920,10 +920,10 @@
     <value>从已有工程克隆配置 (000系统库/等级库/出图样式)</value>
   </data>
   <data name="Create_Hint" xml:space="preserve">
-    <value>💡 创建后将自动生成 000/ISO/DWG/MAC/PIC/DFLTS 目录骨架与 evars.bat，并同步注册至 ProjectInfo.xml 与 projects.ini。</value>
+    <value>创建后将自动生成 000/ISO/DWG/MAC/PIC/DFLTS 目录骨架与 evars.bat，并同步注册至 ProjectInfo.xml 与 projects.ini。</value>
   </data>
   <data name="Create_Button" xml:space="preserve">
-    <value>✨ 立即规范化创建</value>
+    <value>创建工程</value>
   </data>
   <data name="Decommission_Title" xml:space="preserve">
     <value>工程下线与冷备归档</value>
@@ -944,6 +944,1203 @@
     <value>冷备归档存放目录:</value>
   </data>
   <data name="Decommission_Button" xml:space="preserve">
-    <value>📦 确认安全下线</value>
+    <value>确认下线</value>
+  </data>
+  <data name="Common_Browse" xml:space="preserve">
+    <value>浏览…</value>
+  </data>
+  <data name="Nav_Overview" xml:space="preserve">
+    <value>总览</value>
+  </data>
+  <data name="Nav_MyProjects" xml:space="preserve">
+    <value>我的项目</value>
+  </data>
+  <data name="Nav_Plugins" xml:space="preserve">
+    <value>插件管理</value>
+  </data>
+  <data name="Nav_Tools" xml:space="preserve">
+    <value>诊断与工具</value>
+  </data>
+  <data name="Main_LaunchMenuTooltip" xml:space="preserve">
+    <value>更多启动方式</value>
+  </data>
+  <data name="Main_MenuLaunchAllMine" xml:space="preserve">
+    <value>加载我的全部项目并唤起 E3D</value>
+  </data>
+  <data name="Main_MenuLaunchOnly" xml:space="preserve">
+    <value>仅唤起 E3D（不切换工程）</value>
+  </data>
+  <data name="Main_ModeAll" xml:space="preserve">
+    <value>我的全部项目</value>
+  </data>
+  <data name="Main_ModeLibrary" xml:space="preserve">
+    <value>整个项目库</value>
+  </data>
+  <data name="Launch_AllName" xml:space="preserve">
+    <value>我的全部项目</value>
+  </data>
+  <data name="Launch_AllStarting" xml:space="preserve">
+    <value>正在加载我的全部项目并唤起 E3D…</value>
+  </data>
+  <data name="Launch_AllLoaded" xml:space="preserve">
+    <value>已将 {0} 个项目加载到 E3D。</value>
+  </data>
+  <data name="Launch_AllSkipped" xml:space="preserve">
+    <value>已跳过（不可达）：{0}。</value>
+  </data>
+  <data name="Launch_NoMyProjects" xml:space="preserve">
+    <value>“我的项目”为空，请先用星标按钮添加项目。</value>
+  </data>
+  <data name="Project_AddedToMine" xml:space="preserve">
+    <value>已将 {0} 加入我的项目。</value>
+  </data>
+  <data name="Project_RemovedFromMine" xml:space="preserve">
+    <value>已将 {0} 移出我的项目。</value>
+  </data>
+  <data name="Project_PathCopied" xml:space="preserve">
+    <value>已复制：{0}</value>
+  </data>
+  <data name="Project_MenuEdit" xml:space="preserve">
+    <value>编辑项目信息…</value>
+  </data>
+  <data name="Project_MenuUsers" xml:space="preserve">
+    <value>用户与权限</value>
+  </data>
+  <data name="Project_MenuCopyPath" xml:space="preserve">
+    <value>复制 evars 路径</value>
+  </data>
+  <data name="Project_MenuDecommission" xml:space="preserve">
+    <value>退役归档…</value>
+  </data>
+  <data name="Projects_PageSubtitle" xml:space="preserve">
+    <value>所有项目库中的全部工程：一键切换唤起、收藏、分类与批量编辑。</value>
+  </data>
+  <data name="Projects_VisibleCount" xml:space="preserve">
+    <value>显示 {0} 项</value>
+  </data>
+  <data name="Lib_AddHeader" xml:space="preserve">
+    <value>添加项目库</value>
+  </data>
+  <data name="Lib_AddHint" xml:space="preserve">
+    <value>包含工程（各带 evarsXXX.bat）的文件夹，本地或 UNC 均可。</value>
+  </data>
+  <data name="Lib_AddTooltip" xml:space="preserve">
+    <value>添加包含工程的本地或网络文件夹</value>
+  </data>
+  <data name="Lib_BrowseTitle" xml:space="preserve">
+    <value>选择项目库文件夹</value>
+  </data>
+  <data name="Lib_ExpandAll" xml:space="preserve">
+    <value>展开全部项目库</value>
+  </data>
+  <data name="Lib_CollapseAll" xml:space="preserve">
+    <value>折叠全部项目库</value>
+  </data>
+  <data name="Lib_ToggleTooltip" xml:space="preserve">
+    <value>展开/折叠此项目库</value>
+  </data>
+  <data name="Lib_LoadWholeTooltip" xml:space="preserve">
+    <value>将此项目库的全部工程加载到 E3D（整库模式）</value>
+  </data>
+  <data name="Lib_Unreachable" xml:space="preserve">
+    <value>不可达</value>
+  </data>
+  <data name="Lib_EmptyTitle" xml:space="preserve">
+    <value>还没有项目库</value>
+  </data>
+  <data name="Lib_NoVisibleProjects" xml:space="preserve">
+    <value>没有符合当前筛选条件的工程（已隐藏 {0} 个）。</value>
+  </data>
+  <data name="Lib_RemoveTitle" xml:space="preserve">
+    <value>移除项目库</value>
+  </data>
+  <data name="Lib_RemoveBody" xml:space="preserve">
+    <value>将 “{0}” 从 SEP 移除？磁盘上的文件不受影响，只是不再列出这些工程（也会从我的项目中移除）。</value>
+  </data>
+  <data name="Lib_RemoveConfirm" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="Filter_AnyCategory" xml:space="preserve">
+    <value>全部分类</value>
+  </data>
+  <data name="Filter_AnyStatus" xml:space="preserve">
+    <value>全部状态</value>
+  </data>
+  <data name="Filter_AnyTag" xml:space="preserve">
+    <value>全部标签</value>
+  </data>
+  <data name="Filter_Clear" xml:space="preserve">
+    <value>清除筛选</value>
+  </data>
+  <data name="Batch_Toggle" xml:space="preserve">
+    <value>多选工程（批量模式）</value>
+  </data>
+  <data name="Batch_Selected" xml:space="preserve">
+    <value>已选择 {0} 项</value>
+  </data>
+  <data name="Batch_SelectVisible" xml:space="preserve">
+    <value>全选显示项</value>
+  </data>
+  <data name="Batch_SelectNone" xml:space="preserve">
+    <value>取消全选</value>
+  </data>
+  <data name="Batch_AddToMine" xml:space="preserve">
+    <value>加入我的项目</value>
+  </data>
+  <data name="Batch_RemoveFromMine" xml:space="preserve">
+    <value>移出我的项目</value>
+  </data>
+  <data name="Batch_Edit" xml:space="preserve">
+    <value>批量编辑…</value>
+  </data>
+  <data name="Batch_AddedToMine" xml:space="preserve">
+    <value>已将 {0} 个工程加入我的项目。</value>
+  </data>
+  <data name="Batch_RemovedFromMine" xml:space="preserve">
+    <value>已将 {0} 个工程移出我的项目。</value>
+  </data>
+  <data name="Batch_Edited" xml:space="preserve">
+    <value>已更新 {0} 个工程。</value>
+  </data>
+  <data name="Category_Unnamed" xml:space="preserve">
+    <value>未命名</value>
+  </data>
+  <data name="Category_NameRequired" xml:space="preserve">
+    <value>分类名称不能为空。</value>
+  </data>
+  <data name="Category_NotFound" xml:space="preserve">
+    <value>找不到该分类。</value>
+  </data>
+  <data name="Category_Duplicate" xml:space="preserve">
+    <value>已存在名为 “{0}” 的分类。</value>
+  </data>
+  <data name="Category_Saved" xml:space="preserve">
+    <value>分类已保存。</value>
+  </data>
+  <data name="Category_None" xml:space="preserve">
+    <value>未分类</value>
+  </data>
+  <data name="Category_Manage" xml:space="preserve">
+    <value>管理分类</value>
+  </data>
+  <data name="Category_NewPlaceholder" xml:space="preserve">
+    <value>新分类名称</value>
+  </data>
+  <data name="Category_Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Category_ColorTooltip" xml:space="preserve">
+    <value>点击切换颜色</value>
+  </data>
+  <data name="Category_Delete" xml:space="preserve">
+    <value>删除分类</value>
+  </data>
+  <data name="Category_DeleteBody" xml:space="preserve">
+    <value>删除 “{0}”？其中的工程将变为未分类。</value>
+  </data>
+  <data name="Category_Deleted" xml:space="preserve">
+    <value>已删除分类 “{0}”。</value>
+  </data>
+  <data name="Category_Added" xml:space="preserve">
+    <value>已添加分类 “{0}”。</value>
+  </data>
+  <data name="Category_Usage" xml:space="preserve">
+    <value>{0} 个工程</value>
+  </data>
+  <data name="Status_InProgress" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="Status_Completed" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="Status_OnHold" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="Status_Archived" xml:space="preserve">
+    <value>归档</value>
+  </data>
+  <data name="Status_None" xml:space="preserve">
+    <value>无状态</value>
+  </data>
+  <data name="Edit_Title" xml:space="preserve">
+    <value>编辑 {0}</value>
+  </data>
+  <data name="Edit_BatchTitle" xml:space="preserve">
+    <value>批量编辑 {0} 个工程</value>
+  </data>
+  <data name="Edit_BatchHint" xml:space="preserve">
+    <value>只有勾选“应用”的字段会写入所有选中的工程。</value>
+  </data>
+  <data name="Edit_DisplayName" xml:space="preserve">
+    <value>显示名称</value>
+  </data>
+  <data name="Edit_DisplayNamePlaceholder" xml:space="preserve">
+    <value>替代代号显示的友好名称</value>
+  </data>
+  <data name="Edit_Category" xml:space="preserve">
+    <value>分类</value>
+  </data>
+  <data name="Edit_Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Edit_Owner" xml:space="preserve">
+    <value>负责人</value>
+  </data>
+  <data name="Edit_OwnerPlaceholder" xml:space="preserve">
+    <value>负责人姓名</value>
+  </data>
+  <data name="Edit_Tags" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="Edit_TagsPlaceholder" xml:space="preserve">
+    <value>标签，用逗号分隔</value>
+  </data>
+  <data name="Edit_TagsAppend" xml:space="preserve">
+    <value>追加到现有标签而不是替换</value>
+  </data>
+  <data name="Edit_Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Edit_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="Edit_DescriptionPlaceholder" xml:space="preserve">
+    <value>一句话描述该工程</value>
+  </data>
+  <data name="Edit_Notes" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="Edit_NotesPlaceholder" xml:space="preserve">
+    <value>值得记录的内容（路径、联系人、注意事项）</value>
+  </data>
+  <data name="My_PageSubtitle" xml:space="preserve">
+    <value>“加载全部”会按此顺序一次性载入 E3D 的工程。</value>
+  </data>
+  <data name="My_CountFormat" xml:space="preserve">
+    <value>{0} 个工程</value>
+  </data>
+  <data name="My_LaunchAll" xml:space="preserve">
+    <value>加载全部并唤起</value>
+  </data>
+  <data name="My_LaunchAllTooltip" xml:space="preserve">
+    <value>将下方全部工程写入 custom_evars.bat 并唤起 E3D</value>
+  </data>
+  <data name="My_ProbeSessions" xml:space="preserve">
+    <value>在线状态</value>
+  </data>
+  <data name="My_ProbeSessionsTooltip" xml:space="preserve">
+    <value>检查这些工程的 SEP 会话与锁定者</value>
+  </data>
+  <data name="My_ClearButton" xml:space="preserve">
+    <value>清空我的项目</value>
+  </data>
+  <data name="My_ClearTitle" xml:space="preserve">
+    <value>清空我的项目</value>
+  </data>
+  <data name="My_ClearBody" xml:space="preserve">
+    <value>将这 {0} 个工程全部移出我的项目？</value>
+  </data>
+  <data name="My_ClearConfirm" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="My_Cleared" xml:space="preserve">
+    <value>已清空我的项目。</value>
+  </data>
+  <data name="My_Hint" xml:space="preserve">
+    <value>在任意页面为工程加星即可添加到这里。“加载全部”会把列表中的全部工程一次性注册到 E3D，登录窗口里可以直接选择。</value>
+  </data>
+  <data name="My_EmptyTitle" xml:space="preserve">
+    <value>我的项目为空</value>
+  </data>
+  <data name="My_EmptyBody" xml:space="preserve">
+    <value>为常用工程加星，它们会出现在这里和总览页，可一键唤起。</value>
+  </data>
+  <data name="My_MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="My_MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="My_Offline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="My_OfflineTooltip" xml:space="preserve">
+    <value>此工程所在项目库当前不可达，“加载全部”时会跳过。</value>
+  </data>
+  <data name="Overview_Title" xml:space="preserve">
+    <value>总览</value>
+  </data>
+  <data name="Overview_Subtitle" xml:space="preserve">
+    <value>当前配置、在线状态与快捷入口。</value>
+  </data>
+  <data name="Overview_Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="Overview_Dismiss" xml:space="preserve">
+    <value>忽略</value>
+  </data>
+  <data name="Overview_DismissAll" xml:space="preserve">
+    <value>全部忽略</value>
+  </data>
+  <data name="Overview_Projects" xml:space="preserve">
+    <value>工程</value>
+  </data>
+  <data name="Overview_LibrariesFormat" xml:space="preserve">
+    <value>来自 {0} 个项目库</value>
+  </data>
+  <data name="Overview_MyHint" xml:space="preserve">
+    <value>可一键“加载全部”</value>
+  </data>
+  <data name="Overview_Online" xml:space="preserve">
+    <value>当前在线</value>
+  </data>
+  <data name="Overview_LockedFormat" xml:space="preserve">
+    <value>{0} 个被会话锁定</value>
+  </data>
+  <data name="Overview_Active" xml:space="preserve">
+    <value>活动工程</value>
+  </data>
+  <data name="Overview_ActiveHint" xml:space="preserve">
+    <value>选择工程后唤起</value>
+  </data>
+  <data name="Overview_ModeSingle" xml:space="preserve">
+    <value>单个工程</value>
+  </data>
+  <data name="Overview_Install" xml:space="preserve">
+    <value>E3D 安装</value>
+  </data>
+  <data name="Overview_InstallOk" xml:space="preserve">
+    <value>已找到</value>
+  </data>
+  <data name="Overview_InstallMissing" xml:space="preserve">
+    <value>未找到</value>
+  </data>
+  <data name="Overview_Unreachable" xml:space="preserve">
+    <value>不可达的项目库</value>
+  </data>
+  <data name="Overview_UnreachableHint" xml:space="preserve">
+    <value>显示缓存的工程</value>
+  </data>
+  <data name="Overview_QuickLaunch" xml:space="preserve">
+    <value>快速唤起</value>
+  </data>
+  <data name="Overview_SeeAll" xml:space="preserve">
+    <value>查看全部</value>
+  </data>
+  <data name="Overview_Recent" xml:space="preserve">
+    <value>最近发现</value>
+  </data>
+  <data name="Overview_OnlineNow" xml:space="preserve">
+    <value>当前在线</value>
+  </data>
+  <data name="Overview_NobodyOnline" xml:space="preserve">
+    <value>当前没有人连接任何工程。</value>
+  </data>
+  <data name="Overview_ByCategory" xml:space="preserve">
+    <value>按分类</value>
+  </data>
+  <data name="Overview_ByStatus" xml:space="preserve">
+    <value>按状态</value>
+  </data>
+  <data name="Overview_Shortcuts" xml:space="preserve">
+    <value>快捷入口</value>
+  </data>
+  <data name="Plugins_Title" xml:space="preserve">
+    <value>插件管理</value>
+  </data>
+  <data name="Plugins_Subtitle" xml:space="preserve">
+    <value>通过 custom_evars.bat 接入 E3D 的 PML / PML.NET 插件目录。</value>
+  </data>
+  <data name="Plugins_FilterPlaceholder" xml:space="preserve">
+    <value>筛选插件或符号…</value>
+  </data>
+  <data name="Plugins_New" xml:space="preserve">
+    <value>新建插件</value>
+  </data>
+  <data name="Plugins_Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Plugins_ImportFolder" xml:space="preserve">
+    <value>从文件夹…</value>
+  </data>
+  <data name="Plugins_ImportZip" xml:space="preserve">
+    <value>从 zip 压缩包…</value>
+  </data>
+  <data name="Plugins_Rescan" xml:space="preserve">
+    <value>重新扫描插件</value>
+  </data>
+  <data name="Plugins_DirLabel" xml:space="preserve">
+    <value>插件目录</value>
+  </data>
+  <data name="Plugins_CountFormat" xml:space="preserve">
+    <value>{0} 个插件，{1} 个已启用</value>
+  </data>
+  <data name="Plugins_EnableAll" xml:space="preserve">
+    <value>全部启用</value>
+  </data>
+  <data name="Plugins_DisableAll" xml:space="preserve">
+    <value>全部停用</value>
+  </data>
+  <data name="Plugins_RebuildAll" xml:space="preserve">
+    <value>重建索引</value>
+  </data>
+  <data name="Plugins_RebuildAllTooltip" xml:space="preserve">
+    <value>为所有带 pmllib 的插件重新生成 pml.index</value>
+  </data>
+  <data name="Plugins_ChangeDir" xml:space="preserve">
+    <value>更改目录…</value>
+  </data>
+  <data name="Plugins_TabList" xml:space="preserve">
+    <value>插件</value>
+  </data>
+  <data name="Plugins_TabConflicts" xml:space="preserve">
+    <value>冲突</value>
+  </data>
+  <data name="Plugins_TabChain" xml:space="preserve">
+    <value>解析顺序</value>
+  </data>
+  <data name="Plugins_TabMacro" xml:space="preserve">
+    <value>热加载宏</value>
+  </data>
+  <data name="Plugins_EmptyTitle" xml:space="preserve">
+    <value>未找到插件</value>
+  </data>
+  <data name="Plugins_EmptyBody" xml:space="preserve">
+    <value>插件目录下带 pmllib、pmlui、bin 或 dflts 子目录的文件夹即为插件。可以新建，或导入文件夹 / zip。</value>
+  </data>
+  <data name="Plugins_Details" xml:space="preserve">
+    <value>显示详情</value>
+  </data>
+  <data name="Plugins_Enabled" xml:space="preserve">
+    <value>已启用</value>
+  </data>
+  <data name="Plugins_Disabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="Plugins_IndexStale" xml:space="preserve">
+    <value>索引需重建</value>
+  </data>
+  <data name="Plugins_DiagnosticsTooltip" xml:space="preserve">
+    <value>此插件存在的问题</value>
+  </data>
+  <data name="Plugins_SymbolCounts" xml:space="preserve">
+    <value>{0} 窗体 · {1} 对象 · {2} 函数 · {3} 宏 · {4} 程序集</value>
+  </data>
+  <data name="Plugins_RebuildIndex" xml:space="preserve">
+    <value>重建 pml.index</value>
+  </data>
+  <data name="Plugins_DiagnosticsHeader" xml:space="preserve">
+    <value>问题</value>
+  </data>
+  <data name="Plugins_EntryHeader" xml:space="preserve">
+    <value>入口命令（粘贴到 E3D 命令行）</value>
+  </data>
+  <data name="Plugins_CopyEntry" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="Plugins_SymbolsHeader" xml:space="preserve">
+    <value>定义</value>
+  </data>
+  <data name="Plugins_NoSymbols" xml:space="preserve">
+    <value>此插件中未找到 PML 定义。</value>
+  </data>
+  <data name="Plugins_IndexInfo" xml:space="preserve">
+    <value>pml.index：{0} · 已索引 {1} / 共 {2} 个 .pml 文件</value>
+  </data>
+  <data name="Plugins_ConflictsHint" xml:space="preserve">
+    <value>两个已启用的插件定义了相同的名称。E3D 采用 PMLLIB 中靠前的（显示为胜出者），其余被忽略。</value>
+  </data>
+  <data name="Plugins_NoConflicts" xml:space="preserve">
+    <value>已启用的插件之间没有冲突。</value>
+  </data>
+  <data name="Plugins_ConflictLine" xml:space="preserve">
+    <value>定义于 {0} — E3D 使用 {1}。</value>
+  </data>
+  <data name="Plugins_ChainHint" xml:space="preserve">
+    <value>E3D 解析 PMLLIB / PMLUI / PMLNET / defaults 路径的顺序（由 custom_evars.bat 设置）。</value>
+  </data>
+  <data name="Plugins_MacroHint" xml:space="preserve">
+    <value>无需重启即可把所有已启用插件加载到运行中的 E3D 会话。</value>
+  </data>
+  <data name="Plugins_CopyRun" xml:space="preserve">
+    <value>复制 $m 命令</value>
+  </data>
+  <data name="Plugins_CopyRunTooltip" xml:space="preserve">
+    <value>复制用于 E3D 命令行的 “$m &lt;宏路径&gt;”</value>
+  </data>
+  <data name="Plugins_CopyMacro" xml:space="preserve">
+    <value>复制宏内容</value>
+  </data>
+  <data name="Plugins_Scanning" xml:space="preserve">
+    <value>正在扫描插件…</value>
+  </data>
+  <data name="Plugins_ScanDone" xml:space="preserve">
+    <value>{0} 个插件，{1} 个已启用 · {2}</value>
+  </data>
+  <data name="Plugins_ScanFailed" xml:space="preserve">
+    <value>插件扫描失败：{0}</value>
+  </data>
+  <data name="Plugins_MacroCopied" xml:space="preserve">
+    <value>已复制热加载宏。</value>
+  </data>
+  <data name="Plugins_RunCopied" xml:space="preserve">
+    <value>已复制 $m 命令，请粘贴到 E3D 命令行。</value>
+  </data>
+  <data name="Plugins_NewTitle" xml:space="preserve">
+    <value>新建插件</value>
+  </data>
+  <data name="Plugins_NewBody" xml:space="preserve">
+    <value>在插件目录中创建骨架（pmllib + bin）并启用。</value>
+  </data>
+  <data name="Plugins_NewNameLabel" xml:space="preserve">
+    <value>插件名称</value>
+  </data>
+  <data name="Plugins_NewConfirm" xml:space="preserve">
+    <value>创建</value>
+  </data>
+  <data name="Plugins_ImportFolderTitle" xml:space="preserve">
+    <value>选择要导入的插件文件夹</value>
+  </data>
+  <data name="Plugins_ImportZipTitle" xml:space="preserve">
+    <value>选择插件 zip 压缩包</value>
+  </data>
+  <data name="Plugins_PickDirTitle" xml:space="preserve">
+    <value>选择插件根目录</value>
+  </data>
+  <data name="Plugins_DiagUnreadable" xml:space="preserve">
+    <value>无法读取目录：{0}</value>
+  </data>
+  <data name="Plugins_DiagIndexOutdated" xml:space="preserve">
+    <value>pml.index 已过期（已索引 {0}，文件 {1}），请重建。</value>
+  </data>
+  <data name="Plugins_DiagIndexError" xml:space="preserve">
+    <value>无法读取 pml.index：{0}</value>
+  </data>
+  <data name="Plugins_DiagIndexMissing" xml:space="preserve">
+    <value>缺少 pml.index，生成前 E3D 无法识别这些 PML 文件。</value>
+  </data>
+  <data name="Plugins_DiagSingleDll" xml:space="preserve">
+    <value>bin 中只有一个程序集，请确认其依赖已就位。</value>
+  </data>
+  <data name="Plugins_WriteFailed" xml:space="preserve">
+    <value>无法更新 custom_evars.bat：{0}</value>
+  </data>
+  <data name="Plugins_AllEnabled" xml:space="preserve">
+    <value>已启用 {0} 个插件。</value>
+  </data>
+  <data name="Plugins_AllDisabled" xml:space="preserve">
+    <value>已停用全部插件。</value>
+  </data>
+  <data name="Plugins_IndexNoDir" xml:space="preserve">
+    <value>没有 pmllib 目录</value>
+  </data>
+  <data name="Plugins_IndexNoFiles" xml:space="preserve">
+    <value>没有可索引的 .pml 文件</value>
+  </data>
+  <data name="Plugins_IndexRebuilt" xml:space="preserve">
+    <value>pml.index 已重建（{0} 个文件）。</value>
+  </data>
+  <data name="Plugins_IndexWriteFailed" xml:space="preserve">
+    <value>无法写入 pml.index：{0}</value>
+  </data>
+  <data name="Plugins_IndexAllDone" xml:space="preserve">
+    <value>已重建 {0} 个索引。</value>
+  </data>
+  <data name="Plugins_NameInvalid" xml:space="preserve">
+    <value>插件名称必须包含字母或数字。</value>
+  </data>
+  <data name="Plugins_AlreadyExists" xml:space="preserve">
+    <value>已存在名为 “{0}” 的插件。</value>
+  </data>
+  <data name="Plugins_Created" xml:space="preserve">
+    <value>已创建插件 “{0}”。</value>
+  </data>
+  <data name="Plugins_CreateFailed" xml:space="preserve">
+    <value>无法创建插件：{0}</value>
+  </data>
+  <data name="Plugins_ImportMissing" xml:space="preserve">
+    <value>{0} 处没有可导入的内容。</value>
+  </data>
+  <data name="Plugins_Imported" xml:space="preserve">
+    <value>已导入并启用插件 “{0}”。</value>
+  </data>
+  <data name="Plugins_ImportFailed" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="Tools_Title" xml:space="preserve">
+    <value>诊断与工具</value>
+  </data>
+  <data name="Tools_Subtitle" xml:space="preserve">
+    <value>E3D 配置、网络项目库与会话锁的健康检查和一键修复。</value>
+  </data>
+  <data name="Tools_ConfigTitle" xml:space="preserve">
+    <value>E3D 配置</value>
+  </data>
+  <data name="Tools_ConfigBody" xml:space="preserve">
+    <value>检查 evars.init 与 custom_evars.bat 中的失效路径、离线挂载以及会导致 E3D 启动失败的语法。</value>
+  </data>
+  <data name="Tools_CheckButton" xml:space="preserve">
+    <value>检查</value>
+  </data>
+  <data name="Tools_FixConfigTooltip" xml:space="preserve">
+    <value>注释掉检查标记的行（先写入 .sep.bak 备份）</value>
+  </data>
+  <data name="Tools_NetTitle" xml:space="preserve">
+    <value>项目库可达性</value>
+  </data>
+  <data name="Tools_NetBody" xml:space="preserve">
+    <value>UNC 项目库：主机、445 端口、工作站服务、共享访问与来宾策略；本地项目库：是否存在及权限。</value>
+  </data>
+  <data name="Tools_DiagnoseButton" xml:space="preserve">
+    <value>诊断</value>
+  </data>
+  <data name="Tools_DiagnoseAllButton" xml:space="preserve">
+    <value>全部项目库</value>
+  </data>
+  <data name="Tools_UserDataBody" xml:space="preserve">
+    <value>清除 E3D 按用户保存的缓存（会话残留、临时文件），解决启动慢和窗体过期问题。</value>
+  </data>
+  <data name="Tools_CadBody" xml:space="preserve">
+    <value>修复 E3D 出图时使用的 CAD 字体映射（字符显示为方框时）。</value>
+  </data>
+  <data name="Tools_ReindexBody" xml:space="preserve">
+    <value>为所有已启用插件重新生成 pml.index，让 E3D 识别新增或重命名的 PML 文件。</value>
+  </data>
+  <data name="Tools_ReindexButton" xml:space="preserve">
+    <value>重建索引</value>
+  </data>
+  <data name="Tools_InstallTitle" xml:space="preserve">
+    <value>E3D 安装</value>
+  </data>
+  <data name="Tools_InstallBody" xml:space="preserve">
+    <value>evars.bat 与 E3D 可执行文件的预期位置；若安装在别处请在设置中修改。</value>
+  </data>
+  <data name="Tools_LocksBody" xml:space="preserve">
+    <value>异常退出的会话残留的锁文件会阻塞其他用户。扫描全部工程并清理孤立的锁。</value>
+  </data>
+  <data name="Tools_ScanLocks" xml:space="preserve">
+    <value>扫描锁文件</value>
+  </data>
+  <data name="Tools_FixesHeader" xml:space="preserve">
+    <value>建议修复</value>
+  </data>
+  <data name="Tools_NeedsAdmin" xml:space="preserve">
+    <value>需要管理员权限</value>
+  </data>
+  <data name="Tools_FixRun" xml:space="preserve">
+    <value>执行修复</value>
+  </data>
+  <data name="Tools_CopyCommands" xml:space="preserve">
+    <value>复制命令</value>
+  </data>
+  <data name="Tools_CommandsCopied" xml:space="preserve">
+    <value>已复制命令。</value>
+  </data>
+  <data name="Tools_FixNeedsAdmin" xml:space="preserve">
+    <value>此修复需要管理员权限，Windows 会请求提升。</value>
+  </data>
+  <data name="Tools_FixManual" xml:space="preserve">
+    <value>“{0}” 需要手动完成，命令见下方。</value>
+  </data>
+  <data name="Tools_Checking" xml:space="preserve">
+    <value>正在检查 E3D 配置…</value>
+  </data>
+  <data name="Tools_Fixing" xml:space="preserve">
+    <value>正在应用修复…</value>
+  </data>
+  <data name="Tools_Cleaning" xml:space="preserve">
+    <value>正在清理 USERDATA…</value>
+  </data>
+  <data name="Tools_Reindexing" xml:space="preserve">
+    <value>正在重建插件索引…</value>
+  </data>
+  <data name="Tools_Diagnosing" xml:space="preserve">
+    <value>正在诊断…</value>
+  </data>
+  <data name="Tools_ConfigReportTitle" xml:space="preserve">
+    <value>E3D 配置检查</value>
+  </data>
+  <data name="Tools_ConfigReportOk" xml:space="preserve">
+    <value>一切正常。</value>
+  </data>
+  <data name="Tools_ConfigReportProblems" xml:space="preserve">
+    <value>发现 {0} 个问题。</value>
+  </data>
+  <data name="Tools_NetReportTitle" xml:space="preserve">
+    <value>项目库诊断：{0}</value>
+  </data>
+  <data name="Tools_NetAllTitle" xml:space="preserve">
+    <value>全部项目库</value>
+  </data>
+  <data name="Tools_NetAllOk" xml:space="preserve">
+    <value>所有项目库均可达。</value>
+  </data>
+  <data name="Tools_NetAllProblems" xml:space="preserve">
+    <value>各项目库共发现 {0} 个问题。</value>
+  </data>
+  <data name="Tools_FixConfigTitle" xml:space="preserve">
+    <value>清理 E3D 配置</value>
+  </data>
+  <data name="Tools_FixConfigStep" xml:space="preserve">
+    <value>注释 evars.init / custom_evars.bat 中被标记的行，并从 SEP 管理块中移除失效条目。</value>
+  </data>
+  <data name="Tools_FixConfigConfirm" xml:space="preserve">
+    <value>被标记的行将被注释（标记为 [SEP DISABLED]），每个文件保留 .sep.bak 备份。继续？</value>
+  </data>
+  <data name="Tools_FixConfigButton" xml:space="preserve">
+    <value>清理</value>
+  </data>
+  <data name="Tools_UserDataTitle" xml:space="preserve">
+    <value>清理 USERDATA</value>
+  </data>
+  <data name="Tools_UserDataConfirm" xml:space="preserve">
+    <value>删除 {0} 下的缓存文件夹？E3D 必须处于关闭状态。</value>
+  </data>
+  <data name="Tools_UserDataButton" xml:space="preserve">
+    <value>清理</value>
+  </data>
+  <data name="Tools_CadTitle" xml:space="preserve">
+    <value>修复 CAD 字体</value>
+  </data>
+  <data name="Tools_CadConfirm" xml:space="preserve">
+    <value>更新 E3D 安装目录中的字体映射文件（保留备份）？</value>
+  </data>
+  <data name="Tools_CadButton" xml:space="preserve">
+    <value>修复字体</value>
+  </data>
+  <data name="Tools_ReindexTitle" xml:space="preserve">
+    <value>插件索引</value>
+  </data>
+  <data name="Lock_ConfirmBody" xml:space="preserve">
+    <value>删除工程 {1} 的锁文件 {0}？请确认没有人正在该会话中工作。</value>
+  </data>
+  <data name="Lock_ConfirmAllBody" xml:space="preserve">
+    <value>删除全部 {0} 个锁文件？请确认没有人正在这些会话中工作。</value>
+  </data>
+  <data name="Tools_CheckCoreFiles" xml:space="preserve">
+    <value>E3D 核心文件</value>
+  </data>
+  <data name="Tools_CheckCoreFilesOk" xml:space="preserve">
+    <value>在 {0} 中找到 evars.bat 与可执行文件</value>
+  </data>
+  <data name="Tools_CheckCoreFilesMissing" xml:space="preserve">
+    <value>{0} 中缺少 evars.bat 或可执行文件，请在设置中检查安装目录</value>
+  </data>
+  <data name="Tools_CheckEvarsInit" xml:space="preserve">
+    <value>evars.init 路径</value>
+  </data>
+  <data name="Tools_CheckEvarsInitOk" xml:space="preserve">
+    <value>evars.init 中的路径全部存在</value>
+  </data>
+  <data name="Tools_CheckEvarsInitDead" xml:space="preserve">
+    <value>evars.init 中有 {0} 个路径不存在</value>
+  </data>
+  <data name="Tools_CheckCustomEvars" xml:space="preserve">
+    <value>custom_evars.bat 健康度</value>
+  </data>
+  <data name="Tools_CheckCustomOk" xml:space="preserve">
+    <value>未发现问题</value>
+  </data>
+  <data name="Tools_CheckCustomAbsent" xml:space="preserve">
+    <value>custom_evars.bat 尚不存在（首次唤起时创建）</value>
+  </data>
+  <data name="Tools_CheckCustomDead" xml:space="preserve">
+    <value>{0} 行无效</value>
+  </data>
+  <data name="Tools_CheckCustomOffline" xml:space="preserve">
+    <value>{0} 个离线挂载</value>
+  </data>
+  <data name="Tools_CheckMyProjects" xml:space="preserve">
+    <value>我的项目</value>
+  </data>
+  <data name="Tools_CheckMyProjectsOk" xml:space="preserve">
+    <value>{0} 个工程，全部可达</value>
+  </data>
+  <data name="Tools_CheckMyProjectsOffline" xml:space="preserve">
+    <value>{0} 个工程不可达，“加载全部”时会被跳过</value>
+  </data>
+  <data name="Tools_ReasonParentheses" xml:space="preserve">
+    <value>括号不匹配会导致批处理解析失败</value>
+  </data>
+  <data name="Tools_ReasonQuotedSet" xml:space="preserve">
+    <value>带引号的 set 值，引号会进入变量内容</value>
+  </data>
+  <data name="Tools_ReasonUndefinedVar" xml:space="preserve">
+    <value>引用了未定义的 %{0}%</value>
+  </data>
+  <data name="Tools_ReasonOfflineMount" xml:space="preserve">
+    <value>网络驱动器离线，net use 会卡住启动</value>
+  </data>
+  <data name="Tools_ReasonUncOnline" xml:space="preserve">
+    <value>网络路径可达</value>
+  </data>
+  <data name="Tools_ReasonUncOffline" xml:space="preserve">
+    <value>网络路径不可达</value>
+  </data>
+  <data name="Tools_ReasonLocalExists" xml:space="preserve">
+    <value>路径存在</value>
+  </data>
+  <data name="Tools_ReasonLocalMissing" xml:space="preserve">
+    <value>路径不存在</value>
+  </data>
+  <data name="Tools_ChangeDisabledDead" xml:space="preserve">
+    <value>已禁用失效路径</value>
+  </data>
+  <data name="Tools_ChangeDisabledMount" xml:space="preserve">
+    <value>已禁用离线挂载</value>
+  </data>
+  <data name="Tools_ChangeDisabledProject" xml:space="preserve">
+    <value>已禁用不可达工程</value>
+  </data>
+  <data name="Tools_ChangeDisabledSyntax" xml:space="preserve">
+    <value>已禁用无效行</value>
+  </data>
+  <data name="Tools_ChangeDisabledVar" xml:space="preserve">
+    <value>已禁用对未定义变量的引用</value>
+  </data>
+  <data name="Tools_ChangeFixedQuotes" xml:space="preserve">
+    <value>已去除 set 中的引号</value>
+  </data>
+  <data name="Tools_ChangeManagedRemoved" xml:space="preserve">
+    <value>已从 SEP 管理块中移除</value>
+  </data>
+  <data name="Tools_FixDone" xml:space="preserve">
+    <value>已应用 {0} 项更改，备份文件以 .sep.bak 结尾。</value>
+  </data>
+  <data name="Tools_FixNothing" xml:space="preserve">
+    <value>无需修复。</value>
+  </data>
+  <data name="Tools_FixFailed" xml:space="preserve">
+    <value>无法修复 {0}：{1}</value>
+  </data>
+  <data name="Tools_UserDataMissing" xml:space="preserve">
+    <value>未找到 USERDATA 目录：{0}</value>
+  </data>
+  <data name="Tools_UserDataDone" xml:space="preserve">
+    <value>已删除 {0} 项，释放 {1} KB。</value>
+  </data>
+  <data name="Tools_UserDataClean" xml:space="preserve">
+    <value>USERDATA 已经是干净的。</value>
+  </data>
+  <data name="Tools_UserDataError" xml:space="preserve">
+    <value>清理中断：{0}</value>
+  </data>
+  <data name="Tools_CadNotFound" xml:space="preserve">
+    <value>在 E3D 安装目录中未找到字体或 support 目录。</value>
+  </data>
+  <data name="Tools_CadDone" xml:space="preserve">
+    <value>已更新 {0} 个字体映射文件。</value>
+  </data>
+  <data name="Tools_CadUpToDate" xml:space="preserve">
+    <value>字体映射已是最新。</value>
+  </data>
+  <data name="Tools_NetPath" xml:space="preserve">
+    <value>路径</value>
+  </data>
+  <data name="Tools_NetExists" xml:space="preserve">
+    <value>目录存在</value>
+  </data>
+  <data name="Tools_NetReadable" xml:space="preserve">
+    <value>可读</value>
+  </data>
+  <data name="Tools_NetReadableOk" xml:space="preserve">
+    <value>可以列出目录内容</value>
+  </data>
+  <data name="Tools_NetReadableNo" xml:space="preserve">
+    <value>无法列出目录内容，可能是权限问题</value>
+  </data>
+  <data name="Tools_NetWritable" xml:space="preserve">
+    <value>可写</value>
+  </data>
+  <data name="Tools_NetWritableOk" xml:space="preserve">
+    <value>可以创建文件（锁文件和会话需要）</value>
+  </data>
+  <data name="Tools_NetWritableNo" xml:space="preserve">
+    <value>只读，无法写入锁文件和 SEP 会话</value>
+  </data>
+  <data name="Tools_NetShareReachable" xml:space="preserve">
+    <value>共享可达</value>
+  </data>
+  <data name="Tools_NetShareUnreachable" xml:space="preserve">
+    <value>无法打开该 UNC 路径</value>
+  </data>
+  <data name="Tools_NetHost" xml:space="preserve">
+    <value>主机名</value>
+  </data>
+  <data name="Tools_NetHostNone" xml:space="preserve">
+    <value>路径中没有主机名</value>
+  </data>
+  <data name="Tools_NetHostOk" xml:space="preserve">
+    <value>{0} 可解析</value>
+  </data>
+  <data name="Tools_NetHostFail" xml:space="preserve">
+    <value>{0} 无法解析（DNS / hosts 文件）</value>
+  </data>
+  <data name="Tools_NetPort" xml:space="preserve">
+    <value>SMB 445 端口</value>
+  </data>
+  <data name="Tools_NetPortOk" xml:space="preserve">
+    <value>{0} 的 445 端口可连接</value>
+  </data>
+  <data name="Tools_NetPortFail" xml:space="preserve">
+    <value>{0} 的 445 端口关闭或被过滤（{1}）</value>
+  </data>
+  <data name="Tools_NetPortSkipped" xml:space="preserve">
+    <value>已跳过（主机无法解析）</value>
+  </data>
+  <data name="Tools_NetService" xml:space="preserve">
+    <value>工作站服务</value>
+  </data>
+  <data name="Tools_NetServiceRunning" xml:space="preserve">
+    <value>LanmanWorkstation 正在运行</value>
+  </data>
+  <data name="Tools_NetServiceStopped" xml:space="preserve">
+    <value>LanmanWorkstation 已停止，无法打开任何 SMB 共享</value>
+  </data>
+  <data name="Tools_NetServiceUnknown" xml:space="preserve">
+    <value>无法读取服务状态</value>
+  </data>
+  <data name="Tools_NetShare" xml:space="preserve">
+    <value>共享访问</value>
+  </data>
+  <data name="Tools_NetShareOk" xml:space="preserve">
+    <value>{0} 已连接</value>
+  </data>
+  <data name="Tools_NetShareConnected" xml:space="preserve">
+    <value>已通过 net use 连接</value>
+  </data>
+  <data name="Tools_NetShareNoRead" xml:space="preserve">
+    <value>已连接但无法读取目录</value>
+  </data>
+  <data name="Tools_NetShareSkipped" xml:space="preserve">
+    <value>已跳过（主机或端口不可达）</value>
+  </data>
+  <data name="Tools_NetGuest" xml:space="preserve">
+    <value>来宾访问策略</value>
+  </data>
+  <data name="Tools_NetGuestOn" xml:space="preserve">
+    <value>允许不安全的来宾登录</value>
+  </data>
+  <data name="Tools_NetGuestOff" xml:space="preserve">
+    <value>不安全的来宾登录已被阻止（Windows 11 默认），无账号的共享会失败</value>
+  </data>
+  <data name="Tools_NetGuestUnknown" xml:space="preserve">
+    <value>无法读取策略</value>
+  </data>
+  <data name="Tools_NetProjects" xml:space="preserve">
+    <value>工程</value>
+  </data>
+  <data name="Tools_NetProjectsSkipped" xml:space="preserve">
+    <value>已跳过（目录不可达）</value>
+  </data>
+  <data name="Tools_FixPermTitle" xml:space="preserve">
+    <value>检查权限</value>
+  </data>
+  <data name="Tools_FixPermStep" xml:space="preserve">
+    <value>为你的账号授予该目录的读取权限（或联系所有者）。</value>
+  </data>
+  <data name="Tools_FixDnsTitle" xml:space="preserve">
+    <value>修复主机解析</value>
+  </data>
+  <data name="Tools_FixDnsStep" xml:space="preserve">
+    <value>将 {0} 添加到 C:\Windows\System32\drivers\etc\hosts，或在项目库路径中使用 IP 地址。</value>
+  </data>
+  <data name="Tools_FixPortTitle" xml:space="preserve">
+    <value>开放 SMB 445 端口</value>
+  </data>
+  <data name="Tools_FixPortStep1" xml:space="preserve">
+    <value>检查服务器及网络之间的防火墙是否放行 TCP 445。</value>
+  </data>
+  <data name="Tools_FixPortStep2" xml:space="preserve">
+    <value>确认服务器已启用“文件和打印机共享”。</value>
+  </data>
+  <data name="Tools_FixServiceTitle" xml:space="preserve">
+    <value>启动工作站服务</value>
+  </data>
+  <data name="Tools_FixServiceStep" xml:space="preserve">
+    <value>启动 LanmanWorkstation 服务（需要管理员权限）。</value>
+  </data>
+  <data name="Tools_FixGuestTitle" xml:space="preserve">
+    <value>允许不安全的来宾登录</value>
+  </data>
+  <data name="Tools_FixGuestStep1" xml:space="preserve">
+    <value>Windows 11 会阻止不需要密码的共享。</value>
+  </data>
+  <data name="Tools_FixGuestStep2" xml:space="preserve">
+    <value>在 HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters 下设置 AllowInsecureGuestAuth = 1（需要管理员权限）。</value>
+  </data>
+  <data name="Tools_FixSessionsTitle" xml:space="preserve">
+    <value>清除会话限制</value>
+  </data>
+  <data name="Tools_FixSessionsStep" xml:space="preserve">
+    <value>{0} 报告会话过多，请清除本机残留的 SMB 会话。</value>
+  </data>
+  <data name="Tools_FixReconnectTitle" xml:space="preserve">
+    <value>使用其他凭据重新连接</value>
+  </data>
+  <data name="Tools_FixReconnectStep" xml:space="preserve">
+    <value>Windows 已用另一账号连接到 {0}，请先断开再重新连接。</value>
+  </data>
+  <data name="Tools_FixStructureTitle" xml:space="preserve">
+    <value>检查目录结构</value>
+  </data>
+  <data name="Tools_FixStructureStep" xml:space="preserve">
+    <value>项目库中必须包含带 evarsXXX.bat 的工程文件夹。</value>
+  </data>
+  <data name="Tools_GuestAlready" xml:space="preserve">
+    <value>已经允许不安全的来宾登录。</value>
+  </data>
+  <data name="Tools_GuestEnabled" xml:space="preserve">
+    <value>现已允许不安全的来宾登录，请重新连接共享。</value>
+  </data>
+  <data name="Tools_GuestFailed" xml:space="preserve">
+    <value>无法写入注册表值（提升被拒绝？）。</value>
+  </data>
+  <data name="Tools_GuestFailedWith" xml:space="preserve">
+    <value>无法写入注册表值：{0}</value>
+  </data>
+  <data name="Tools_ReconnectUncOnly" xml:space="preserve">
+    <value>只有网络共享可以重新连接。</value>
+  </data>
+  <data name="Tools_ReconnectFailed" xml:space="preserve">
+    <value>无法重新连接共享。</value>
+  </data>
+  <data name="Tools_ReconnectDone" xml:space="preserve">
+    <value>{0} 已重新连接。</value>
+  </data>
+  <data name="Tools_NetErrTimeout" xml:space="preserve">
+    <value>超时</value>
+  </data>
+  <data name="Tools_NetErr5" xml:space="preserve">
+    <value>访问被拒绝（5）</value>
+  </data>
+  <data name="Tools_NetErr53" xml:space="preserve">
+    <value>找不到网络路径（53）</value>
+  </data>
+  <data name="Tools_NetErr67" xml:space="preserve">
+    <value>找不到网络名（67）</value>
+  </data>
+  <data name="Tools_NetErr71" xml:space="preserve">
+    <value>服务器会话过多（71）</value>
+  </data>
+  <data name="Tools_NetErr86" xml:space="preserve">
+    <value>密码或凭据错误（86）</value>
+  </data>
+  <data name="Tools_NetErr1219" xml:space="preserve">
+    <value>已用其他凭据连接（1219）</value>
+  </data>
+  <data name="Tools_NetErr1231" xml:space="preserve">
+    <value>网络不可达（1231）</value>
+  </data>
+  <data name="Tools_NetErr1331" xml:space="preserve">
+    <value>账户已禁用（1331）</value>
+  </data>
+  <data name="Tools_NetErrOther" xml:space="preserve">
+    <value>net use 失败，代码 {0}</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>外观、E3D 路径以及 SEP 数据的存放位置。</value>
+  </data>
+  <data name="Settings_PreferencesHint" xml:space="preserve">
+    <value>语言和主题立即生效。</value>
+  </data>
+  <data name="Settings_ThemeLabel" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="Settings_ThemeAuto" xml:space="preserve">
+    <value>跟随 Windows</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="Settings_AutoStartHint" xml:space="preserve">
+    <value>保存后将 SEP 加入当前账号的 Windows 启动项。</value>
+  </data>
+  <data name="Settings_PathsHint" xml:space="preserve">
+    <value>自动检测；仅当 E3D 安装在特殊位置时才需修改。保存后生效。</value>
+  </data>
+  <data name="Settings_LocalProjectsDirHint" xml:space="preserve">
+    <value>单个工程唤起与插件块写入其 custom_evars.bat 的项目库。</value>
+  </data>
+  <data name="Settings_PluginsDirLabel" xml:space="preserve">
+    <value>插件目录</value>
+  </data>
+  <data name="Settings_PluginsDirPlaceholder" xml:space="preserve">
+    <value>D:\AVEVA\Plugins（留空自动检测）</value>
+  </data>
+  <data name="Settings_LnkPlaceholder" xml:space="preserve">
+    <value>留空则自动查找 E3D 快捷方式</value>
+  </data>
+  <data name="Settings_DataHeader" xml:space="preserve">
+    <value>数据</value>
+  </data>
+  <data name="Settings_DataHint" xml:space="preserve">
+    <value>项目库、我的项目、分类与凭据，与 Python 工具共用。</value>
+  </data>
+  <data name="Settings_PortableBadge" xml:space="preserve">
+    <value>便携模式</value>
+  </data>
+  <data name="Settings_Export" xml:space="preserve">
+    <value>导出配置包…</value>
+  </data>
+  <data name="Settings_ExportTooltip" xml:space="preserve">
+    <value>将项目库、工程、分类与路径导出为一个 JSON 文件，便于迁移到其他电脑</value>
+  </data>
+  <data name="Settings_Import" xml:space="preserve">
+    <value>导入配置包…</value>
+  </data>
+  <data name="Settings_ImportTooltip" xml:space="preserve">
+    <value>用其他电脑导出的配置包替换当前数据</value>
+  </data>
+  <data name="Settings_ExportTitle" xml:space="preserve">
+    <value>导出 SEP 配置包</value>
+  </data>
+  <data name="Settings_Exported" xml:space="preserve">
+    <value>配置包已导出到 {0}</value>
+  </data>
+  <data name="Settings_ExportFailed" xml:space="preserve">
+    <value>导出失败：{0}</value>
+  </data>
+  <data name="Settings_ImportTitle" xml:space="preserve">
+    <value>导入 SEP 配置包</value>
+  </data>
+  <data name="Settings_ImportInvalid" xml:space="preserve">
+    <value>该文件不是 SEP 配置包。</value>
+  </data>
+  <data name="Settings_ImportConfirm" xml:space="preserve">
+    <value>用来自 {2} 的 {0} 个项目库和 {1} 个工程替换当前数据？当前数据将被覆盖。</value>
+  </data>
+  <data name="Settings_ImportButton" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Settings_ImportRemappedTitle" xml:space="preserve">
+    <value>导入时已重新映射路径</value>
+  </data>
+  <data name="Settings_Imported" xml:space="preserve">
+    <value>已导入 {0} 个项目库和 {1} 个工程。</value>
+  </data>
+  <data name="Settings_ImportFailed" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="Settings_DevicePathsHeader" xml:space="preserve">
+    <value>本机路径</value>
+  </data>
+  <data name="Settings_PathFound" xml:space="preserve">
+    <value>已找到</value>
+  </data>
+  <data name="Settings_PathMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="Settings_DriveLabel" xml:space="preserve">
+    <value>{0} 上的 AVEVA 目录</value>
+  </data>
+  <data name="Lib_NoProjects" xml:space="preserve">
+    <value>此项目库中没有找到工程。</value>
+  </data>
+  <data name="Decommission_Hint" xml:space="preserve">
+    <value>将工程打包为 zip 归档、从 E3D 注销，并可选删除目录。</value>
   </data>
 </root>

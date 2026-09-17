@@ -4,11 +4,11 @@ using SEP.App.ViewModels;
 
 namespace SEP.App.Views.Pages;
 
-public partial class DiagnosticsPage : Page
+public partial class ToolsPage : Page
 {
-    public DiagnosticsPage()
+    public ToolsPage()
     {
         InitializeComponent();
-        DataContext = App.Services.GetRequiredService<DiagnosticsViewModel>();
+        DataContext = App.Services.GetRequiredService<ToolsViewModel>();
     }
 }

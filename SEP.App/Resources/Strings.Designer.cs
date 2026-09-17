@@ -138,7 +138,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🚀 Launch E3D now.
+        ///   Looks up a localized string similar to Launch E3D now.
         /// </summary>
         public static string Main_LaunchButton {
             get {
@@ -246,7 +246,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 💻 Local.
+        ///   Looks up a localized string similar to Local.
         /// </summary>
         public static string Projects_FilterLocal {
             get {
@@ -255,7 +255,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🌐 Network.
+        ///   Looks up a localized string similar to Network.
         /// </summary>
         public static string Projects_FilterUnc {
             get {
@@ -273,7 +273,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ✨ New project.
+        ///   Looks up a localized string similar to New project.
         /// </summary>
         public static string Projects_CreateButton {
             get {
@@ -309,7 +309,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🚀 Switch &amp; launch E3D.
+        ///   Looks up a localized string similar to Switch &amp; launch.
         /// </summary>
         public static string Projects_SwitchAndLaunch {
             get {
@@ -354,7 +354,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ⚠ Active database lock.
+        ///   Looks up a localized string similar to locked.
         /// </summary>
         public static string Project_LockActive {
             get {
@@ -363,7 +363,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ✓ No locks.
+        ///   Looks up a localized string similar to No locks.
         /// </summary>
         public static string Project_LockFree {
             get {
@@ -390,7 +390,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ★ My projects.
+        ///   Looks up a localized string similar to My projects.
         /// </summary>
         public static string Projects_FilterMine {
             get {
@@ -453,7 +453,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ➕ Add library.
+        ///   Looks up a localized string similar to Add library.
         /// </summary>
         public static string Lib_AddButton {
             get {
@@ -480,7 +480,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ▶ Load whole library.
+        ///   Looks up a localized string similar to Load whole library.
         /// </summary>
         public static string Lib_LoadWhole {
             get {
@@ -1092,7 +1092,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🔄 Re-run check.
+        ///   Looks up a localized string similar to Re-run check.
         /// </summary>
         public static string Diag_Rerun {
             get {
@@ -1101,7 +1101,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🛡️ Clear all stale locks.
+        ///   Looks up a localized string similar to Clear all stale locks.
         /// </summary>
         public static string Diag_UnlockAll {
             get {
@@ -1119,7 +1119,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Database lock files across projects (active session locks).
+        ///   Looks up a localized string similar to Session locks.
         /// </summary>
         public static string Diag_LocksHeader {
             get {
@@ -1137,7 +1137,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 🔓 Unlock.
+        ///   Looks up a localized string similar to Unlock.
         /// </summary>
         public static string Diag_UnlockButton {
             get {
@@ -1299,7 +1299,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ➕ Create user.
+        ///   Looks up a localized string similar to Create user.
         /// </summary>
         public static string Users_CreateButton {
             get {
@@ -2487,7 +2487,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Architecture: C# .NET 10 (DirectWrite / Windows 11 Mica).
+        ///   Looks up a localized string similar to .NET 10 WPF client with Fluent (WPF-UI) styling and Windows 11 Mica; shares its data files with the SEP Python tool..
         /// </summary>
         public static string Settings_AboutArch {
             get {
@@ -2496,7 +2496,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Design: professional &amp; minimal (Obsidian Deep &amp; Fluent 2.0).
+        ///   Looks up a localized string similar to Dark and light themes follow Windows; English and Simplified Chinese switch live..
         /// </summary>
         public static string Settings_AboutStyle {
             get {
@@ -2505,7 +2505,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 💾 Save &amp; apply settings.
+        ///   Looks up a localized string similar to Save &amp; apply.
         /// </summary>
         public static string Settings_SaveButton {
             get {
@@ -2595,7 +2595,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 💡 The 000/ISO/DWG/MAC/PIC/DFLTS folder skeleton and evars.bat are generated automatically, and the project is registered in ProjectInfo.xml and projects.ini..
+        ///   Looks up a localized string similar to The 000/ISO/DWG/MAC/PIC/DFLTS folder skeleton and evars.bat are generated automatically, and the project is registered in ProjectInfo.xml and projects.ini..
         /// </summary>
         public static string Create_Hint {
             get {
@@ -2604,7 +2604,7 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ✨ Create project.
+        ///   Looks up a localized string similar to Create project.
         /// </summary>
         public static string Create_Button {
             get {
@@ -2667,11 +2667,3602 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 📦 Confirm decommission.
+        ///   Looks up a localized string similar to Decommission.
         /// </summary>
         public static string Decommission_Button {
             get {
                 return ResourceManager.GetString("Decommission_Button", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Browse….
+        /// </summary>
+        public static string Common_Browse {
+            get {
+                return ResourceManager.GetString("Common_Browse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Overview.
+        /// </summary>
+        public static string Nav_Overview {
+            get {
+                return ResourceManager.GetString("Nav_Overview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to My Projects.
+        /// </summary>
+        public static string Nav_MyProjects {
+            get {
+                return ResourceManager.GetString("Nav_MyProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-ins.
+        /// </summary>
+        public static string Nav_Plugins {
+            get {
+                return ResourceManager.GetString("Nav_Plugins", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnostics &amp; Tools.
+        /// </summary>
+        public static string Nav_Tools {
+            get {
+                return ResourceManager.GetString("Nav_Tools", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to More launch options.
+        /// </summary>
+        public static string Main_LaunchMenuTooltip {
+            get {
+                return ResourceManager.GetString("Main_LaunchMenuTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load all my projects and launch E3D.
+        /// </summary>
+        public static string Main_MenuLaunchAllMine {
+            get {
+                return ResourceManager.GetString("Main_MenuLaunchAllMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Launch E3D without switching.
+        /// </summary>
+        public static string Main_MenuLaunchOnly {
+            get {
+                return ResourceManager.GetString("Main_MenuLaunchOnly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to all my projects.
+        /// </summary>
+        public static string Main_ModeAll {
+            get {
+                return ResourceManager.GetString("Main_ModeAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to whole library.
+        /// </summary>
+        public static string Main_ModeLibrary {
+            get {
+                return ResourceManager.GetString("Main_ModeLibrary", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All my projects.
+        /// </summary>
+        public static string Launch_AllName {
+            get {
+                return ResourceManager.GetString("Launch_AllName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Loading all my projects and launching E3D….
+        /// </summary>
+        public static string Launch_AllStarting {
+            get {
+                return ResourceManager.GetString("Launch_AllStarting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s) loaded into E3D..
+        /// </summary>
+        public static string Launch_AllLoaded {
+            get {
+                return ResourceManager.GetString("Launch_AllLoaded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Skipped (unreachable): {0}..
+        /// </summary>
+        public static string Launch_AllSkipped {
+            get {
+                return ResourceManager.GetString("Launch_AllSkipped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to My Projects is empty — add projects with the star button first..
+        /// </summary>
+        public static string Launch_NoMyProjects {
+            get {
+                return ResourceManager.GetString("Launch_NoMyProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} added to My Projects..
+        /// </summary>
+        public static string Project_AddedToMine {
+            get {
+                return ResourceManager.GetString("Project_AddedToMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} removed from My Projects..
+        /// </summary>
+        public static string Project_RemovedFromMine {
+            get {
+                return ResourceManager.GetString("Project_RemovedFromMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copied: {0}.
+        /// </summary>
+        public static string Project_PathCopied {
+            get {
+                return ResourceManager.GetString("Project_PathCopied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit details….
+        /// </summary>
+        public static string Project_MenuEdit {
+            get {
+                return ResourceManager.GetString("Project_MenuEdit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Users &amp; permissions.
+        /// </summary>
+        public static string Project_MenuUsers {
+            get {
+                return ResourceManager.GetString("Project_MenuUsers", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy evars path.
+        /// </summary>
+        public static string Project_MenuCopyPath {
+            get {
+                return ResourceManager.GetString("Project_MenuCopyPath", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Decommission….
+        /// </summary>
+        public static string Project_MenuDecommission {
+            get {
+                return ResourceManager.GetString("Project_MenuDecommission", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Every project of every library, with switch-and-launch, favourites, categories and batch edits..
+        /// </summary>
+        public static string Projects_PageSubtitle {
+            get {
+                return ResourceManager.GetString("Projects_PageSubtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} shown.
+        /// </summary>
+        public static string Projects_VisibleCount {
+            get {
+                return ResourceManager.GetString("Projects_VisibleCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add a project library.
+        /// </summary>
+        public static string Lib_AddHeader {
+            get {
+                return ResourceManager.GetString("Lib_AddHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A folder that contains projects (each with an evarsXXX.bat), local or UNC..
+        /// </summary>
+        public static string Lib_AddHint {
+            get {
+                return ResourceManager.GetString("Lib_AddHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add a local or network folder that contains projects.
+        /// </summary>
+        public static string Lib_AddTooltip {
+            get {
+                return ResourceManager.GetString("Lib_AddTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose the project library folder.
+        /// </summary>
+        public static string Lib_BrowseTitle {
+            get {
+                return ResourceManager.GetString("Lib_BrowseTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Expand all libraries.
+        /// </summary>
+        public static string Lib_ExpandAll {
+            get {
+                return ResourceManager.GetString("Lib_ExpandAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Collapse all libraries.
+        /// </summary>
+        public static string Lib_CollapseAll {
+            get {
+                return ResourceManager.GetString("Lib_CollapseAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show or hide the projects of this library.
+        /// </summary>
+        public static string Lib_ToggleTooltip {
+            get {
+                return ResourceManager.GetString("Lib_ToggleTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load every project of this library into E3D (mode: whole library).
+        /// </summary>
+        public static string Lib_LoadWholeTooltip {
+            get {
+                return ResourceManager.GetString("Lib_LoadWholeTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to unreachable.
+        /// </summary>
+        public static string Lib_Unreachable {
+            get {
+                return ResourceManager.GetString("Lib_Unreachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No project library yet.
+        /// </summary>
+        public static string Lib_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Lib_EmptyTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No project matches the current filter ({0} hidden)..
+        /// </summary>
+        public static string Lib_NoVisibleProjects {
+            get {
+                return ResourceManager.GetString("Lib_NoVisibleProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove library.
+        /// </summary>
+        public static string Lib_RemoveTitle {
+            get {
+                return ResourceManager.GetString("Lib_RemoveTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove "{0}" from SEP? Nothing on disk is touched; the projects just disappear from the list (and from My Projects)..
+        /// </summary>
+        public static string Lib_RemoveBody {
+            get {
+                return ResourceManager.GetString("Lib_RemoveBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove.
+        /// </summary>
+        public static string Lib_RemoveConfirm {
+            get {
+                return ResourceManager.GetString("Lib_RemoveConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Any category.
+        /// </summary>
+        public static string Filter_AnyCategory {
+            get {
+                return ResourceManager.GetString("Filter_AnyCategory", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Any status.
+        /// </summary>
+        public static string Filter_AnyStatus {
+            get {
+                return ResourceManager.GetString("Filter_AnyStatus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Any tag.
+        /// </summary>
+        public static string Filter_AnyTag {
+            get {
+                return ResourceManager.GetString("Filter_AnyTag", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear filters.
+        /// </summary>
+        public static string Filter_Clear {
+            get {
+                return ResourceManager.GetString("Filter_Clear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select several projects (batch mode).
+        /// </summary>
+        public static string Batch_Toggle {
+            get {
+                return ResourceManager.GetString("Batch_Toggle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} selected.
+        /// </summary>
+        public static string Batch_Selected {
+            get {
+                return ResourceManager.GetString("Batch_Selected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select shown.
+        /// </summary>
+        public static string Batch_SelectVisible {
+            get {
+                return ResourceManager.GetString("Batch_SelectVisible", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select none.
+        /// </summary>
+        public static string Batch_SelectNone {
+            get {
+                return ResourceManager.GetString("Batch_SelectNone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add to My Projects.
+        /// </summary>
+        public static string Batch_AddToMine {
+            get {
+                return ResourceManager.GetString("Batch_AddToMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from My Projects.
+        /// </summary>
+        public static string Batch_RemoveFromMine {
+            get {
+                return ResourceManager.GetString("Batch_RemoveFromMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit selected….
+        /// </summary>
+        public static string Batch_Edit {
+            get {
+                return ResourceManager.GetString("Batch_Edit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s) added to My Projects..
+        /// </summary>
+        public static string Batch_AddedToMine {
+            get {
+                return ResourceManager.GetString("Batch_AddedToMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s) removed from My Projects..
+        /// </summary>
+        public static string Batch_RemovedFromMine {
+            get {
+                return ResourceManager.GetString("Batch_RemovedFromMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s) updated..
+        /// </summary>
+        public static string Batch_Edited {
+            get {
+                return ResourceManager.GetString("Batch_Edited", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unnamed.
+        /// </summary>
+        public static string Category_Unnamed {
+            get {
+                return ResourceManager.GetString("Category_Unnamed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A category needs a name..
+        /// </summary>
+        public static string Category_NameRequired {
+            get {
+                return ResourceManager.GetString("Category_NameRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category not found..
+        /// </summary>
+        public static string Category_NotFound {
+            get {
+                return ResourceManager.GetString("Category_NotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A category named "{0}" already exists..
+        /// </summary>
+        public static string Category_Duplicate {
+            get {
+                return ResourceManager.GetString("Category_Duplicate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category saved..
+        /// </summary>
+        public static string Category_Saved {
+            get {
+                return ResourceManager.GetString("Category_Saved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Uncategorised.
+        /// </summary>
+        public static string Category_None {
+            get {
+                return ResourceManager.GetString("Category_None", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manage categories.
+        /// </summary>
+        public static string Category_Manage {
+            get {
+                return ResourceManager.GetString("Category_Manage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New category name.
+        /// </summary>
+        public static string Category_NewPlaceholder {
+            get {
+                return ResourceManager.GetString("Category_NewPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
+        public static string Category_Add {
+            get {
+                return ResourceManager.GetString("Category_Add", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Click to change the colour.
+        /// </summary>
+        public static string Category_ColorTooltip {
+            get {
+                return ResourceManager.GetString("Category_ColorTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete category.
+        /// </summary>
+        public static string Category_Delete {
+            get {
+                return ResourceManager.GetString("Category_Delete", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete "{0}"? Projects in it become uncategorised..
+        /// </summary>
+        public static string Category_DeleteBody {
+            get {
+                return ResourceManager.GetString("Category_DeleteBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category "{0}" deleted..
+        /// </summary>
+        public static string Category_Deleted {
+            get {
+                return ResourceManager.GetString("Category_Deleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category "{0}" added..
+        /// </summary>
+        public static string Category_Added {
+            get {
+                return ResourceManager.GetString("Category_Added", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s).
+        /// </summary>
+        public static string Category_Usage {
+            get {
+                return ResourceManager.GetString("Category_Usage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to In progress.
+        /// </summary>
+        public static string Status_InProgress {
+            get {
+                return ResourceManager.GetString("Status_InProgress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Completed.
+        /// </summary>
+        public static string Status_Completed {
+            get {
+                return ResourceManager.GetString("Status_Completed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to On hold.
+        /// </summary>
+        public static string Status_OnHold {
+            get {
+                return ResourceManager.GetString("Status_OnHold", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Archived.
+        /// </summary>
+        public static string Status_Archived {
+            get {
+                return ResourceManager.GetString("Status_Archived", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No status.
+        /// </summary>
+        public static string Status_None {
+            get {
+                return ResourceManager.GetString("Status_None", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit {0}.
+        /// </summary>
+        public static string Edit_Title {
+            get {
+                return ResourceManager.GetString("Edit_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit {0} projects.
+        /// </summary>
+        public static string Edit_BatchTitle {
+            get {
+                return ResourceManager.GetString("Edit_BatchTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only the fields ticked "Apply" are written to every selected project..
+        /// </summary>
+        public static string Edit_BatchHint {
+            get {
+                return ResourceManager.GetString("Edit_BatchHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Display name.
+        /// </summary>
+        public static string Edit_DisplayName {
+            get {
+                return ResourceManager.GetString("Edit_DisplayName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Friendly name shown instead of the code.
+        /// </summary>
+        public static string Edit_DisplayNamePlaceholder {
+            get {
+                return ResourceManager.GetString("Edit_DisplayNamePlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category.
+        /// </summary>
+        public static string Edit_Category {
+            get {
+                return ResourceManager.GetString("Edit_Category", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string Edit_Status {
+            get {
+                return ResourceManager.GetString("Edit_Status", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Owner.
+        /// </summary>
+        public static string Edit_Owner {
+            get {
+                return ResourceManager.GetString("Edit_Owner", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Who is responsible.
+        /// </summary>
+        public static string Edit_OwnerPlaceholder {
+            get {
+                return ResourceManager.GetString("Edit_OwnerPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Tags.
+        /// </summary>
+        public static string Edit_Tags {
+            get {
+                return ResourceManager.GetString("Edit_Tags", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comma-separated tags.
+        /// </summary>
+        public static string Edit_TagsPlaceholder {
+            get {
+                return ResourceManager.GetString("Edit_TagsPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Append to existing tags instead of replacing.
+        /// </summary>
+        public static string Edit_TagsAppend {
+            get {
+                return ResourceManager.GetString("Edit_TagsAppend", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string Edit_Apply {
+            get {
+                return ResourceManager.GetString("Edit_Apply", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string Edit_Description {
+            get {
+                return ResourceManager.GetString("Edit_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to One line about the project.
+        /// </summary>
+        public static string Edit_DescriptionPlaceholder {
+            get {
+                return ResourceManager.GetString("Edit_DescriptionPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        public static string Edit_Notes {
+            get {
+                return ResourceManager.GetString("Edit_Notes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Anything worth remembering (paths, contacts, caveats).
+        /// </summary>
+        public static string Edit_NotesPlaceholder {
+            get {
+                return ResourceManager.GetString("Edit_NotesPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The projects "load all" puts into E3D at once, in this order..
+        /// </summary>
+        public static string My_PageSubtitle {
+            get {
+                return ResourceManager.GetString("My_PageSubtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s).
+        /// </summary>
+        public static string My_CountFormat {
+            get {
+                return ResourceManager.GetString("My_CountFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load all &amp; launch.
+        /// </summary>
+        public static string My_LaunchAll {
+            get {
+                return ResourceManager.GetString("My_LaunchAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Write every project below into custom_evars.bat and launch E3D.
+        /// </summary>
+        public static string My_LaunchAllTooltip {
+            get {
+                return ResourceManager.GetString("My_LaunchAllTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Who is online.
+        /// </summary>
+        public static string My_ProbeSessions {
+            get {
+                return ResourceManager.GetString("My_ProbeSessions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check SEP sessions and lock owners for these projects.
+        /// </summary>
+        public static string My_ProbeSessionsTooltip {
+            get {
+                return ResourceManager.GetString("My_ProbeSessionsTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear My Projects.
+        /// </summary>
+        public static string My_ClearButton {
+            get {
+                return ResourceManager.GetString("My_ClearButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear My Projects.
+        /// </summary>
+        public static string My_ClearTitle {
+            get {
+                return ResourceManager.GetString("My_ClearTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove all {0} project(s) from My Projects?.
+        /// </summary>
+        public static string My_ClearBody {
+            get {
+                return ResourceManager.GetString("My_ClearBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string My_ClearConfirm {
+            get {
+                return ResourceManager.GetString("My_ClearConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to My Projects cleared..
+        /// </summary>
+        public static string My_Cleared {
+            get {
+                return ResourceManager.GetString("My_Cleared", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Star a project anywhere to add it here. "Load all" registers every project of this list in E3D at once, so you can open any of them from the E3D login window..
+        /// </summary>
+        public static string My_Hint {
+            get {
+                return ResourceManager.GetString("My_Hint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to My Projects is empty.
+        /// </summary>
+        public static string My_EmptyTitle {
+            get {
+                return ResourceManager.GetString("My_EmptyTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Star the projects you work on; they show up here and on the overview for one-click launching..
+        /// </summary>
+        public static string My_EmptyBody {
+            get {
+                return ResourceManager.GetString("My_EmptyBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Move up.
+        /// </summary>
+        public static string My_MoveUp {
+            get {
+                return ResourceManager.GetString("My_MoveUp", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Move down.
+        /// </summary>
+        public static string My_MoveDown {
+            get {
+                return ResourceManager.GetString("My_MoveDown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to offline.
+        /// </summary>
+        public static string My_Offline {
+            get {
+                return ResourceManager.GetString("My_Offline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The library of this project could not be reached; it will be skipped by "load all"..
+        /// </summary>
+        public static string My_OfflineTooltip {
+            get {
+                return ResourceManager.GetString("My_OfflineTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Overview.
+        /// </summary>
+        public static string Overview_Title {
+            get {
+                return ResourceManager.GetString("Overview_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to What is set up, who is online and where to go next..
+        /// </summary>
+        public static string Overview_Subtitle {
+            get {
+                return ResourceManager.GetString("Overview_Subtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Notifications.
+        /// </summary>
+        public static string Overview_Notifications {
+            get {
+                return ResourceManager.GetString("Overview_Notifications", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dismiss.
+        /// </summary>
+        public static string Overview_Dismiss {
+            get {
+                return ResourceManager.GetString("Overview_Dismiss", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dismiss all.
+        /// </summary>
+        public static string Overview_DismissAll {
+            get {
+                return ResourceManager.GetString("Overview_DismissAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Projects.
+        /// </summary>
+        public static string Overview_Projects {
+            get {
+                return ResourceManager.GetString("Overview_Projects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to across {0} libraries.
+        /// </summary>
+        public static string Overview_LibrariesFormat {
+            get {
+                return ResourceManager.GetString("Overview_LibrariesFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ready for "load all".
+        /// </summary>
+        public static string Overview_MyHint {
+            get {
+                return ResourceManager.GetString("Overview_MyHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Online now.
+        /// </summary>
+        public static string Overview_Online {
+            get {
+                return ResourceManager.GetString("Overview_Online", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} locked by a session.
+        /// </summary>
+        public static string Overview_LockedFormat {
+            get {
+                return ResourceManager.GetString("Overview_LockedFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Active project.
+        /// </summary>
+        public static string Overview_Active {
+            get {
+                return ResourceManager.GetString("Overview_Active", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pick a project and launch.
+        /// </summary>
+        public static string Overview_ActiveHint {
+            get {
+                return ResourceManager.GetString("Overview_ActiveHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to single project.
+        /// </summary>
+        public static string Overview_ModeSingle {
+            get {
+                return ResourceManager.GetString("Overview_ModeSingle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D installation.
+        /// </summary>
+        public static string Overview_Install {
+            get {
+                return ResourceManager.GetString("Overview_Install", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Found.
+        /// </summary>
+        public static string Overview_InstallOk {
+            get {
+                return ResourceManager.GetString("Overview_InstallOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Not found.
+        /// </summary>
+        public static string Overview_InstallMissing {
+            get {
+                return ResourceManager.GetString("Overview_InstallMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unreachable libraries.
+        /// </summary>
+        public static string Overview_Unreachable {
+            get {
+                return ResourceManager.GetString("Overview_Unreachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to showing cached projects.
+        /// </summary>
+        public static string Overview_UnreachableHint {
+            get {
+                return ResourceManager.GetString("Overview_UnreachableHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Quick launch.
+        /// </summary>
+        public static string Overview_QuickLaunch {
+            get {
+                return ResourceManager.GetString("Overview_QuickLaunch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to See all.
+        /// </summary>
+        public static string Overview_SeeAll {
+            get {
+                return ResourceManager.GetString("Overview_SeeAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Recently discovered.
+        /// </summary>
+        public static string Overview_Recent {
+            get {
+                return ResourceManager.GetString("Overview_Recent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Online now.
+        /// </summary>
+        public static string Overview_OnlineNow {
+            get {
+                return ResourceManager.GetString("Overview_OnlineNow", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nobody is connected to a project right now..
+        /// </summary>
+        public static string Overview_NobodyOnline {
+            get {
+                return ResourceManager.GetString("Overview_NobodyOnline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to By category.
+        /// </summary>
+        public static string Overview_ByCategory {
+            get {
+                return ResourceManager.GetString("Overview_ByCategory", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to By status.
+        /// </summary>
+        public static string Overview_ByStatus {
+            get {
+                return ResourceManager.GetString("Overview_ByStatus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shortcuts.
+        /// </summary>
+        public static string Overview_Shortcuts {
+            get {
+                return ResourceManager.GetString("Overview_Shortcuts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-ins.
+        /// </summary>
+        public static string Plugins_Title {
+            get {
+                return ResourceManager.GetString("Plugins_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to PML / PML.NET plug-in folders wired into E3D through custom_evars.bat..
+        /// </summary>
+        public static string Plugins_Subtitle {
+            get {
+                return ResourceManager.GetString("Plugins_Subtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Filter plug-ins or symbols….
+        /// </summary>
+        public static string Plugins_FilterPlaceholder {
+            get {
+                return ResourceManager.GetString("Plugins_FilterPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New plug-in.
+        /// </summary>
+        public static string Plugins_New {
+            get {
+                return ResourceManager.GetString("Plugins_New", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        public static string Plugins_Import {
+            get {
+                return ResourceManager.GetString("Plugins_Import", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to From a folder….
+        /// </summary>
+        public static string Plugins_ImportFolder {
+            get {
+                return ResourceManager.GetString("Plugins_ImportFolder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to From a zip archive….
+        /// </summary>
+        public static string Plugins_ImportZip {
+            get {
+                return ResourceManager.GetString("Plugins_ImportZip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rescan plug-ins.
+        /// </summary>
+        public static string Plugins_Rescan {
+            get {
+                return ResourceManager.GetString("Plugins_Rescan", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in folder.
+        /// </summary>
+        public static string Plugins_DirLabel {
+            get {
+                return ResourceManager.GetString("Plugins_DirLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} plug-ins, {1} enabled.
+        /// </summary>
+        public static string Plugins_CountFormat {
+            get {
+                return ResourceManager.GetString("Plugins_CountFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enable all.
+        /// </summary>
+        public static string Plugins_EnableAll {
+            get {
+                return ResourceManager.GetString("Plugins_EnableAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Disable all.
+        /// </summary>
+        public static string Plugins_DisableAll {
+            get {
+                return ResourceManager.GetString("Plugins_DisableAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rebuild indexes.
+        /// </summary>
+        public static string Plugins_RebuildAll {
+            get {
+                return ResourceManager.GetString("Plugins_RebuildAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Regenerate pml.index for every plug-in with a pmllib folder.
+        /// </summary>
+        public static string Plugins_RebuildAllTooltip {
+            get {
+                return ResourceManager.GetString("Plugins_RebuildAllTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Change folder….
+        /// </summary>
+        public static string Plugins_ChangeDir {
+            get {
+                return ResourceManager.GetString("Plugins_ChangeDir", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-ins.
+        /// </summary>
+        public static string Plugins_TabList {
+            get {
+                return ResourceManager.GetString("Plugins_TabList", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Conflicts.
+        /// </summary>
+        public static string Plugins_TabConflicts {
+            get {
+                return ResourceManager.GetString("Plugins_TabConflicts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Resolution chain.
+        /// </summary>
+        public static string Plugins_TabChain {
+            get {
+                return ResourceManager.GetString("Plugins_TabChain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hot-load macro.
+        /// </summary>
+        public static string Plugins_TabMacro {
+            get {
+                return ResourceManager.GetString("Plugins_TabMacro", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No plug-ins found.
+        /// </summary>
+        public static string Plugins_EmptyTitle {
+            get {
+                return ResourceManager.GetString("Plugins_EmptyTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Each sub-folder of the plug-in folder with a pmllib, pmlui, bin or dflts folder is a plug-in. Create one or import a folder / zip..
+        /// </summary>
+        public static string Plugins_EmptyBody {
+            get {
+                return ResourceManager.GetString("Plugins_EmptyBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show details.
+        /// </summary>
+        public static string Plugins_Details {
+            get {
+                return ResourceManager.GetString("Plugins_Details", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to enabled.
+        /// </summary>
+        public static string Plugins_Enabled {
+            get {
+                return ResourceManager.GetString("Plugins_Enabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled.
+        /// </summary>
+        public static string Plugins_Disabled {
+            get {
+                return ResourceManager.GetString("Plugins_Disabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to index needs rebuild.
+        /// </summary>
+        public static string Plugins_IndexStale {
+            get {
+                return ResourceManager.GetString("Plugins_IndexStale", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Problems found in this plug-in.
+        /// </summary>
+        public static string Plugins_DiagnosticsTooltip {
+            get {
+                return ResourceManager.GetString("Plugins_DiagnosticsTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} forms · {1} objects · {2} functions · {3} macros · {4} assemblies.
+        /// </summary>
+        public static string Plugins_SymbolCounts {
+            get {
+                return ResourceManager.GetString("Plugins_SymbolCounts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rebuild pml.index.
+        /// </summary>
+        public static string Plugins_RebuildIndex {
+            get {
+                return ResourceManager.GetString("Plugins_RebuildIndex", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Problems.
+        /// </summary>
+        public static string Plugins_DiagnosticsHeader {
+            get {
+                return ResourceManager.GetString("Plugins_DiagnosticsHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Entry commands (paste into the E3D command line).
+        /// </summary>
+        public static string Plugins_EntryHeader {
+            get {
+                return ResourceManager.GetString("Plugins_EntryHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        public static string Plugins_CopyEntry {
+            get {
+                return ResourceManager.GetString("Plugins_CopyEntry", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Definitions.
+        /// </summary>
+        public static string Plugins_SymbolsHeader {
+            get {
+                return ResourceManager.GetString("Plugins_SymbolsHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No PML definitions found in this plug-in..
+        /// </summary>
+        public static string Plugins_NoSymbols {
+            get {
+                return ResourceManager.GetString("Plugins_NoSymbols", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index: {0} · {1} indexed / {2} .pml files.
+        /// </summary>
+        public static string Plugins_IndexInfo {
+            get {
+                return ResourceManager.GetString("Plugins_IndexInfo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Two enabled plug-ins define the same name. E3D takes the first on PMLLIB (the winner shown) and silently ignores the rest..
+        /// </summary>
+        public static string Plugins_ConflictsHint {
+            get {
+                return ResourceManager.GetString("Plugins_ConflictsHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No conflicts between the enabled plug-ins..
+        /// </summary>
+        public static string Plugins_NoConflicts {
+            get {
+                return ResourceManager.GetString("Plugins_NoConflicts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Defined in {0} — E3D uses {1}..
+        /// </summary>
+        public static string Plugins_ConflictLine {
+            get {
+                return ResourceManager.GetString("Plugins_ConflictLine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The order E3D resolves PMLLIB / PMLUI / PMLNET / defaults paths, as custom_evars.bat sets them up..
+        /// </summary>
+        public static string Plugins_ChainHint {
+            get {
+                return ResourceManager.GetString("Plugins_ChainHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Loads every enabled plug-in into a running E3D session without restarting..
+        /// </summary>
+        public static string Plugins_MacroHint {
+            get {
+                return ResourceManager.GetString("Plugins_MacroHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy $m command.
+        /// </summary>
+        public static string Plugins_CopyRun {
+            get {
+                return ResourceManager.GetString("Plugins_CopyRun", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copies "$m &lt;macro path&gt;" for the E3D command line.
+        /// </summary>
+        public static string Plugins_CopyRunTooltip {
+            get {
+                return ResourceManager.GetString("Plugins_CopyRunTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy macro text.
+        /// </summary>
+        public static string Plugins_CopyMacro {
+            get {
+                return ResourceManager.GetString("Plugins_CopyMacro", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Scanning plug-ins….
+        /// </summary>
+        public static string Plugins_Scanning {
+            get {
+                return ResourceManager.GetString("Plugins_Scanning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} plug-ins, {1} enabled · {2}.
+        /// </summary>
+        public static string Plugins_ScanDone {
+            get {
+                return ResourceManager.GetString("Plugins_ScanDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in scan failed: {0}.
+        /// </summary>
+        public static string Plugins_ScanFailed {
+            get {
+                return ResourceManager.GetString("Plugins_ScanFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hot-load macro copied..
+        /// </summary>
+        public static string Plugins_MacroCopied {
+            get {
+                return ResourceManager.GetString("Plugins_MacroCopied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to $m command copied — paste it into the E3D command line..
+        /// </summary>
+        public static string Plugins_RunCopied {
+            get {
+                return ResourceManager.GetString("Plugins_RunCopied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to New plug-in.
+        /// </summary>
+        public static string Plugins_NewTitle {
+            get {
+                return ResourceManager.GetString("Plugins_NewTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Creates a skeleton (pmllib + bin) in the plug-in folder and enables it..
+        /// </summary>
+        public static string Plugins_NewBody {
+            get {
+                return ResourceManager.GetString("Plugins_NewBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in name.
+        /// </summary>
+        public static string Plugins_NewNameLabel {
+            get {
+                return ResourceManager.GetString("Plugins_NewNameLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Create.
+        /// </summary>
+        public static string Plugins_NewConfirm {
+            get {
+                return ResourceManager.GetString("Plugins_NewConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose the plug-in folder to import.
+        /// </summary>
+        public static string Plugins_ImportFolderTitle {
+            get {
+                return ResourceManager.GetString("Plugins_ImportFolderTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose the plug-in zip archive.
+        /// </summary>
+        public static string Plugins_ImportZipTitle {
+            get {
+                return ResourceManager.GetString("Plugins_ImportZipTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose the plug-in root folder.
+        /// </summary>
+        public static string Plugins_PickDirTitle {
+            get {
+                return ResourceManager.GetString("Plugins_PickDirTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not read the folder: {0}.
+        /// </summary>
+        public static string Plugins_DiagUnreadable {
+            get {
+                return ResourceManager.GetString("Plugins_DiagUnreadable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index is outdated ({0} indexed, {1} files) — rebuild it..
+        /// </summary>
+        public static string Plugins_DiagIndexOutdated {
+            get {
+                return ResourceManager.GetString("Plugins_DiagIndexOutdated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index could not be read: {0}.
+        /// </summary>
+        public static string Plugins_DiagIndexError {
+            get {
+                return ResourceManager.GetString("Plugins_DiagIndexError", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index is missing — E3D will not see the PML files until it is built..
+        /// </summary>
+        public static string Plugins_DiagIndexMissing {
+            get {
+                return ResourceManager.GetString("Plugins_DiagIndexMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only one assembly in bin — check that its dependencies are present..
+        /// </summary>
+        public static string Plugins_DiagSingleDll {
+            get {
+                return ResourceManager.GetString("Plugins_DiagSingleDll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to custom_evars.bat could not be updated: {0}.
+        /// </summary>
+        public static string Plugins_WriteFailed {
+            get {
+                return ResourceManager.GetString("Plugins_WriteFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} plug-in(s) enabled..
+        /// </summary>
+        public static string Plugins_AllEnabled {
+            get {
+                return ResourceManager.GetString("Plugins_AllEnabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All plug-ins disabled..
+        /// </summary>
+        public static string Plugins_AllDisabled {
+            get {
+                return ResourceManager.GetString("Plugins_AllDisabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no pmllib folder.
+        /// </summary>
+        public static string Plugins_IndexNoDir {
+            get {
+                return ResourceManager.GetString("Plugins_IndexNoDir", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no .pml files to index.
+        /// </summary>
+        public static string Plugins_IndexNoFiles {
+            get {
+                return ResourceManager.GetString("Plugins_IndexNoFiles", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index rebuilt ({0} files)..
+        /// </summary>
+        public static string Plugins_IndexRebuilt {
+            get {
+                return ResourceManager.GetString("Plugins_IndexRebuilt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to pml.index could not be written: {0}.
+        /// </summary>
+        public static string Plugins_IndexWriteFailed {
+            get {
+                return ResourceManager.GetString("Plugins_IndexWriteFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} index(es) rebuilt..
+        /// </summary>
+        public static string Plugins_IndexAllDone {
+            get {
+                return ResourceManager.GetString("Plugins_IndexAllDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The plug-in name must contain letters or digits..
+        /// </summary>
+        public static string Plugins_NameInvalid {
+            get {
+                return ResourceManager.GetString("Plugins_NameInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A plug-in named "{0}" already exists..
+        /// </summary>
+        public static string Plugins_AlreadyExists {
+            get {
+                return ResourceManager.GetString("Plugins_AlreadyExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in "{0}" created..
+        /// </summary>
+        public static string Plugins_Created {
+            get {
+                return ResourceManager.GetString("Plugins_Created", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The plug-in could not be created: {0}.
+        /// </summary>
+        public static string Plugins_CreateFailed {
+            get {
+                return ResourceManager.GetString("Plugins_CreateFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nothing to import at {0}..
+        /// </summary>
+        public static string Plugins_ImportMissing {
+            get {
+                return ResourceManager.GetString("Plugins_ImportMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in "{0}" imported and enabled..
+        /// </summary>
+        public static string Plugins_Imported {
+            get {
+                return ResourceManager.GetString("Plugins_Imported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import failed: {0}.
+        /// </summary>
+        public static string Plugins_ImportFailed {
+            get {
+                return ResourceManager.GetString("Plugins_ImportFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnostics &amp; Tools.
+        /// </summary>
+        public static string Tools_Title {
+            get {
+                return ResourceManager.GetString("Tools_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Health checks and one-click repairs for the E3D configuration, network libraries and session locks..
+        /// </summary>
+        public static string Tools_Subtitle {
+            get {
+                return ResourceManager.GetString("Tools_Subtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D configuration.
+        /// </summary>
+        public static string Tools_ConfigTitle {
+            get {
+                return ResourceManager.GetString("Tools_ConfigTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Checks evars.init and custom_evars.bat for dead paths, offline mounts and syntax that breaks E3D at start-up..
+        /// </summary>
+        public static string Tools_ConfigBody {
+            get {
+                return ResourceManager.GetString("Tools_ConfigBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check.
+        /// </summary>
+        public static string Tools_CheckButton {
+            get {
+                return ResourceManager.GetString("Tools_CheckButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comment out the lines the check flagged (a .sep.bak backup is written first).
+        /// </summary>
+        public static string Tools_FixConfigTooltip {
+            get {
+                return ResourceManager.GetString("Tools_FixConfigTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library reachability.
+        /// </summary>
+        public static string Tools_NetTitle {
+            get {
+                return ResourceManager.GetString("Tools_NetTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to For a UNC library: host, port 445, workstation service, share access and guest policy. For a local one: existence and permissions..
+        /// </summary>
+        public static string Tools_NetBody {
+            get {
+                return ResourceManager.GetString("Tools_NetBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnose.
+        /// </summary>
+        public static string Tools_DiagnoseButton {
+            get {
+                return ResourceManager.GetString("Tools_DiagnoseButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All libraries.
+        /// </summary>
+        public static string Tools_DiagnoseAllButton {
+            get {
+                return ResourceManager.GetString("Tools_DiagnoseAllButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Removes the caches E3D keeps per user (session leftovers, temp files) that cause slow starts and stale forms..
+        /// </summary>
+        public static string Tools_UserDataBody {
+            get {
+                return ResourceManager.GetString("Tools_UserDataBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Repairs the CAD font mapping E3D uses for drawings when characters show up as boxes..
+        /// </summary>
+        public static string Tools_CadBody {
+            get {
+                return ResourceManager.GetString("Tools_CadBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Regenerates pml.index for every enabled plug-in so E3D sees new or renamed PML files..
+        /// </summary>
+        public static string Tools_ReindexBody {
+            get {
+                return ResourceManager.GetString("Tools_ReindexBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rebuild indexes.
+        /// </summary>
+        public static string Tools_ReindexButton {
+            get {
+                return ResourceManager.GetString("Tools_ReindexButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D installation.
+        /// </summary>
+        public static string Tools_InstallTitle {
+            get {
+                return ResourceManager.GetString("Tools_InstallTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Where evars.bat and the E3D executables are expected; change it in Settings if E3D was installed elsewhere..
+        /// </summary>
+        public static string Tools_InstallBody {
+            get {
+                return ResourceManager.GetString("Tools_InstallBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lock files left behind by crashed sessions block other users. Scan all projects and remove orphaned locks..
+        /// </summary>
+        public static string Tools_LocksBody {
+            get {
+                return ResourceManager.GetString("Tools_LocksBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Scan locks.
+        /// </summary>
+        public static string Tools_ScanLocks {
+            get {
+                return ResourceManager.GetString("Tools_ScanLocks", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Suggested fixes.
+        /// </summary>
+        public static string Tools_FixesHeader {
+            get {
+                return ResourceManager.GetString("Tools_FixesHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to needs administrator.
+        /// </summary>
+        public static string Tools_NeedsAdmin {
+            get {
+                return ResourceManager.GetString("Tools_NeedsAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Run fix.
+        /// </summary>
+        public static string Tools_FixRun {
+            get {
+                return ResourceManager.GetString("Tools_FixRun", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy the commands.
+        /// </summary>
+        public static string Tools_CopyCommands {
+            get {
+                return ResourceManager.GetString("Tools_CopyCommands", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Commands copied..
+        /// </summary>
+        public static string Tools_CommandsCopied {
+            get {
+                return ResourceManager.GetString("Tools_CommandsCopied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This fix needs administrator rights; Windows will ask for elevation..
+        /// </summary>
+        public static string Tools_FixNeedsAdmin {
+            get {
+                return ResourceManager.GetString("Tools_FixNeedsAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to "{0}" has to be done by hand — the commands are listed below..
+        /// </summary>
+        public static string Tools_FixManual {
+            get {
+                return ResourceManager.GetString("Tools_FixManual", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Checking the E3D configuration….
+        /// </summary>
+        public static string Tools_Checking {
+            get {
+                return ResourceManager.GetString("Tools_Checking", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Applying the fix….
+        /// </summary>
+        public static string Tools_Fixing {
+            get {
+                return ResourceManager.GetString("Tools_Fixing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cleaning USERDATA….
+        /// </summary>
+        public static string Tools_Cleaning {
+            get {
+                return ResourceManager.GetString("Tools_Cleaning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rebuilding plug-in indexes….
+        /// </summary>
+        public static string Tools_Reindexing {
+            get {
+                return ResourceManager.GetString("Tools_Reindexing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnosing….
+        /// </summary>
+        public static string Tools_Diagnosing {
+            get {
+                return ResourceManager.GetString("Tools_Diagnosing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D configuration check.
+        /// </summary>
+        public static string Tools_ConfigReportTitle {
+            get {
+                return ResourceManager.GetString("Tools_ConfigReportTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Everything looks fine..
+        /// </summary>
+        public static string Tools_ConfigReportOk {
+            get {
+                return ResourceManager.GetString("Tools_ConfigReportOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} problem(s) found..
+        /// </summary>
+        public static string Tools_ConfigReportProblems {
+            get {
+                return ResourceManager.GetString("Tools_ConfigReportProblems", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Library diagnosis: {0}.
+        /// </summary>
+        public static string Tools_NetReportTitle {
+            get {
+                return ResourceManager.GetString("Tools_NetReportTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All libraries.
+        /// </summary>
+        public static string Tools_NetAllTitle {
+            get {
+                return ResourceManager.GetString("Tools_NetAllTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Every library is reachable..
+        /// </summary>
+        public static string Tools_NetAllOk {
+            get {
+                return ResourceManager.GetString("Tools_NetAllOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} problem(s) across the libraries..
+        /// </summary>
+        public static string Tools_NetAllProblems {
+            get {
+                return ResourceManager.GetString("Tools_NetAllProblems", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clean the E3D configuration.
+        /// </summary>
+        public static string Tools_FixConfigTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixConfigTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comment out the flagged lines in evars.init / custom_evars.bat and drop dead entries from the SEP managed block..
+        /// </summary>
+        public static string Tools_FixConfigStep {
+            get {
+                return ResourceManager.GetString("Tools_FixConfigStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The flagged lines are commented out (marked [SEP DISABLED]) and a .sep.bak copy of each file is kept. Continue?.
+        /// </summary>
+        public static string Tools_FixConfigConfirm {
+            get {
+                return ResourceManager.GetString("Tools_FixConfigConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clean up.
+        /// </summary>
+        public static string Tools_FixConfigButton {
+            get {
+                return ResourceManager.GetString("Tools_FixConfigButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clean USERDATA.
+        /// </summary>
+        public static string Tools_UserDataTitle {
+            get {
+                return ResourceManager.GetString("Tools_UserDataTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete the cache folders under {0}? E3D must not be running..
+        /// </summary>
+        public static string Tools_UserDataConfirm {
+            get {
+                return ResourceManager.GetString("Tools_UserDataConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clean.
+        /// </summary>
+        public static string Tools_UserDataButton {
+            get {
+                return ResourceManager.GetString("Tools_UserDataButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fix CAD fonts.
+        /// </summary>
+        public static string Tools_CadTitle {
+            get {
+                return ResourceManager.GetString("Tools_CadTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Update the font mapping files in the E3D installation (backups are kept)?.
+        /// </summary>
+        public static string Tools_CadConfirm {
+            get {
+                return ResourceManager.GetString("Tools_CadConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fix fonts.
+        /// </summary>
+        public static string Tools_CadButton {
+            get {
+                return ResourceManager.GetString("Tools_CadButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in indexes.
+        /// </summary>
+        public static string Tools_ReindexTitle {
+            get {
+                return ResourceManager.GetString("Tools_ReindexTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete lock file {0} of project {1}? Only do this when nobody is working in that session..
+        /// </summary>
+        public static string Lock_ConfirmBody {
+            get {
+                return ResourceManager.GetString("Lock_ConfirmBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delete all {0} lock file(s)? Only do this when nobody is working in those sessions..
+        /// </summary>
+        public static string Lock_ConfirmAllBody {
+            get {
+                return ResourceManager.GetString("Lock_ConfirmAllBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D core files.
+        /// </summary>
+        public static string Tools_CheckCoreFiles {
+            get {
+                return ResourceManager.GetString("Tools_CheckCoreFiles", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to evars.bat and the executables found in {0}.
+        /// </summary>
+        public static string Tools_CheckCoreFilesOk {
+            get {
+                return ResourceManager.GetString("Tools_CheckCoreFilesOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to evars.bat or the executables are missing in {0} — check the install folder in Settings.
+        /// </summary>
+        public static string Tools_CheckCoreFilesMissing {
+            get {
+                return ResourceManager.GetString("Tools_CheckCoreFilesMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to evars.init paths.
+        /// </summary>
+        public static string Tools_CheckEvarsInit {
+            get {
+                return ResourceManager.GetString("Tools_CheckEvarsInit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to every path in evars.init exists.
+        /// </summary>
+        public static string Tools_CheckEvarsInitOk {
+            get {
+                return ResourceManager.GetString("Tools_CheckEvarsInitOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} path(s) in evars.init do not exist.
+        /// </summary>
+        public static string Tools_CheckEvarsInitDead {
+            get {
+                return ResourceManager.GetString("Tools_CheckEvarsInitDead", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to custom_evars.bat health.
+        /// </summary>
+        public static string Tools_CheckCustomEvars {
+            get {
+                return ResourceManager.GetString("Tools_CheckCustomEvars", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no problems found.
+        /// </summary>
+        public static string Tools_CheckCustomOk {
+            get {
+                return ResourceManager.GetString("Tools_CheckCustomOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to custom_evars.bat does not exist yet (it is created on the first launch).
+        /// </summary>
+        public static string Tools_CheckCustomAbsent {
+            get {
+                return ResourceManager.GetString("Tools_CheckCustomAbsent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} invalid line(s).
+        /// </summary>
+        public static string Tools_CheckCustomDead {
+            get {
+                return ResourceManager.GetString("Tools_CheckCustomDead", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} offline mount(s).
+        /// </summary>
+        public static string Tools_CheckCustomOffline {
+            get {
+                return ResourceManager.GetString("Tools_CheckCustomOffline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to My Projects.
+        /// </summary>
+        public static string Tools_CheckMyProjects {
+            get {
+                return ResourceManager.GetString("Tools_CheckMyProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s), all reachable.
+        /// </summary>
+        public static string Tools_CheckMyProjectsOk {
+            get {
+                return ResourceManager.GetString("Tools_CheckMyProjectsOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} project(s) are unreachable and would be skipped by "load all".
+        /// </summary>
+        public static string Tools_CheckMyProjectsOffline {
+            get {
+                return ResourceManager.GetString("Tools_CheckMyProjectsOffline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to unbalanced parentheses break the batch parser.
+        /// </summary>
+        public static string Tools_ReasonParentheses {
+            get {
+                return ResourceManager.GetString("Tools_ReasonParentheses", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to quoted "set" value — the quotes end up inside the variable.
+        /// </summary>
+        public static string Tools_ReasonQuotedSet {
+            get {
+                return ResourceManager.GetString("Tools_ReasonQuotedSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to refers to %{0}%, which is not defined.
+        /// </summary>
+        public static string Tools_ReasonUndefinedVar {
+            get {
+                return ResourceManager.GetString("Tools_ReasonUndefinedVar", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network drive is offline; "net use" will hang the launch.
+        /// </summary>
+        public static string Tools_ReasonOfflineMount {
+            get {
+                return ResourceManager.GetString("Tools_ReasonOfflineMount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network path reachable.
+        /// </summary>
+        public static string Tools_ReasonUncOnline {
+            get {
+                return ResourceManager.GetString("Tools_ReasonUncOnline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network path unreachable.
+        /// </summary>
+        public static string Tools_ReasonUncOffline {
+            get {
+                return ResourceManager.GetString("Tools_ReasonUncOffline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to path exists.
+        /// </summary>
+        public static string Tools_ReasonLocalExists {
+            get {
+                return ResourceManager.GetString("Tools_ReasonLocalExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to path does not exist.
+        /// </summary>
+        public static string Tools_ReasonLocalMissing {
+            get {
+                return ResourceManager.GetString("Tools_ReasonLocalMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled dead path.
+        /// </summary>
+        public static string Tools_ChangeDisabledDead {
+            get {
+                return ResourceManager.GetString("Tools_ChangeDisabledDead", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled offline mount.
+        /// </summary>
+        public static string Tools_ChangeDisabledMount {
+            get {
+                return ResourceManager.GetString("Tools_ChangeDisabledMount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled unreachable project.
+        /// </summary>
+        public static string Tools_ChangeDisabledProject {
+            get {
+                return ResourceManager.GetString("Tools_ChangeDisabledProject", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled invalid line.
+        /// </summary>
+        public static string Tools_ChangeDisabledSyntax {
+            get {
+                return ResourceManager.GetString("Tools_ChangeDisabledSyntax", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to disabled reference to an undefined variable.
+        /// </summary>
+        public static string Tools_ChangeDisabledVar {
+            get {
+                return ResourceManager.GetString("Tools_ChangeDisabledVar", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to removed quotes from set.
+        /// </summary>
+        public static string Tools_ChangeFixedQuotes {
+            get {
+                return ResourceManager.GetString("Tools_ChangeFixedQuotes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to removed from the SEP managed block.
+        /// </summary>
+        public static string Tools_ChangeManagedRemoved {
+            get {
+                return ResourceManager.GetString("Tools_ChangeManagedRemoved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} change(s) applied; backups end with .sep.bak..
+        /// </summary>
+        public static string Tools_FixDone {
+            get {
+                return ResourceManager.GetString("Tools_FixDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nothing needed fixing..
+        /// </summary>
+        public static string Tools_FixNothing {
+            get {
+                return ResourceManager.GetString("Tools_FixNothing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} could not be fixed: {1}.
+        /// </summary>
+        public static string Tools_FixFailed {
+            get {
+                return ResourceManager.GetString("Tools_FixFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to USERDATA folder not found: {0}.
+        /// </summary>
+        public static string Tools_UserDataMissing {
+            get {
+                return ResourceManager.GetString("Tools_UserDataMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} item(s) removed, {1} KB freed..
+        /// </summary>
+        public static string Tools_UserDataDone {
+            get {
+                return ResourceManager.GetString("Tools_UserDataDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to USERDATA was already clean..
+        /// </summary>
+        public static string Tools_UserDataClean {
+            get {
+                return ResourceManager.GetString("Tools_UserDataClean", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cleaning stopped: {0}.
+        /// </summary>
+        public static string Tools_UserDataError {
+            get {
+                return ResourceManager.GetString("Tools_UserDataError", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No font or support folder found in the E3D installation..
+        /// </summary>
+        public static string Tools_CadNotFound {
+            get {
+                return ResourceManager.GetString("Tools_CadNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} font mapping file(s) updated..
+        /// </summary>
+        public static string Tools_CadDone {
+            get {
+                return ResourceManager.GetString("Tools_CadDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The font mapping is already up to date..
+        /// </summary>
+        public static string Tools_CadUpToDate {
+            get {
+                return ResourceManager.GetString("Tools_CadUpToDate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Path.
+        /// </summary>
+        public static string Tools_NetPath {
+            get {
+                return ResourceManager.GetString("Tools_NetPath", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Folder exists.
+        /// </summary>
+        public static string Tools_NetExists {
+            get {
+                return ResourceManager.GetString("Tools_NetExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Readable.
+        /// </summary>
+        public static string Tools_NetReadable {
+            get {
+                return ResourceManager.GetString("Tools_NetReadable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to the folder can be listed.
+        /// </summary>
+        public static string Tools_NetReadableOk {
+            get {
+                return ResourceManager.GetString("Tools_NetReadableOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to the folder cannot be listed — permissions?.
+        /// </summary>
+        public static string Tools_NetReadableNo {
+            get {
+                return ResourceManager.GetString("Tools_NetReadableNo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Writable.
+        /// </summary>
+        public static string Tools_NetWritable {
+            get {
+                return ResourceManager.GetString("Tools_NetWritable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to files can be created (needed for locks and sessions).
+        /// </summary>
+        public static string Tools_NetWritableOk {
+            get {
+                return ResourceManager.GetString("Tools_NetWritableOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to read-only — locks and SEP sessions cannot be written.
+        /// </summary>
+        public static string Tools_NetWritableNo {
+            get {
+                return ResourceManager.GetString("Tools_NetWritableNo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Share reachable.
+        /// </summary>
+        public static string Tools_NetShareReachable {
+            get {
+                return ResourceManager.GetString("Tools_NetShareReachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to the UNC path cannot be opened.
+        /// </summary>
+        public static string Tools_NetShareUnreachable {
+            get {
+                return ResourceManager.GetString("Tools_NetShareUnreachable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Host name.
+        /// </summary>
+        public static string Tools_NetHost {
+            get {
+                return ResourceManager.GetString("Tools_NetHost", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to no host in the path.
+        /// </summary>
+        public static string Tools_NetHostNone {
+            get {
+                return ResourceManager.GetString("Tools_NetHostNone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} resolves.
+        /// </summary>
+        public static string Tools_NetHostOk {
+            get {
+                return ResourceManager.GetString("Tools_NetHostOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} does not resolve (DNS / hosts file).
+        /// </summary>
+        public static string Tools_NetHostFail {
+            get {
+                return ResourceManager.GetString("Tools_NetHostFail", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SMB port 445.
+        /// </summary>
+        public static string Tools_NetPort {
+            get {
+                return ResourceManager.GetString("Tools_NetPort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to port 445 on {0} accepts connections.
+        /// </summary>
+        public static string Tools_NetPortOk {
+            get {
+                return ResourceManager.GetString("Tools_NetPortOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to port 445 on {0} is closed or filtered ({1}).
+        /// </summary>
+        public static string Tools_NetPortFail {
+            get {
+                return ResourceManager.GetString("Tools_NetPortFail", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to skipped — host unresolved.
+        /// </summary>
+        public static string Tools_NetPortSkipped {
+            get {
+                return ResourceManager.GetString("Tools_NetPortSkipped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Workstation service.
+        /// </summary>
+        public static string Tools_NetService {
+            get {
+                return ResourceManager.GetString("Tools_NetService", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to LanmanWorkstation is running.
+        /// </summary>
+        public static string Tools_NetServiceRunning {
+            get {
+                return ResourceManager.GetString("Tools_NetServiceRunning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to LanmanWorkstation is stopped — no SMB shares can be opened.
+        /// </summary>
+        public static string Tools_NetServiceStopped {
+            get {
+                return ResourceManager.GetString("Tools_NetServiceStopped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to state could not be read.
+        /// </summary>
+        public static string Tools_NetServiceUnknown {
+            get {
+                return ResourceManager.GetString("Tools_NetServiceUnknown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Share access.
+        /// </summary>
+        public static string Tools_NetShare {
+            get {
+                return ResourceManager.GetString("Tools_NetShare", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is connected.
+        /// </summary>
+        public static string Tools_NetShareOk {
+            get {
+                return ResourceManager.GetString("Tools_NetShareOk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to connected with "net use".
+        /// </summary>
+        public static string Tools_NetShareConnected {
+            get {
+                return ResourceManager.GetString("Tools_NetShareConnected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to connected but the folder cannot be read.
+        /// </summary>
+        public static string Tools_NetShareNoRead {
+            get {
+                return ResourceManager.GetString("Tools_NetShareNoRead", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to skipped — host or port unreachable.
+        /// </summary>
+        public static string Tools_NetShareSkipped {
+            get {
+                return ResourceManager.GetString("Tools_NetShareSkipped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Guest access policy.
+        /// </summary>
+        public static string Tools_NetGuest {
+            get {
+                return ResourceManager.GetString("Tools_NetGuest", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to insecure guest logons are allowed.
+        /// </summary>
+        public static string Tools_NetGuestOn {
+            get {
+                return ResourceManager.GetString("Tools_NetGuestOn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to insecure guest logons are blocked (default on Windows 11) — shares without accounts fail.
+        /// </summary>
+        public static string Tools_NetGuestOff {
+            get {
+                return ResourceManager.GetString("Tools_NetGuestOff", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to policy could not be read.
+        /// </summary>
+        public static string Tools_NetGuestUnknown {
+            get {
+                return ResourceManager.GetString("Tools_NetGuestUnknown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Projects.
+        /// </summary>
+        public static string Tools_NetProjects {
+            get {
+                return ResourceManager.GetString("Tools_NetProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to skipped — folder unreachable.
+        /// </summary>
+        public static string Tools_NetProjectsSkipped {
+            get {
+                return ResourceManager.GetString("Tools_NetProjectsSkipped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check permissions.
+        /// </summary>
+        public static string Tools_FixPermTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixPermTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Grant your account read access to the folder (or ask the owner)..
+        /// </summary>
+        public static string Tools_FixPermStep {
+            get {
+                return ResourceManager.GetString("Tools_FixPermStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fix host resolution.
+        /// </summary>
+        public static string Tools_FixDnsTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixDnsTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add {0} to C:\Windows\System32\drivers\etc\hosts or use the IP address in the library path..
+        /// </summary>
+        public static string Tools_FixDnsStep {
+            get {
+                return ResourceManager.GetString("Tools_FixDnsStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open SMB port 445.
+        /// </summary>
+        public static string Tools_FixPortTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixPortTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check the firewall on the server and between the networks for TCP 445..
+        /// </summary>
+        public static string Tools_FixPortStep1 {
+            get {
+                return ResourceManager.GetString("Tools_FixPortStep1", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make sure "File and Printer Sharing" is enabled on the server..
+        /// </summary>
+        public static string Tools_FixPortStep2 {
+            get {
+                return ResourceManager.GetString("Tools_FixPortStep2", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Start the Workstation service.
+        /// </summary>
+        public static string Tools_FixServiceTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixServiceTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Start the LanmanWorkstation service (administrator)..
+        /// </summary>
+        public static string Tools_FixServiceStep {
+            get {
+                return ResourceManager.GetString("Tools_FixServiceStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allow insecure guest logons.
+        /// </summary>
+        public static string Tools_FixGuestTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixGuestTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Windows 11 blocks shares that do not require a password..
+        /// </summary>
+        public static string Tools_FixGuestStep1 {
+            get {
+                return ResourceManager.GetString("Tools_FixGuestStep1", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Set AllowInsecureGuestAuth = 1 under HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters (administrator)..
+        /// </summary>
+        public static string Tools_FixGuestStep2 {
+            get {
+                return ResourceManager.GetString("Tools_FixGuestStep2", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear the session limit.
+        /// </summary>
+        public static string Tools_FixSessionsTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixSessionsTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} reports too many sessions — drop the stale SMB sessions on this PC..
+        /// </summary>
+        public static string Tools_FixSessionsStep {
+            get {
+                return ResourceManager.GetString("Tools_FixSessionsStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reconnect with different credentials.
+        /// </summary>
+        public static string Tools_FixReconnectTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixReconnectTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Windows already has a connection to {0} with another account; disconnect it and connect again..
+        /// </summary>
+        public static string Tools_FixReconnectStep {
+            get {
+                return ResourceManager.GetString("Tools_FixReconnectStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check the folder layout.
+        /// </summary>
+        public static string Tools_FixStructureTitle {
+            get {
+                return ResourceManager.GetString("Tools_FixStructureTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A library must contain project folders with evarsXXX.bat files..
+        /// </summary>
+        public static string Tools_FixStructureStep {
+            get {
+                return ResourceManager.GetString("Tools_FixStructureStep", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insecure guest logons are already allowed..
+        /// </summary>
+        public static string Tools_GuestAlready {
+            get {
+                return ResourceManager.GetString("Tools_GuestAlready", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insecure guest logons are now allowed; reconnect the share..
+        /// </summary>
+        public static string Tools_GuestEnabled {
+            get {
+                return ResourceManager.GetString("Tools_GuestEnabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The registry value could not be set (elevation refused?)..
+        /// </summary>
+        public static string Tools_GuestFailed {
+            get {
+                return ResourceManager.GetString("Tools_GuestFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The registry value could not be set: {0}.
+        /// </summary>
+        public static string Tools_GuestFailedWith {
+            get {
+                return ResourceManager.GetString("Tools_GuestFailedWith", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only network shares can be reconnected..
+        /// </summary>
+        public static string Tools_ReconnectUncOnly {
+            get {
+                return ResourceManager.GetString("Tools_ReconnectUncOnly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The share could not be reconnected..
+        /// </summary>
+        public static string Tools_ReconnectFailed {
+            get {
+                return ResourceManager.GetString("Tools_ReconnectFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} reconnected..
+        /// </summary>
+        public static string Tools_ReconnectDone {
+            get {
+                return ResourceManager.GetString("Tools_ReconnectDone", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to timed out.
+        /// </summary>
+        public static string Tools_NetErrTimeout {
+            get {
+                return ResourceManager.GetString("Tools_NetErrTimeout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to access denied (5).
+        /// </summary>
+        public static string Tools_NetErr5 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr5", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network path not found (53).
+        /// </summary>
+        public static string Tools_NetErr53 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr53", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network name not found (67).
+        /// </summary>
+        public static string Tools_NetErr67 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr67", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to too many sessions on the server (71).
+        /// </summary>
+        public static string Tools_NetErr71 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr71", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to wrong password / credentials (86).
+        /// </summary>
+        public static string Tools_NetErr86 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr86", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to already connected with different credentials (1219).
+        /// </summary>
+        public static string Tools_NetErr1219 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr1219", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to network unreachable (1231).
+        /// </summary>
+        public static string Tools_NetErr1231 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr1231", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to account disabled (1331).
+        /// </summary>
+        public static string Tools_NetErr1331 {
+            get {
+                return ResourceManager.GetString("Tools_NetErr1331", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to net use failed with code {0}.
+        /// </summary>
+        public static string Tools_NetErrOther {
+            get {
+                return ResourceManager.GetString("Tools_NetErrOther", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Appearance, E3D paths and where SEP keeps its data..
+        /// </summary>
+        public static string Settings_Subtitle {
+            get {
+                return ResourceManager.GetString("Settings_Subtitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Language and theme apply immediately..
+        /// </summary>
+        public static string Settings_PreferencesHint {
+            get {
+                return ResourceManager.GetString("Settings_PreferencesHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        public static string Settings_ThemeLabel {
+            get {
+                return ResourceManager.GetString("Settings_ThemeLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Follow Windows.
+        /// </summary>
+        public static string Settings_ThemeAuto {
+            get {
+                return ResourceManager.GetString("Settings_ThemeAuto", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dark.
+        /// </summary>
+        public static string Settings_ThemeDark {
+            get {
+                return ResourceManager.GetString("Settings_ThemeDark", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Light.
+        /// </summary>
+        public static string Settings_ThemeLight {
+            get {
+                return ResourceManager.GetString("Settings_ThemeLight", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds SEP to the Windows Run key for your account after saving..
+        /// </summary>
+        public static string Settings_AutoStartHint {
+            get {
+                return ResourceManager.GetString("Settings_AutoStartHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Detected automatically; override only when E3D lives somewhere unusual. Save to apply..
+        /// </summary>
+        public static string Settings_PathsHint {
+            get {
+                return ResourceManager.GetString("Settings_PathsHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The library whose custom_evars.bat receives single-project launches and the plug-in block..
+        /// </summary>
+        public static string Settings_LocalProjectsDirHint {
+            get {
+                return ResourceManager.GetString("Settings_LocalProjectsDirHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Plug-in folder.
+        /// </summary>
+        public static string Settings_PluginsDirLabel {
+            get {
+                return ResourceManager.GetString("Settings_PluginsDirLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to D:\AVEVA\Plugins (leave empty to detect).
+        /// </summary>
+        public static string Settings_PluginsDirPlaceholder {
+            get {
+                return ResourceManager.GetString("Settings_PluginsDirPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leave empty to find the E3D shortcut automatically.
+        /// </summary>
+        public static string Settings_LnkPlaceholder {
+            get {
+                return ResourceManager.GetString("Settings_LnkPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Data.
+        /// </summary>
+        public static string Settings_DataHeader {
+            get {
+                return ResourceManager.GetString("Settings_DataHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Libraries, my projects, categories and credentials, shared with the Python tool..
+        /// </summary>
+        public static string Settings_DataHint {
+            get {
+                return ResourceManager.GetString("Settings_DataHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to portable.
+        /// </summary>
+        public static string Settings_PortableBadge {
+            get {
+                return ResourceManager.GetString("Settings_PortableBadge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Export bundle….
+        /// </summary>
+        public static string Settings_Export {
+            get {
+                return ResourceManager.GetString("Settings_Export", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Save libraries, projects, categories and paths as one JSON file to move to another PC.
+        /// </summary>
+        public static string Settings_ExportTooltip {
+            get {
+                return ResourceManager.GetString("Settings_ExportTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import bundle….
+        /// </summary>
+        public static string Settings_Import {
+            get {
+                return ResourceManager.GetString("Settings_Import", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the current data with a bundle exported on another PC.
+        /// </summary>
+        public static string Settings_ImportTooltip {
+            get {
+                return ResourceManager.GetString("Settings_ImportTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Export SEP bundle.
+        /// </summary>
+        public static string Settings_ExportTitle {
+            get {
+                return ResourceManager.GetString("Settings_ExportTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Bundle exported to {0}.
+        /// </summary>
+        public static string Settings_Exported {
+            get {
+                return ResourceManager.GetString("Settings_Exported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Export failed: {0}.
+        /// </summary>
+        public static string Settings_ExportFailed {
+            get {
+                return ResourceManager.GetString("Settings_ExportFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import SEP bundle.
+        /// </summary>
+        public static string Settings_ImportTitle {
+            get {
+                return ResourceManager.GetString("Settings_ImportTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This file is not a SEP bundle..
+        /// </summary>
+        public static string Settings_ImportInvalid {
+            get {
+                return ResourceManager.GetString("Settings_ImportInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the current data with {0} libraries and {1} projects from {2}? The current data is overwritten..
+        /// </summary>
+        public static string Settings_ImportConfirm {
+            get {
+                return ResourceManager.GetString("Settings_ImportConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        public static string Settings_ImportButton {
+            get {
+                return ResourceManager.GetString("Settings_ImportButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Paths remapped during import.
+        /// </summary>
+        public static string Settings_ImportRemappedTitle {
+            get {
+                return ResourceManager.GetString("Settings_ImportRemappedTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Imported {0} libraries and {1} projects..
+        /// </summary>
+        public static string Settings_Imported {
+            get {
+                return ResourceManager.GetString("Settings_Imported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import failed: {0}.
+        /// </summary>
+        public static string Settings_ImportFailed {
+            get {
+                return ResourceManager.GetString("Settings_ImportFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Paths on this PC.
+        /// </summary>
+        public static string Settings_DevicePathsHeader {
+            get {
+                return ResourceManager.GetString("Settings_DevicePathsHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to found.
+        /// </summary>
+        public static string Settings_PathFound {
+            get {
+                return ResourceManager.GetString("Settings_PathFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to missing.
+        /// </summary>
+        public static string Settings_PathMissing {
+            get {
+                return ResourceManager.GetString("Settings_PathMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AVEVA folder on {0}.
+        /// </summary>
+        public static string Settings_DriveLabel {
+            get {
+                return ResourceManager.GetString("Settings_DriveLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No project found in this library..
+        /// </summary>
+        public static string Lib_NoProjects {
+            get {
+                return ResourceManager.GetString("Lib_NoProjects", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Archive the project as a zip, unregister it from E3D and optionally delete the folder..
+        /// </summary>
+        public static string Decommission_Hint {
+            get {
+                return ResourceManager.GetString("Decommission_Hint", resourceCulture);
             }
         }
     }

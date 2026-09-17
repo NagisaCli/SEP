@@ -50,6 +50,7 @@ public partial class UserAdminViewModel : ObservableObject
     private List<UserRow> _allUsers = new();
     private List<TeamRow> _allTeams = new();
     private int _loadSerial;
+    private bool _suppressReload;
 
     // ── project ──────────────────────────────────────────────────────────────────
 
@@ -177,8 +178,9 @@ public partial class UserAdminViewModel : ObservableObject
         if (same != null)
         {
             // Same project after a catalog refresh: swap the choice object without reloading the page.
-            _selectedProject = same;
-            OnPropertyChanged(nameof(SelectedProject));
+            _suppressReload = true;
+            try { SelectedProject = same; }
+            finally { _suppressReload = false; }
             return;
         }
         SelectedProject = current != null ? choices.FirstOrDefault(c => c.Code == current.Code) ?? choices[0] : choices[0];
@@ -186,6 +188,7 @@ public partial class UserAdminViewModel : ObservableObject
 
     partial void OnSelectedProjectChanged(ProjectChoice? value)
     {
+        if (_suppressReload) return;
         RefreshCredentialSummary();
         CredentialStatus = string.Empty;
         _allUsers = new();

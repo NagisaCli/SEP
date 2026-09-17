@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Win32;
+using SEP.App.Models;
 using SEP.App.Resources;
 using SEP.App.Views.Dialogs;
 using Wpf.Ui.Controls;
@@ -53,5 +55,60 @@ public sealed class DialogService : IDialogService
         var dlg = new NewUserDialog(teams, projectCode) { Owner = Owner };
         bool ok = dlg.ShowDialog() == true;
         return Task.FromResult(ok ? dlg.Result : null);
+    }
+
+    private static IProjectCatalog Catalog => (IProjectCatalog)App.Services.GetService(typeof(IProjectCatalog))!;
+
+    public Task<bool> EditProjectAsync(ProjectItem project)
+    {
+        var dlg = new ProjectEditDialog(Catalog, new[] { project }) { Owner = Owner };
+        dlg.ShowDialog();
+        return Task.FromResult(dlg.Saved);
+    }
+
+    public Task<bool> EditProjectsAsync(IReadOnlyList<ProjectItem> projects)
+    {
+        if (projects.Count == 0) return Task.FromResult(false);
+        var dlg = new ProjectEditDialog(Catalog, projects) { Owner = Owner };
+        dlg.ShowDialog();
+        return Task.FromResult(dlg.Saved);
+    }
+
+    public Task ManageCategoriesAsync()
+    {
+        new CategoriesDialog(Catalog) { Owner = Owner }.ShowDialog();
+        return Task.CompletedTask;
+    }
+
+    public Task CreateProjectAsync()
+    {
+        new CreateProjectDialog { Owner = Owner }.ShowDialog();   // the catalog rescans the library itself after a successful creation
+        return Task.CompletedTask;
+    }
+
+    public Task DecommissionProjectAsync(ProjectItem project)
+    {
+        new DecommissionDialog(project) { Owner = Owner }.ShowDialog();
+        return Task.CompletedTask;
+    }
+
+    public string? PickFolder(string title, string? initial = null)
+    {
+        var dlg = new OpenFolderDialog { Title = title, Multiselect = false };
+        if (!string.IsNullOrEmpty(initial) && System.IO.Directory.Exists(initial)) dlg.InitialDirectory = initial;
+        return dlg.ShowDialog(Owner) == true ? dlg.FolderName : null;
+    }
+
+    public string? PickFile(string title, string filter, string? initial = null)
+    {
+        var dlg = new OpenFileDialog { Title = title, Filter = filter, CheckFileExists = true };
+        if (!string.IsNullOrEmpty(initial) && System.IO.Directory.Exists(initial)) dlg.InitialDirectory = initial;
+        return dlg.ShowDialog(Owner) == true ? dlg.FileName : null;
+    }
+
+    public string? PickSaveFile(string title, string filter, string suggestedName)
+    {
+        var dlg = new SaveFileDialog { Title = title, Filter = filter, FileName = suggestedName, OverwritePrompt = true };
+        return dlg.ShowDialog(Owner) == true ? dlg.FileName : null;
     }
 }

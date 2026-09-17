@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SEP.App.Models;
 
 namespace SEP.App.Services;
 
@@ -41,4 +42,17 @@ public interface IDialogService
 
     /// <summary>The "new project user" form; null when cancelled.</summary>
     Task<UserDraft?> NewUserAsync(IReadOnlyList<string> teams, string projectCode);
+
+    /// <summary>Project details editor (name, category, status, owner, tags, description, notes); true when saved.</summary>
+    Task<bool> EditProjectAsync(ProjectItem project);
+    /// <summary>Batch editor for several projects; true when applied.</summary>
+    Task<bool> EditProjectsAsync(IReadOnlyList<ProjectItem> projects);
+    Task ManageCategoriesAsync();
+    Task CreateProjectAsync();
+    Task DecommissionProjectAsync(ProjectItem project);
+    /// <summary>Folder picker; null when cancelled.</summary>
+    string? PickFolder(string title, string? initial = null);
+    /// <summary>File picker; null when cancelled.</summary>
+    string? PickFile(string title, string filter, string? initial = null);
+    string? PickSaveFile(string title, string filter, string suggestedName);
 }

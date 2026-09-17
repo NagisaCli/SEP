@@ -27,14 +27,12 @@
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:PaletteConverter x:Key="PaletteConverter" />
-
-            <!-- Palette Overrides -->
-            <SolidColorBrush x:Key="SepBrandCyanBrush" Color="#00E5FF" />
-            <SolidColorBrush x:Key="SepCardDarkBrush" Color="#161B22" />
-            <SolidColorBrush x:Key="SepCardHoverBrush" Color="#21262D" />
-            <SolidColorBrush x:Key="SepBorderSubtleBrush" Color="#253040" />
-            <SolidColorBrush x:Key="SepEmeraldBrush" Color="#10B981" />
-            <SolidColorBrush x:Key="SepAmberBrush" Color="#F59E0B" />
+            <converters:StatusLabelConverter x:Key="StatusLabelConverter" />
+            <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
+            <converters:FileSizeConverter x:Key="FileSizeConverter" />
+            <converters:FractionToWidthConverter x:Key="FractionToWidthConverter" />
+            <converters:FractionToStarConverter x:Key="FractionToStarConverter" />
+            <converters:NonZeroToVisibilityConverter x:Key="NonZeroToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

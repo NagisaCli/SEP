@@ -13,12 +13,12 @@ public sealed class SepData
 {
     [JsonPropertyName("version")] public int Version { get; set; } = 3;
     [JsonPropertyName("settings")] public SepSettings Settings { get; set; } = new();
-    [JsonPropertyName("categories")] public List<JsonElement> Categories { get; set; } = new();
+    [JsonPropertyName("categories")] public List<CategoryRecord> Categories { get; set; } = new();
     [JsonPropertyName("project_meta")] public Dictionary<string, ProjectMetaRecord> ProjectMeta { get; set; } = new();
     [JsonPropertyName("libraries")] public List<LibraryRecord> Libraries { get; set; } = new();
     [JsonPropertyName("my_projects")] public List<MyProjectRecord> MyProjects { get; set; } = new();
     [JsonPropertyName("all_projects_cache")] public List<ProjectRecord> AllProjectsCache { get; set; } = new();
-    [JsonPropertyName("notifications")] public List<JsonElement> Notifications { get; set; } = new();
+    [JsonPropertyName("notifications")] public List<NotificationRecord> Notifications { get; set; } = new();
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 
@@ -29,6 +29,8 @@ public sealed class SepSettings
     /// <summary>Local project library whose custom_evars.bat receives single-project launches.</summary>
     [JsonPropertyName("local_projects_dir")] public string LocalProjectsDir { get; set; } = string.Empty;
     [JsonPropertyName("last_mode")] public string LastMode { get; set; } = string.Empty;
+    /// <summary>Root folder of PML/.NET plug-ins (settings.plugins_dir in the Python tool); empty = detect.</summary>
+    [JsonPropertyName("plugins_dir"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? PluginsDir { get; set; }
     /// <summary>Name of the project launched last (what the Python UI calls the active project).</summary>
     [JsonPropertyName("last_launched")] public string LastLaunched { get; set; } = string.Empty;
     // Keys below are only used by this client.
@@ -95,5 +97,31 @@ public sealed class ProjectMetaRecord
     [JsonPropertyName("status"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Status { get; set; }
     [JsonPropertyName("owner"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Owner { get; set; }
     [JsonPropertyName("updated_at"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? UpdatedAt { get; set; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+/// <summary>A business category projects can be filed under (e3d_store.add_category): id = gen_id("cat", lower(name)).</summary>
+public sealed class CategoryRecord
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    /// <summary>#RRGGBB.</summary>
+    [JsonPropertyName("color")] public string Color { get; set; } = "#4f8cff";
+    [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+/// <summary>A device/environment notice (e3d_store.add_device_notification); dismissed ones stay for history.</summary>
+public sealed class NotificationRecord
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    /// <summary>"info", "warn", "success" or "error".</summary>
+    [JsonPropertyName("level")] public string Level { get; set; } = "info";
+    [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("message")] public string Message { get; set; } = string.Empty;
+    [JsonPropertyName("action_label")] public string? ActionLabel { get; set; }
+    [JsonPropertyName("action_url")] public string? ActionUrl { get; set; }
+    [JsonPropertyName("created_at")] public string? CreatedAt { get; set; }
+    [JsonPropertyName("updated_at"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? UpdatedAt { get; set; }
+    [JsonPropertyName("dismissed")] public bool Dismissed { get; set; }
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }

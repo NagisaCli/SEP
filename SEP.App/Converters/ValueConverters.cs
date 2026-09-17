@@ -182,3 +182,99 @@ public class PaletteConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+/// <summary>
+/// Status token ("进行中", "已完成", …) to its localized label. values[0] is the token; values[1] is any
+/// Loc indexer binding so the label re-evaluates when the language changes.
+/// </summary>
+public class StatusLabelConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        string token = values.Length > 0 ? values[0] as string ?? string.Empty : string.Empty;
+        return ViewModels.StatusOption.LabelOf(token);
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>A hex colour string ("#4F8CFF") to a frozen brush; anything unparsable gives the neutral text colour.</summary>
+public class HexToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is string s && s.Length > 0)
+        {
+            try
+            {
+                var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(s));
+                brush.Freeze();
+                return brush;
+            }
+            catch (FormatException) { }
+        }
+        return Application.Current?.TryFindResource("SepText2Brush") ?? Brushes.Gray;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>Bytes to a short human size ("12.4 KB").</summary>
+public class FileSizeConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        double bytes = value switch { long l => l, int i => i, double d => d, _ => 0 };
+        string[] units = { "B", "KB", "MB", "GB" };
+        int u = 0;
+        while (bytes >= 1024 && u < units.Length - 1) { bytes /= 1024; u++; }
+        return u == 0 ? $"{bytes:0} {units[u]}" : $"{bytes:0.#} {units[u]}";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>A fraction 0..1 to a width in pixels for the distribution bars: parameter is the full width.</summary>
+public class FractionToWidthConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        double fraction = value is double d ? d : 0;
+        double full = parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var w) ? w : 200;
+        return Math.Max(2, Math.Round(full * Math.Clamp(fraction, 0, 1)));
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>A fraction 0..1 to a star GridLength; parameter "rest" gives the complement, so two columns split a track.</summary>
+public class FractionToStarConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        double fraction = Math.Clamp(value is double d ? d : 0, 0, 1);
+        if (string.Equals(parameter as string, "rest", StringComparison.OrdinalIgnoreCase)) fraction = 1 - fraction;
+        return new GridLength(Math.Max(fraction, 0.0001), GridUnitType.Star);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>Visible when a number is not zero (or a collection is not empty).</summary>
+public class NonZeroToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        bool nonZero = value switch
+        {
+            int i => i != 0,
+            long l => l != 0,
+            double d => d != 0,
+            System.Collections.ICollection c => c.Count > 0,
+            _ => false,
+        };
+        return nonZero ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}

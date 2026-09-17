@@ -1,0 +1,66 @@
+<ui:FluentWindow x:Class="SEP.App.Views.Dialogs.CategoriesDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:loc="clr-namespace:SEP.App.Localization"
+        xmlns:local="clr-namespace:SEP.App.Views.Dialogs"
+        Title="{loc:Tr Category_Manage}"
+        Width="520" Height="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize" ShowInTaskbar="False"
+        ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica"
+        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="{loc:Tr Category_Manage}" ShowMinimize="False" ShowMaximize="False" />
+
+        <!-- add -->
+        <Grid Grid.Row="1" Margin="24,8,24,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:TextBox x:Name="NewName" PlaceholderText="{loc:Tr Category_NewPlaceholder}" MaxLength="30" KeyDown="OnNewNameKeyDown" />
+            <ui:Button Grid.Column="1" Appearance="Primary" Content="{loc:Tr Category_Add}" Margin="8,0,0,0" Click="OnAdd" />
+        </Grid>
+
+        <!-- list -->
+        <ScrollViewer Grid.Row="2" Margin="24,0,24,0" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="List">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:CategoryRow}">
+                        <Border Style="{StaticResource SepRow}" Padding="10,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <!-- colour swatch: click cycles through the palette -->
+                                <Button Width="26" Height="26" Padding="0" BorderThickness="0" Background="Transparent" Click="OnCycleColor" Tag="{Binding}" ToolTip="{loc:Tr Category_ColorTooltip}">
+                                    <Border Width="18" Height="18" CornerRadius="9" Background="{Binding Color}" />
+                                </Button>
+                                <ui:TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" MaxLength="30" LostFocus="OnNameLostFocus" Tag="{Binding}" />
+                                <TextBlock Grid.Column="2" Text="{Binding UsageText}" Style="{StaticResource SepCaption}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <ui:Button Grid.Column="3" Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete24}" ToolTip="{loc:Tr Category_Delete}" Click="OnDelete" Tag="{Binding}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,12,24,20">
+            <TextBlock x:Name="Status" Style="{StaticResource SepStatusText}" Margin="0,0,12,0" MaxWidth="300" />
+            <ui:Button Content="{loc:Tr Common_Close}" Appearance="Secondary" Click="OnClose" MinWidth="90" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

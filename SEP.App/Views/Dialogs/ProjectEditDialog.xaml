@@ -1,0 +1,128 @@
+<ui:FluentWindow x:Class="SEP.App.Views.Dialogs.ProjectEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:loc="clr-namespace:SEP.App.Localization"
+        xmlns:vm="clr-namespace:SEP.App.ViewModels"
+        Title="{Binding Title}"
+        Width="600" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica"
+        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="{Binding Title}" ShowMinimize="False" ShowMaximize="False" />
+
+        <StackPanel Grid.Row="1" Margin="24,8,24,20">
+            <!-- batch hint -->
+            <Border Style="{StaticResource SepWell}" Margin="0,0,0,14" Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock Text="{loc:Tr Edit_BatchHint}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- display name (single only) -->
+            <StackPanel Visibility="{Binding IsBatch, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="0,0,0,12">
+                <TextBlock Text="{loc:Tr Edit_DisplayName}" Style="{StaticResource SepLabel}" />
+                <ui:TextBox x:Name="NameField" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Edit_DisplayNamePlaceholder}" MaxLength="60" />
+            </StackPanel>
+
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Text="{loc:Tr Edit_Category}" Style="{StaticResource SepLabel}" />
+                        <CheckBox x:Name="ApplyCategoryBox" Content="{loc:Tr Edit_Apply}" IsChecked="{Binding ApplyCategory}" HorizontalAlignment="Right" Margin="0,-6,0,0"
+                                  Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="CategoryBox" ItemsSource="{Binding CategoryOptions}" SelectedItem="{Binding Category}" HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CategoryOption}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="10" Height="10" CornerRadius="5" Margin="0,0,8,0" VerticalAlignment="Center" Background="{Binding Color}" />
+                                        <TextBlock Text="{Binding Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Tag24}" Margin="6,0,0,0" ToolTip="{loc:Tr Category_Manage}" Click="OnManageCategories" />
+                    </Grid>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Grid>
+                        <TextBlock Text="{loc:Tr Edit_Status}" Style="{StaticResource SepLabel}" />
+                        <CheckBox x:Name="ApplyStatusBox" Content="{loc:Tr Edit_Apply}" IsChecked="{Binding ApplyStatus}" HorizontalAlignment="Right" Margin="0,-6,0,0"
+                                  Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                    <ComboBox x:Name="StatusBox" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding Status}" DisplayMemberPath="Label" HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Text="{loc:Tr Edit_Owner}" Style="{StaticResource SepLabel}" />
+                        <CheckBox x:Name="ApplyOwnerBox" Content="{loc:Tr Edit_Apply}" IsChecked="{Binding ApplyOwner}" HorizontalAlignment="Right" Margin="0,-6,0,0"
+                                  Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                    <ui:TextBox x:Name="OwnerField" Text="{Binding Owner, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Edit_OwnerPlaceholder}" MaxLength="100" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Grid>
+                        <TextBlock Text="{loc:Tr Edit_Tags}" Style="{StaticResource SepLabel}" />
+                        <CheckBox x:Name="ApplyTagsBox" Content="{loc:Tr Edit_Apply}" IsChecked="{Binding ApplyTags}" HorizontalAlignment="Right" Margin="0,-6,0,0"
+                                  Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                    <ui:TextBox x:Name="TagsField" Text="{Binding TagsText, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Edit_TagsPlaceholder}" />
+                    <CheckBox x:Name="AppendTagsBox" Content="{loc:Tr Edit_TagsAppend}" IsChecked="{Binding AppendTags}" Margin="0,4,0,0" FontSize="12"
+                              Visibility="{Binding IsBatch, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- known tags as quick chips -->
+            <ItemsControl ItemsSource="{Binding KnownTags}" Margin="0,-4,0,10">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ui:Button Appearance="Transparent" Padding="8,2" Margin="0,2,6,2" FontSize="11" Content="{Binding}"
+                                   Command="{Binding DataContext.AddTagCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"
+                                   BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="1" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Visibility="{Binding IsBatch, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <TextBlock Text="{loc:Tr Edit_Description}" Style="{StaticResource SepLabel}" />
+                <ui:TextBox x:Name="DescriptionField" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Edit_DescriptionPlaceholder}"
+                            TextWrapping="Wrap" AcceptsReturn="True" MinHeight="60" MaxLength="2000" Margin="0,0,0,12" />
+                <TextBlock Text="{loc:Tr Edit_Notes}" Style="{StaticResource SepLabel}" />
+                <ui:TextBox x:Name="NotesField" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Edit_NotesPlaceholder}"
+                            TextWrapping="Wrap" AcceptsReturn="True" MinHeight="60" MaxLength="2000" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="90" Margin="0,0,10,0" IsCancel="True" />
+                <ui:Button x:Name="SaveButton" Content="{loc:Tr Common_Save}" Appearance="Primary" Click="OnSave" MinWidth="110" IsDefault="True" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,6 +21,13 @@ public partial class LibraryGroup : ObservableObject
 
     [ObservableProperty]
     private string _statusText = string.Empty;
+
+    [ObservableProperty]
+    private int _hiddenCount;
+
+    /// <summary>What to say under an empty project list: nothing found, or everything filtered out.</summary>
+    [ObservableProperty]
+    private string _emptyText = string.Empty;
 
     public LibraryGroup(LibraryItem library)
     {
@@ -45,14 +51,26 @@ public partial class LibraryGroup : ObservableObject
     }
 }
 
+/// <summary>A filter entry of the category / status / tag pickers ("" = any).</summary>
+public sealed record FilterOption(string Value, string Label, string? Color = null)
+{
+    public override string ToString() => Label;
+}
+
 public partial class ProjectsViewModel : ObservableObject
 {
     private readonly IProjectCatalog _catalog;
     private readonly IE3dLauncherService _launcherService;
     private readonly IE3dProjectService _projectService;
-    private readonly MainWindowViewModel _mainVm;
+    private readonly SessionService _sessions;
+    private readonly IDialogService _dialogs;
+    private readonly ToastService _toasts;
 
+    public ProjectActions Actions { get; }
     public ObservableCollection<LibraryGroup> Groups { get; } = new();
+    public ObservableCollection<FilterOption> CategoryFilters { get; } = new();
+    public ObservableCollection<FilterOption> StatusFilters { get; } = new();
+    public ObservableCollection<FilterOption> TagFilters { get; } = new();
 
     [ObservableProperty]
     private string _filterTab = "All"; // "All", "Mine", "Local", "Unc"
@@ -61,12 +79,23 @@ public partial class ProjectsViewModel : ObservableObject
     private string _searchKeyword = string.Empty;
 
     [ObservableProperty]
+    private FilterOption? _categoryFilter;
+
+    [ObservableProperty]
+    private FilterOption? _statusFilter;
+
+    [ObservableProperty]
+    private FilterOption? _tagFilter;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddLibraryCommand))]
     private string _newLibraryPath = string.Empty;
 
+    [ObservableProperty]
+    private bool _showAddLibrary;
+
     /// <summary>True while scanning or launching; launch/refresh buttons are disabled meanwhile.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SetActiveAndLaunchCommand))]
     [NotifyCanExecuteChangedFor(nameof(LoadLibraryCommand))]
     [NotifyCanExecuteChangedFor(nameof(RescanAllCommand))]
     [NotifyCanExecuteChangedFor(nameof(RescanLibraryCommand))]
@@ -79,16 +108,39 @@ public partial class ProjectsViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasLibraries;
 
-    public ProjectsViewModel(IProjectCatalog catalog, IE3dLauncherService launcherService, IE3dProjectService projectService, MainWindowViewModel mainVm)
+    [ObservableProperty]
+    private int _visibleCount;
+
+    // batch mode
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BatchBarVisible))]
+    private bool _batchMode;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BatchBarVisible))]
+    [NotifyPropertyChangedFor(nameof(SelectedCountText))]
+    private int _selectedCount;
+
+    public bool BatchBarVisible => BatchMode;
+    public string SelectedCountText => string.Format(Strings.Batch_Selected, SelectedCount);
+
+    // projects whose IsSelected we already watch (instances survive rebuilds, see ProjectCatalog.RebuildModels)
+    private readonly HashSet<ProjectItem> _watched = new();
+
+    public ProjectsViewModel(IProjectCatalog catalog, IE3dLauncherService launcherService, IE3dProjectService projectService,
+        SessionService sessions, IDialogService dialogs, ToastService toasts, ProjectActions actions)
     {
         _catalog = catalog;
         _launcherService = launcherService;
         _projectService = projectService;
-        _mainVm = mainVm;
+        _sessions = sessions;
+        _dialogs = dialogs;
+        _toasts = toasts;
+        Actions = actions;
 
         _catalog.Changed += (_, _) => OnUiThread(Rebuild);
         _catalog.ScanStateChanged += (_, _) => OnUiThread(() => IsLoading = _catalog.IsScanning);
-        Loc.Instance.LanguageChanged += (_, _) => { foreach (var g in Groups) g.RefreshStatus(); };
+        Loc.Instance.LanguageChanged += (_, _) => OnUiThread(() => { foreach (var g in Groups) g.RefreshStatus(); RebuildFilters(); ApplyFilter(); UpdateSummary(); });
 
         Rebuild();                                  // cached results are visible immediately…
         _ = RescanAllAsync(force: false);           // …and refreshed in the background
@@ -117,31 +169,65 @@ public partial class ProjectsViewModel : ObservableObject
             Groups.Add(group);
         }
         HasLibraries = Groups.Count > 0;
+        foreach (var p in _catalog.Projects)
+        {
+            if (_watched.Add(p)) p.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(ProjectItem.IsSelected)) OnSelectionChanged(); };
+        }
+        RebuildFilters();
         ApplyFilter();
         UpdateSummary();
     }
 
+    // true while the picker lists are being refilled, so re-selecting the same value does not re-filter three times
+    private bool _refilling;
+
+    private void RebuildFilters()
+    {
+        _refilling = true;
+        try
+        {
+            CategoryFilter = Refill(CategoryFilters, new[] { new FilterOption("", Strings.Filter_AnyCategory) }
+                .Concat(_catalog.Categories.Select(c => new FilterOption(c.Id, c.Name, c.Color))), CategoryFilter);
+            StatusFilter = Refill(StatusFilters, new[] { new FilterOption("", Strings.Filter_AnyStatus) }
+                .Concat(IProjectCatalog.StatusOptions.Select(t => new FilterOption(t, StatusOption.LabelOf(t)))), StatusFilter);
+            TagFilter = Refill(TagFilters, new[] { new FilterOption("", Strings.Filter_AnyTag) }
+                .Concat(_catalog.AllTags.Select(t => new FilterOption(t, t))), TagFilter);
+        }
+        finally { _refilling = false; }
+    }
+
+    private static FilterOption Refill(ObservableCollection<FilterOption> target, IEnumerable<FilterOption> items, FilterOption? selected)
+    {
+        string current = selected?.Value ?? string.Empty;
+        target.Clear();
+        foreach (var i in items) target.Add(i);
+        return target.FirstOrDefault(o => o.Value == current) ?? target[0];
+    }
+
     partial void OnSearchKeywordChanged(string value) => ApplyFilter();
     partial void OnFilterTabChanged(string value) => ApplyFilter();
+    partial void OnCategoryFilterChanged(FilterOption? value) { if (!_refilling) ApplyFilter(); }
+    partial void OnStatusFilterChanged(FilterOption? value) { if (!_refilling) ApplyFilter(); }
+    partial void OnTagFilterChanged(FilterOption? value) { if (!_refilling) ApplyFilter(); }
 
     public void ApplyFilter()
     {
         string kw = SearchKeyword.Trim();
+        string cat = CategoryFilter?.Value ?? string.Empty;
+        string st = StatusFilter?.Value ?? string.Empty;
+        string tag = TagFilter?.Value ?? string.Empty;
+        int visible = 0;
         foreach (var group in Groups)
         {
-            IEnumerable<ProjectItem> q = _catalog.Projects.Where(p => p.LibraryId == group.Library.Id);
+            var all = _catalog.Projects.Where(p => p.LibraryId == group.Library.Id).ToList();
+            IEnumerable<ProjectItem> q = all;
             if (FilterTab == "Mine") q = q.Where(p => p.IsFavorite);
             else if (FilterTab == "Local") q = q.Where(p => !p.IsUnc);
             else if (FilterTab == "Unc") q = q.Where(p => p.IsUnc);
-
-            if (kw.Length > 0)
-            {
-                q = q.Where(p => p.Name.Contains(kw, StringComparison.OrdinalIgnoreCase) ||
-                                 (p.Code?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                 (p.DisplayName?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                 p.BatPath.Contains(kw, StringComparison.OrdinalIgnoreCase) ||
-                                 p.Tags.Any(t => t.Contains(kw, StringComparison.OrdinalIgnoreCase)));
-            }
+            if (cat.Length > 0) q = q.Where(p => p.Category?.Id == cat);
+            if (st.Length > 0) q = q.Where(p => p.Status == st);
+            if (tag.Length > 0) q = q.Where(p => p.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase));
+            if (kw.Length > 0) q = q.Where(p => p.Matches(kw));
 
             var wanted = q.OrderByDescending(p => p.IsFavorite).ThenByDescending(p => p.IsActive)
                           .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -150,7 +236,11 @@ public partial class ProjectsViewModel : ObservableObject
                 group.Projects.Clear();
                 foreach (var p in wanted) group.Projects.Add(p);
             }
+            group.HiddenCount = all.Count - wanted.Count;
+            group.EmptyText = all.Count == 0 ? Strings.Lib_NoProjects : string.Format(Strings.Lib_NoVisibleProjects, group.HiddenCount);
+            visible += wanted.Count;
         }
+        VisibleCount = visible;
     }
 
     private void UpdateSummary()
@@ -179,6 +269,7 @@ public partial class ProjectsViewModel : ObservableObject
             return;
         }
         OnUiThread(UpdateSummary);
+        _ = _sessions.ProbeAsync(_catalog.Projects.ToList());
     }
 
     [RelayCommand(CanExecute = nameof(NotBusy))]
@@ -187,6 +278,16 @@ public partial class ProjectsViewModel : ObservableObject
         if (group == null) return;
         await _catalog.RescanLibraryAsync(group.Library.Id);
         OnUiThread(UpdateSummary);
+    }
+
+    [RelayCommand]
+    private void ToggleAddLibrary() => ShowAddLibrary = !ShowAddLibrary;
+
+    [RelayCommand]
+    private void BrowseLibrary()
+    {
+        string? folder = _dialogs.PickFolder(Strings.Lib_BrowseTitle, _catalog.LocalProjectsDir);
+        if (folder != null) NewLibraryPath = folder;
     }
 
     [RelayCommand(CanExecute = nameof(CanAddLibrary))]
@@ -198,7 +299,8 @@ public partial class ProjectsViewModel : ObservableObject
         {
             var (ok, msg) = await _catalog.AddLibraryAsync(path);
             NotificationText = msg;
-            if (ok) NewLibraryPath = string.Empty;
+            _toasts.Result(ok, msg);
+            if (ok) { NewLibraryPath = string.Empty; ShowAddLibrary = false; }
         }
         finally
         {
@@ -207,11 +309,14 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RemoveLibrary(LibraryGroup? group)
+    private async Task RemoveLibraryAsync(LibraryGroup? group)
     {
         if (group == null) return;
+        bool ok = await _dialogs.ConfirmAsync(Strings.Lib_RemoveTitle, string.Format(Strings.Lib_RemoveBody, group.Library.Name), Strings.Lib_RemoveConfirm, danger: true);
+        if (!ok) return;
         var (_, msg) = _catalog.RemoveLibrary(group.Library.Id);
         NotificationText = msg;
+        _toasts.Info(msg);
     }
 
     [RelayCommand]
@@ -226,6 +331,12 @@ public partial class ProjectsViewModel : ObservableObject
         if (group != null) group.Library.IsExpanded = !group.Library.IsExpanded;
     }
 
+    [RelayCommand]
+    private void ExpandAll(bool expand)
+    {
+        foreach (var g in Groups) g.Library.IsExpanded = expand;
+    }
+
     [RelayCommand(CanExecute = nameof(NotBusy))]
     private async Task LoadLibraryAsync(LibraryGroup? group)
     {
@@ -236,7 +347,7 @@ public partial class ProjectsViewModel : ObservableObject
             NotificationText = string.Format(Strings.Projects_SwitchingTo, group.Library.Name);
             var res = await _launcherService.LoadLibraryAndLaunchAsync(group.Library);
             NotificationText = res.Message;
-            _mainVm.RefreshActiveProject();
+            _toasts.Result(res.Success, res.Message);
         }
         finally
         {
@@ -245,35 +356,77 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleFavorite(ProjectItem? item)
+    private void ClearFilters()
     {
-        if (item == null) return;
-        _catalog.ToggleMyProject(item);
-        if (FilterTab == "Mine") ApplyFilter();   // the card leaves the list; otherwise the star just flips
+        SearchKeyword = string.Empty;
+        FilterTab = "All";
+        CategoryFilter = CategoryFilters.FirstOrDefault();
+        StatusFilter = StatusFilters.FirstOrDefault();
+        TagFilter = TagFilters.FirstOrDefault();
     }
 
-    [RelayCommand(CanExecute = nameof(NotBusy))]
-    private async Task SetActiveAndLaunchAsync(ProjectItem? item)
+    // ── batch mode ───────────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private void ToggleBatchMode()
     {
-        if (item == null) return;
-        IsLoading = true;
-        try
+        BatchMode = !BatchMode;
+        if (!BatchMode) ClearSelection();
+    }
+
+    public void OnSelectionChanged() => SelectedCount = _catalog.Projects.Count(p => p.IsSelected);
+
+    private IReadOnlyList<ProjectItem> Selected() => _catalog.Projects.Where(p => p.IsSelected).ToList();
+
+    private void ClearSelection()
+    {
+        foreach (var p in _catalog.Projects) p.IsSelected = false;
+        SelectedCount = 0;
+    }
+
+    [RelayCommand]
+    private void SelectVisible(bool select)
+    {
+        foreach (var g in Groups) foreach (var p in g.Projects) p.IsSelected = select;
+        OnSelectionChanged();
+    }
+
+    [RelayCommand]
+    private void BatchAddToMine()
+    {
+        var sel = Selected();
+        if (sel.Count == 0) return;
+        _catalog.SetMyProjects(sel, true);
+        _toasts.Success(string.Format(Strings.Batch_AddedToMine, sel.Count));
+        ClearSelection();
+    }
+
+    [RelayCommand]
+    private void BatchRemoveFromMine()
+    {
+        var sel = Selected();
+        if (sel.Count == 0) return;
+        _catalog.SetMyProjects(sel, false);
+        _toasts.Success(string.Format(Strings.Batch_RemovedFromMine, sel.Count));
+        ClearSelection();
+    }
+
+    [RelayCommand]
+    private async Task BatchEditAsync()
+    {
+        var sel = Selected();
+        if (sel.Count == 0) return;
+        if (await _dialogs.EditProjectsAsync(sel))
         {
-            NotificationText = string.Format(Strings.Projects_SwitchingTo, item.Name);
-            var res = await _launcherService.SwitchAndLaunchAsync(item);
-            NotificationText = res.Message;
-            _mainVm.RefreshActiveProject();
-        }
-        finally
-        {
-            IsLoading = _catalog.IsScanning;
+            _toasts.Success(string.Format(Strings.Batch_Edited, sel.Count));
+            ClearSelection();
         }
     }
 
     [RelayCommand]
-    private void OpenProjectFolder(ProjectItem? item)
+    private void CancelBatch()
     {
-        if (item == null) return;
-        _projectService.OpenFolder(item.ProjectDir);
+        BatchMode = false;
+        ClearSelection();
     }
 }
