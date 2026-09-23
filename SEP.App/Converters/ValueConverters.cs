@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -274,6 +274,25 @@ public class NonZeroToVisibilityConverter : IValueConverter
             _ => false,
         };
         return nonZero ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>Visible when a number is zero (or a collection is empty).</summary>
+public class ZeroToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        bool isZero = value switch
+        {
+            int i => i == 0,
+            long l => l == 0,
+            double d => Math.Abs(d) < 0.0001,
+            System.Collections.ICollection c => c.Count == 0,
+            _ => true,
+        };
+        return isZero ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();

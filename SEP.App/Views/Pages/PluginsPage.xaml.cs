@@ -20,4 +20,5 @@ public partial class PluginsPage : Page
     private void OnConflictsTab(object sender, RoutedEventArgs e) => _viewModel.Panel = "conflicts";
     private void OnChainTab(object sender, RoutedEventArgs e) => _viewModel.Panel = "chain";
     private void OnMacroTab(object sender, RoutedEventArgs e) => _viewModel.Panel = "macro";
+    private void OnDiscoveryTab(object sender, RoutedEventArgs e) => _viewModel.Panel = "discovery";
 }

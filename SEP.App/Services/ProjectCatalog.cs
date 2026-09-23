@@ -263,7 +263,7 @@ public sealed class ProjectCatalog : IProjectCatalog
             var reachable = _libraries.Where(l => l.IsReachable && libraryIds.Contains(l.Id)).Select(l => l.Id).ToHashSet();
             targets = _projects.Where(p => reachable.Contains(p.LibraryId)).ToList();
         }
-        using var limiter = new SemaphoreSlim(16);
+        using var limiter = new SemaphoreSlim(4);
         await Task.WhenAll(targets.Select(async p =>
         {
             await limiter.WaitAsync();
@@ -663,5 +663,28 @@ public sealed class ProjectCatalog : IProjectCatalog
         {
             App.Log($"Save failed: {ex.Message}");
         }
+    }
+
+    public string? GetPluginDisplayName(string pluginName)
+    {
+        lock (_gate)
+        {
+            return Data.PluginMeta.TryGetValue(pluginName, out var meta) ? meta.DisplayName : null;
+        }
+    }
+
+    public void SetPluginDisplayName(string pluginName, string? displayName)
+    {
+        lock (_gate)
+        {
+            if (!Data.PluginMeta.TryGetValue(pluginName, out var meta))
+            {
+                meta = new PluginMetaRecord();
+                Data.PluginMeta[pluginName] = meta;
+            }
+            meta.DisplayName = displayName;
+            _store.SaveData(Data);
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 }

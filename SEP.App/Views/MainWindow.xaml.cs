@@ -55,6 +55,13 @@ public partial class MainWindow : FluentWindow
             App.Log($"RootNavigation navigating to {page.Name}");
             bool ok = RootNavigation.Navigate(page);
             App.Log($"RootNavigation.Navigate result: {ok}");
+
+            string? panelArg = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--plugin-panel=", StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(panelArg))
+            {
+                string p = panelArg["--plugin-panel=".Length..].Trim().ToLowerInvariant();
+                App.Services.GetRequiredService<PluginsViewModel>().Panel = p;
+            }
         }
         catch (Exception ex)
         {

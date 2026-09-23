@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using SEP.App.Localization;
+using SEP.App.Models;
 using SEP.App.Resources;
 using SEP.App.Services;
 using SEP.App.ViewModels;
@@ -83,6 +84,7 @@ public partial class App : Application
             services.AddSingleton<SessionService>();
             services.AddSingleton<E3dToolsService>();
             services.AddSingleton<PluginService>();
+            services.AddSingleton<PluginDiscoveryService>();
             services.AddSingleton<ToastService>();
             services.AddSingleton<ProjectActions>();
 
@@ -115,6 +117,30 @@ public partial class App : Application
             Loc.Instance.Apply(language);
             Services.GetRequiredService<ThemeService>().Apply(catalog.Data.Settings.Theme);
             Log($"UI language: setting={language} culture={Loc.Instance.Culture.Name}; data dir={Services.GetRequiredService<SepDataStore>().DataDir}; libraries={catalog.Libraries.Count} projects={catalog.Projects.Count}");
+
+            // Auto-detect & safely adopt legacy hand-written plugin and project configs in custom_evars.bat
+            try
+            {
+                var plugins = Services.GetRequiredService<PluginService>();
+                var report = plugins.AdoptLegacyConfigs();
+                if (report.Changed)
+                {
+                    catalog.Data.Notifications.Insert(0, new NotificationRecord
+                    {
+                        Id = SepPaths.GenerateId("notif", DateTime.UtcNow.Ticks.ToString()),
+                        Level = "info",
+                        Title = Strings.Plugins_AdoptedTitle,
+                        Message = report.Message,
+                        CreatedAt = SepPaths.NowIso(),
+                    });
+                    catalog.Save();
+                    Log($"[AutoAdopt] {report.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[AutoAdopt Error] {ex.Message}");
+            }
 
             Log("Resolving MainWindow");
             var mainWindow = Services.GetRequiredService<MainWindow>();

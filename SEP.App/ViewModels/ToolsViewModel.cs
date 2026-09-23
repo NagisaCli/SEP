@@ -19,7 +19,7 @@ public sealed record LibraryChoice(LibraryItem Library)
     public override string ToString() => Display;
 }
 
-/// <summary>Tools page: health checks, one-click repairs, USERDATA / CAD font tools, network diagnosis and lock clean-up.</summary>
+/// <summary>Tools page: health checks, one-click repairs, USERDATA tools, network diagnosis and lock clean-up.</summary>
 public partial class ToolsViewModel : ObservableObject
 {
     private readonly E3dToolsService _tools;
@@ -32,7 +32,7 @@ public partial class ToolsViewModel : ObservableObject
     public ProjectActions Actions { get; }
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(CheckConfigCommand))] [NotifyCanExecuteChangedFor(nameof(FixConfigCommand))]
-    [NotifyCanExecuteChangedFor(nameof(CleanUserDataCommand))] [NotifyCanExecuteChangedFor(nameof(FixCadFontsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CleanUserDataCommand))]
     [NotifyCanExecuteChangedFor(nameof(DiagnoseLibraryCommand))] [NotifyCanExecuteChangedFor(nameof(DiagnoseAllCommand))]
     [NotifyCanExecuteChangedFor(nameof(RebuildIndexesCommand))] [NotifyCanExecuteChangedFor(nameof(ScanLocksCommand))]
     [NotifyCanExecuteChangedFor(nameof(ApplyFixCommand))]
@@ -185,13 +185,6 @@ public partial class ToolsViewModel : ObservableObject
         await RunAsync(Strings.Tools_Cleaning, async () => ShowResult(Strings.Tools_UserDataTitle, await _tools.CleanUserDataAsync()));
     }
 
-    [RelayCommand(CanExecute = nameof(NotBusy))]
-    private async Task FixCadFontsAsync()
-    {
-        bool ok = await _dialogs.ConfirmAsync(Strings.Tools_CadTitle, Strings.Tools_CadConfirm, Strings.Tools_CadButton);
-        if (!ok) return;
-        await RunAsync(Strings.Tools_Fixing, async () => ShowResult(Strings.Tools_CadTitle, await _tools.FixCadFontsAsync()));
-    }
 
     [RelayCommand(CanExecute = nameof(NotBusy))]
     private Task RebuildIndexesAsync() => RunAsync(Strings.Tools_Reindexing, async () =>

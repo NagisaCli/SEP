@@ -156,9 +156,10 @@
                     </ui:Button>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket24}" Content="{loc:Tr Batch_LaunchSelected}" Command="{Binding BatchLaunchCommand}" Margin="0,0,8,0" />
                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Star24}" Content="{loc:Tr Batch_AddToMine}" Command="{Binding BatchAddToMineCommand}" Margin="0,0,8,0" />
                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=StarOff24}" Content="{loc:Tr Batch_RemoveFromMine}" Command="{Binding BatchRemoveFromMineCommand}" Margin="0,0,8,0" />
-                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Edit24}" Content="{loc:Tr Batch_Edit}" Command="{Binding BatchEditCommand}" Margin="0,0,8,0" />
+                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Edit24}" Content="{loc:Tr Batch_Edit}" Command="{Binding BatchEditCommand}" Margin="0,0,8,0" />
                     <ui:Button Appearance="Secondary" Content="{loc:Tr Common_Cancel}" Command="{Binding CancelBatchCommand}" />
                 </StackPanel>
             </Grid>

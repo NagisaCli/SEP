@@ -272,25 +272,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- CAD fonts -->
-                    <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepInfoSoftBrush}">
-                                    <ui:SymbolIcon Symbol="TextFont24" Foreground="{DynamicResource SepInfoBrush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_CadTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_CadBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                </StackPanel>
-                            </Grid>
-                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Wrench24}" Content="{loc:Tr Tools_CadButton}" Command="{Binding FixCadFontsCommand}" Margin="0,12,0,0" />
-                        </StackPanel>
-                    </Border>
 
                     <!-- plug-in indexes -->
                     <Border Style="{StaticResource ToolCard}">

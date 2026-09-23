@@ -69,6 +69,7 @@
                         </ContextMenu>
                     </ui:DropDownButton.Flyout>
                 </ui:DropDownButton>
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Scan24}" Content="{loc:Tr Plugins_ScanSystem}" Command="{Binding ScanSystemPluginsCommand}" Margin="0,0,8,0" ToolTip="{loc:Tr Plugins_ScanSystem}" />
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RefreshCommand}" ToolTip="{loc:Tr Plugins_Rescan}" AutomationProperties.Name="{loc:Tr Plugins_Rescan}" />
             </StackPanel>
         </Grid>
@@ -145,6 +146,19 @@
                     <TextBlock Text="{loc:Tr Plugins_TabMacro}" />
                 </StackPanel>
             </RadioButton>
+            <RadioButton x:Name="DiscoveryTab" Style="{StaticResource SepTabButton}" GroupName="PluginTabs" IsChecked="{Binding ShowDiscovery, Mode=OneWay}" Click="OnDiscoveryTab">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Scan24" Margin="0,0,6,0" />
+                    <TextBlock Text="{loc:Tr Plugins_TabDiscovery}" />
+                    <controls:Badge Content="{Binding UnmanagedCount}" Margin="8,0,0,0" Visibility="{Binding UnmanagedCount, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                        <controls:Badge.Style>
+                            <Style TargetType="controls:Badge">
+                                <Setter Property="Tone" Value="Accent" />
+                            </Style>
+                        </controls:Badge.Style>
+                    </controls:Badge>
+                </StackPanel>
+            </RadioButton>
         </StackPanel>
 
         <!-- Panels -->
@@ -193,7 +207,9 @@
                                             </Border>
                                             <StackPanel Grid.Column="2" Margin="12,0,10,0" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding EffectiveDisplayName}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name, StringFormat='({0})'}" Style="{StaticResource SepCaption}" Foreground="{DynamicResource SepMutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                               Visibility="{Binding HasCustomDisplayName, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                     <controls:Badge Margin="8,0,0,0" Content="{loc:Tr Plugins_Enabled}" Tone="Success" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                     <controls:Badge Margin="8,0,0,0" Content="{loc:Tr Plugins_Disabled}" Visibility="{Binding Enabled, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                                                     <controls:Badge Margin="6,0,0,0" Tone="Warning" Content="{loc:Tr Plugins_IndexStale}" Visibility="{Binding IndexNeedsRebuild, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlIndexStatus}" />
@@ -205,6 +221,8 @@
                                                     <controls:Badge Style="{StaticResource FeatureBadge}" Content="pmlui" Tone="Purple" Visibility="{Binding HasPmlUi, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlUiPath}" />
                                                     <controls:Badge Style="{StaticResource FeatureBadge}" Content="pml.net" Tone="Info" Visibility="{Binding HasPmlNet, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding PmlNetPath}" />
                                                     <controls:Badge Style="{StaticResource FeatureBadge}" Content="dflts" Visibility="{Binding HasDflts, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding DfltsPath}" />
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="uic" Tone="Warning" Visibility="{Binding HasUic, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{loc:Tr Plugins_UicTooltip}" />
+                                                    <controls:Badge Style="{StaticResource FeatureBadge}" Content="addin" Tone="Success" Visibility="{Binding HasAddin, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{loc:Tr Plugins_AddinTooltip}" />
                                                     <TextBlock Style="{StaticResource SepCaption}" VerticalAlignment="Center" Margin="4,0,0,0">
                                                         <TextBlock.Text>
                                                             <MultiBinding Converter="{StaticResource FormatConverter}">
@@ -223,11 +241,16 @@
                                             <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
                                                 <ui:ToggleSwitch IsChecked="{Binding Enabled, Mode=OneWay}" AutomationProperties.Name="{Binding Name}" Margin="0,0,6,0"
                                                                  Command="{Binding DataContext.ToggleCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Edit24}" ToolTip="{loc:Tr Plugins_EditDisplayNameTooltip}" AutomationProperties.Name="{loc:Tr Plugins_EditDisplayNameTooltip}"
+                                                           Command="{Binding DataContext.EditDisplayNameCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=DocumentSync24}" ToolTip="{loc:Tr Plugins_RebuildIndex}" AutomationProperties.Name="{loc:Tr Plugins_RebuildIndex}"
                                                            Visibility="{Binding HasPmlLib, Converter={StaticResource BoolToVisibilityConverter}}"
                                                            Command="{Binding DataContext.RebuildIndexCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" ToolTip="{loc:Tr Projects_OpenFolderTooltip}" AutomationProperties.Name="{loc:Tr Projects_OpenFolderTooltip}"
                                                            Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Delete24}" ToolTip="{loc:Tr Plugins_UninstallTooltip}" AutomationProperties.Name="{loc:Tr Plugins_UninstallTooltip}"
+                                                           Foreground="{DynamicResource SepDangerBrush}"
+                                                           Command="{Binding DataContext.UninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                             </StackPanel>
                                         </Grid>
 
@@ -271,6 +294,7 @@
                                                                         <Condition Binding="{Binding FunctionCount}" Value="0" />
                                                                         <Condition Binding="{Binding MacroCount}" Value="0" />
                                                                         <Condition Binding="{Binding AssemblyCount}" Value="0" />
+                                                                        <Condition Binding="{Binding UicCount}" Value="0" />
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Visible" />
                                                                 </MultiDataTrigger>
@@ -410,6 +434,89 @@
                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" BorderThickness="0" Background="Transparent" TextWrapping="NoWrap" />
                 </Border>
             </Grid>
+
+            <!-- discovery / system scan -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True"
+                          Visibility="{Binding ShowDiscovery, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Margin="0,0,10,0">
+                    <!-- Action Bar -->
+                    <Border Style="{StaticResource SepCard}" Padding="16,12" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="全盘 E3D 插件自动检测与统一托管" Style="{StaticResource SepSectionTitle}" FontSize="15" />
+                                <TextBlock Text="自动扫描系统磁盘、桌面、下载目录及工程库，智能识别 PML 表单、宏、.NET 程序集与 UIC 配置，支持一键规范化并托管至 SEP。"
+                                           Style="{StaticResource SepMuted}" Margin="0,3,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Scan24}" Content="{loc:Tr Plugins_ScanSystem}" Command="{Binding ScanSystemPluginsCommand}" Margin="0,0,8,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Scanning indicator -->
+                    <Border Style="{StaticResource SepCard}" Padding="20" Margin="0,0,0,10" Visibility="{Binding IsScanningSystem, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <ui:ProgressRing IsIndeterminate="True" Width="28" Height="28" HorizontalAlignment="Center" />
+                            <TextBlock Text="{loc:Tr Plugins_ScanningSystem}" Style="{StaticResource SepSectionTitle}" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource SepCaption}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Empty state -->
+                    <Border Style="{StaticResource SepCard}" Padding="28" Visibility="{Binding DiscoveredItems.Count, Converter={StaticResource ZeroToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Search48" FontSize="40" Foreground="{DynamicResource SepText3Brush}" HorizontalAlignment="Center" />
+                            <TextBlock Text="尚未开始全盘检测" Style="{StaticResource SepSectionTitle}" HorizontalAlignment="Center" Margin="0,10,0,4" />
+                            <TextBlock Text="{loc:Tr Plugins_DiscoveredEmpty}" Style="{StaticResource SepPageSubtitle}" TextAlignment="Center" MaxWidth="560" />
+                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Scan24}" Content="{loc:Tr Plugins_ScanSystem}" Command="{Binding ScanSystemPluginsCommand}" HorizontalAlignment="Center" Margin="0,14,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Discovered Items List -->
+                    <ItemsControl ItemsSource="{Binding DiscoveredItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:DiscoveredPluginInfo}">
+                                <Border Style="{StaticResource SepRow}" Margin="0,0,0,6">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="38" Height="38" CornerRadius="8" Background="{DynamicResource SepPurpleSoftBrush}" VerticalAlignment="Center">
+                                            <ui:SymbolIcon Symbol="FolderZip24" Foreground="{DynamicResource SepPurpleBrush}" FontSize="20" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                                                <controls:Badge Margin="8,0,0,0" Content="{Binding LocationType}" Tone="Info" />
+                                                <controls:Badge Margin="6,0,0,0" Content="{Binding StructureType}" Tone="Warning" />
+                                                <controls:Badge Margin="6,0,0,0" Content="已在 SEP 托管" Tone="Success" Visibility="{Binding IsAlreadyManaged, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding KeyFeatureDescription}" Style="{StaticResource SepCaption}" Foreground="{DynamicResource SepMutedBrush}" Margin="0,3,0,0" />
+                                            <TextBlock Text="{Binding Path}" Style="{StaticResource SepMono}" FontSize="11" Margin="0,2,0,0" ToolTip="{Binding Path}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" Content="{loc:Tr Plugins_HostIntoSep}" Margin="0,0,6,0"
+                                                       Visibility="{Binding IsAlreadyManaged, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                                                       Command="{Binding DataContext.HostDiscoveredCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Play24}" Content="{loc:Tr Plugins_HostAndEnable}" Margin="0,0,6,0"
+                                                       Visibility="{Binding IsAlreadyManaged, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                                                       Command="{Binding DataContext.HostAndEnableCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" ToolTip="{loc:Tr Projects_OpenFolderTooltip}" AutomationProperties.Name="{loc:Tr Projects_OpenFolderTooltip}"
+                                                       Command="{Binding DataContext.OpenDiscoveredFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <!-- status -->

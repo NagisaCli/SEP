@@ -33,6 +33,7 @@
             <converters:FractionToWidthConverter x:Key="FractionToWidthConverter" />
             <converters:FractionToStarConverter x:Key="FractionToStarConverter" />
             <converters:NonZeroToVisibilityConverter x:Key="NonZeroToVisibilityConverter" />
+            <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

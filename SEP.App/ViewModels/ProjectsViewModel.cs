@@ -392,6 +392,31 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task BatchLaunchAsync()
+    {
+        var sel = Selected();
+        if (sel.Count == 0) return;
+        IsLoading = true;
+        try
+        {
+            NotificationText = Strings.Launch_AllStarting;
+            _toasts.Info(Strings.Launch_AllStarting);
+            var res = await _launcherService.SwitchAndLaunchMultipleAsync(sel);
+            NotificationText = res.Message;
+            _toasts.Result(res.Success, res.Message);
+            if (res.Success)
+            {
+                BatchMode = false;
+                ClearSelection();
+            }
+        }
+        finally
+        {
+            IsLoading = _catalog.IsScanning;
+        }
+    }
+
+    [RelayCommand]
     private void BatchAddToMine()
     {
         var sel = Selected();

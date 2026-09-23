@@ -24,12 +24,18 @@ namespace SEP.App.Services;
 /// </summary>
 public sealed class SessionService : IDisposable
 {
-    private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(2.5);
+    private static readonly TimeSpan ProbeTimeoutLocal = TimeSpan.FromSeconds(2.5);
+    private static readonly TimeSpan ProbeTimeoutUnc = TimeSpan.FromSeconds(5.0);
     private static readonly TimeSpan HeartbeatEvery = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan StaleAfter = TimeSpan.FromSeconds(180);
     private static readonly HashSet<string> E3dProcesses = new(StringComparer.OrdinalIgnoreCase)
         { "mon", "design", "draw", "isodraft", "e3ddes", "e3d" };
-    private static readonly Regex LockOwnerRe = new(@"([A-Za-z0-9_-]+)@([A-Za-z0-9_-]+)", RegexOptions.Compiled);
+
+    private static readonly Regex LockOwnerEmailRe = new(@"([A-Za-z0-9_.\-\u4e00-\u9fa5]+)@([A-Za-z0-9_.\-]+)", RegexOptions.Compiled);
+    private static readonly Regex LockOwnerDomainRe = new(@"([A-Za-z0-9_.\-]+)\\([A-Za-z0-9_.\-\u4e00-\u9fa5]+)", RegexOptions.Compiled);
+    private static readonly Regex LockOwnerLockedByRe = new(@"LOCKED\s+BY\s+([A-Za-z0-9_.\-\u4e00-\u9fa5]+)(?:\s*@\s*([A-Za-z0-9_.\-]+))?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex LockOwnerUserRe = new(@"USER\s+([A-Za-z0-9_.\-\u4e00-\u9fa5]+)(?:\s*@\s*([A-Za-z0-9_.\-]+))?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     private static readonly JsonSerializerOptions JsonOptions = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     private readonly ConcurrentDictionary<string, SessionFile> _local = new();
@@ -120,7 +126,7 @@ public sealed class SessionService : IDisposable
             string tmp = file + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(s, JsonOptions), new UTF8Encoding(false));
             File.Move(tmp, file, overwrite: true);
-        }, ProbeTimeout * 2);
+        }, ProbeTimeoutLocal * 2);
     }
 
     private static void DeleteBounded(SessionFile s)
@@ -129,7 +135,7 @@ public sealed class SessionService : IDisposable
         {
             string file = Path.Combine(SessionDir(s.BatPath), s.SessionId + ".json");
             if (File.Exists(file)) File.Delete(file);
-        }, ProbeTimeout);
+        }, ProbeTimeoutLocal);
     }
 
     private static void RunBounded(Action action, TimeSpan timeout)
@@ -148,10 +154,10 @@ public sealed class SessionService : IDisposable
     // ── inspecting projects ──────────────────────────────────────────────────────
 
     /// <summary>Probes the given projects in parallel; each result lands on its item (Sessions / SessionsKnown).</summary>
-    public async Task ProbeAsync(IEnumerable<ProjectItem> projects, int parallelism = 8)
+    public async Task ProbeAsync(IEnumerable<ProjectItem> projects, int parallelism = 4)
     {
         using var limiter = new SemaphoreSlim(parallelism);
-        await Task.WhenAll(projects.Where(p => !p.IsCached).Select(async p =>
+        await Task.WhenAll(projects.Select(async p =>
         {
             await limiter.WaitAsync();
             try { await InspectAsync(p); }
@@ -161,8 +167,9 @@ public sealed class SessionService : IDisposable
 
     public async Task InspectAsync(ProjectItem project)
     {
+        var timeout = project.IsUnc ? ProbeTimeoutUnc : ProbeTimeoutLocal;
         var work = Task.Run(() => Inspect(project.BatPath, project.ProjectDir, project.Id));
-        if (await Task.WhenAny(work, Task.Delay(ProbeTimeout)) != work) return;
+        if (await Task.WhenAny(work, Task.Delay(timeout)) != work) return;
         try
         {
             project.Sessions = await work;
@@ -199,27 +206,29 @@ public sealed class SessionService : IDisposable
             }
         }
 
-        // 2. owners of DABACON lock files in the 000 folder
+        // 2. owners of DABACON lock files in candidate folders
         foreach (var lck in LibraryScanner.FindLockFiles(projectDir) ?? new List<string>())
         {
             try
             {
                 using var fs = new FileStream(lck, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                var buf = new byte[512];
+                var buf = new byte[1024];
                 int n = fs.Read(buf, 0, buf.Length);
-                var m = LockOwnerRe.Match(Encoding.Latin1.GetString(buf, 0, n));
-                if (m.Success)
+                if (TryParseLockOwner(buf, n, out string uName, out string cName))
                 {
-                    sessions.Add(new ProjectSession(m.Groups[1].Value, m.Groups[2].Value, "lock",
-                        string.Equals(m.Groups[2].Value, me, StringComparison.OrdinalIgnoreCase), File.GetLastWriteTime(lck)));
+                    sessions.Add(new ProjectSession(uName, cName, "lock",
+                        string.Equals(cName, me, StringComparison.OrdinalIgnoreCase), File.GetLastWriteTime(lck)));
                 }
             }
             catch { }
         }
 
-        // 3. this process's own registration (in case the heartbeat file could not be written, e.g. read-only share)
-        if (_local.TryGetValue(projectId, out var mine) && !sessions.Any(s => s.IsThisDevice && s.User.Equals(UserName, StringComparison.OrdinalIgnoreCase)))
+        // 3. this process's own registration: only when E3D is actively running on this machine
+        if (IsE3dRunning() && _local.TryGetValue(projectId, out var mine) &&
+            !sessions.Any(s => s.IsThisDevice && s.User.Equals(UserName, StringComparison.OrdinalIgnoreCase)))
+        {
             sessions.Add(new ProjectSession(UserName, me, "local", true, SepPaths.ParseIso(mine.StartedAt)));
+        }
 
         // one entry per user@computer, heartbeat beats lock
         return sessions
@@ -227,6 +236,56 @@ public sealed class SessionService : IDisposable
             .Select(g => g.OrderBy(s => s.Source == "sep" ? 0 : s.Source == "local" ? 1 : 2).First())
             .OrderBy(s => s.User, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    private static bool TryParseLockOwner(byte[] buf, int count, out string user, out string computer)
+    {
+        user = string.Empty;
+        computer = string.Empty;
+        if (count <= 0) return false;
+
+        string[] texts = {
+            Encoding.UTF8.GetString(buf, 0, count),
+            Encoding.Latin1.GetString(buf, 0, count),
+            SepPaths.Gbk.GetString(buf, 0, count)
+        };
+
+        foreach (var text in texts)
+        {
+            var m = LockOwnerEmailRe.Match(text);
+            if (m.Success)
+            {
+                user = m.Groups[1].Value.Trim();
+                computer = m.Groups[2].Value.Trim();
+                if (user.Length > 0 && computer.Length > 0) return true;
+            }
+
+            var md = LockOwnerDomainRe.Match(text);
+            if (md.Success)
+            {
+                computer = md.Groups[1].Value.Trim();
+                user = md.Groups[2].Value.Trim();
+                if (user.Length > 0 && computer.Length > 0) return true;
+            }
+
+            var ml = LockOwnerLockedByRe.Match(text);
+            if (ml.Success)
+            {
+                user = ml.Groups[1].Value.Trim();
+                computer = ml.Groups[2].Success && ml.Groups[2].Value.Length > 0 ? ml.Groups[2].Value.Trim() : "DABACON";
+                if (user.Length > 0) return true;
+            }
+
+            var mu = LockOwnerUserRe.Match(text);
+            if (mu.Success)
+            {
+                user = mu.Groups[1].Value.Trim();
+                computer = mu.Groups[2].Success && mu.Groups[2].Value.Length > 0 ? mu.Groups[2].Value.Trim() : "DABACON";
+                if (user.Length > 0) return true;
+            }
+        }
+
+        return false;
     }
 
     public void Dispose()

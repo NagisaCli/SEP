@@ -31,12 +31,14 @@ public class E3dLauncherService : IE3dLauncherService
 
     private readonly IProjectCatalog _catalog;
     private readonly SessionService _sessions;
+    private readonly PluginService? _pluginService;
     private string? _cachedShortcut;   // resolved once per process: the Start Menu walk is slow
 
-    public E3dLauncherService(IProjectCatalog catalog, SessionService sessions)
+    public E3dLauncherService(IProjectCatalog catalog, SessionService sessions, PluginService? pluginService = null)
     {
         _catalog = catalog;
         _sessions = sessions;
+        _pluginService = pluginService;
     }
 
     public async Task<(bool Success, string Message)> SwitchAndLaunchAsync(ProjectItem project)
@@ -65,26 +67,44 @@ public class E3dLauncherService : IE3dLauncherService
         return (launch.Success, $"{msg} {launch.Message}");
     }
 
+    public async Task<(bool Success, string Message)> SwitchAndLaunchMultipleAsync(IEnumerable<ProjectItem> projects)
+    {
+        var list = projects.ToList();
+        if (list.Count == 0) return (false, Strings.Launch_NoMyProjects);
+        var (ok, msg) = await Task.Run(() => SwitchMultipleProjects(list, isAllMine: false));
+        if (!ok) return (false, msg);
+        var launch = await LaunchE3dProcessAsync();
+        if (launch.Success) _sessions.Register(list);
+        return (launch.Success, $"{msg} {launch.Message}");
+    }
+
     public Task<(bool Success, string Message)> SwitchAsync(ProjectItem project) => Task.Run(() => SwitchSingle(project));
 
     /// <summary>Mode "all" (e3d_launcher.write_mode): the managed block lists every project of "my projects".</summary>
-    private (bool, string) SwitchAll()
+    private (bool, string) SwitchAll() => SwitchMultipleProjects(_catalog.MyProjects, isAllMine: true);
+
+    private (bool, string) SwitchMultipleProjects(IReadOnlyList<ProjectItem> targetProjects, bool isAllMine)
     {
-        var mine = _catalog.MyProjects;
-        if (mine.Count == 0) return (false, Strings.Launch_NoMyProjects);
+        if (targetProjects.Count == 0) return (false, Strings.Launch_NoMyProjects);
 
         var backups = new Dictionary<string, byte[]?>();
         try
         {
             var bats = new List<string>();
-            var skipped = new List<string>();
-            foreach (var p in mine)
+            var slowOrOffline = new List<string>();
+            foreach (var p in targetProjects)
             {
                 if (p.BatPath.IndexOfAny(DangerousBatChars) >= 0) return (false, string.Format(Strings.Launch_UnsafePath, p.BatPath));
-                // An offline project would make every E3D start wait on its "if exist"; leave it out and say so.
-                if (ExistsWithin(p.BatPath, PathCheckTimeout)) bats.Add(p.BatPath); else skipped.Add(p.Name);
+                // Crucial fix: never drop projects configured in MyProjects or selected by user.
+                // Each line in custom_evars.bat is protected by 'if exist "%p%" call "%p%"'.
+                bats.Add(p.BatPath);
+
+                // Quick non-blocking probe to report any paths currently taking long
+                if (!ExistsWithin(p.BatPath, TimeSpan.FromMilliseconds(400)))
+                {
+                    slowOrOffline.Add(p.Name);
+                }
             }
-            if (bats.Count == 0) return (false, string.Format(Strings.Launch_ProjectFileUnreachable, string.Join(", ", skipped)));
 
             string localDir = _catalog.LocalProjectsDir;
             Directory.CreateDirectory(localDir);
@@ -97,9 +117,24 @@ public class E3dLauncherService : IE3dLauncherService
             SetProjectsDir(evarsBat, localDir);
             SetProjectsDir(evarsInit, localDir);
 
-            _catalog.SetLastLaunchedAll();
+            if (isAllMine)
+            {
+                _catalog.SetLastLaunchedAll();
+            }
+            else if (targetProjects.Count == 1)
+            {
+                _catalog.SetLastLaunched(targetProjects[0], "single");
+            }
+            else
+            {
+                _catalog.SetLastLaunchedAll();
+            }
+
             string msg = string.Format(Strings.Launch_AllLoaded, bats.Count);
-            if (skipped.Count > 0) msg += " " + string.Format(Strings.Launch_AllSkipped, string.Join(", ", skipped));
+            if (slowOrOffline.Count > 0)
+            {
+                msg += " " + string.Format(Strings.Launch_AllSkipped, string.Join(", ", slowOrOffline));
+            }
             return (true, msg);
         }
         catch (Exception ex)
@@ -152,7 +187,7 @@ public class E3dLauncherService : IE3dLauncherService
             var (evarsBat, evarsInit) = RequireEvars();
             Backup(backups, evarsBat, evarsInit);
 
-            EnsureLibraryCustomEvars(libDir);
+            EnsureLibraryCustomEvars(libDir, _catalog.LocalProjectsDir);
             SetProjectsDir(evarsBat, libDir);
             SetProjectsDir(evarsInit, libDir);
 
@@ -168,6 +203,7 @@ public class E3dLauncherService : IE3dLauncherService
 
     public async Task<(bool Success, string Message)> LaunchE3dProcessAsync()
     {
+        _pluginService?.SyncE3dRibbon();
         return await Task.Run(() =>
         {
             try
@@ -282,10 +318,32 @@ public class E3dLauncherService : IE3dLauncherService
     }
 
     /// <summary>Library mode needs a custom_evars.bat in the library; generate a %~dp0-relative one from its project folders when absent.</summary>
-    private static void EnsureLibraryCustomEvars(string libraryDir)
+    private static void EnsureLibraryCustomEvars(string libraryDir, string localProjectsDir)
     {
         string custom = Path.Combine(libraryDir, "custom_evars.bat");
-        if (File.Exists(custom)) return;
+        if (File.Exists(custom))
+        {
+            try
+            {
+                string localCustom = CustomEvarsPath(localProjectsDir);
+                if (File.Exists(localCustom))
+                {
+                    var (localText, _) = SepPaths.ReadTextSmart(localCustom);
+                    var pm = PluginService.BlockRe.Match(localText);
+                    if (pm.Success)
+                    {
+                        var (libText, libEnc) = SepPaths.ReadTextSmart(custom);
+                        if (!PluginService.BlockRe.IsMatch(libText))
+                        {
+                            libText = libText.TrimEnd('\r', '\n') + "\r\n\r\n" + pm.Value.Trim() + "\r\n";
+                            File.WriteAllText(custom, libText, libEnc);
+                        }
+                    }
+                }
+            }
+            catch { }
+            return;
+        }
 
         var lines = new List<string>
         {
@@ -299,6 +357,23 @@ public class E3dLauncherService : IE3dLauncherService
                 .FirstOrDefault(f => !Path.GetFileName(f).Equals("evars.bat", StringComparison.OrdinalIgnoreCase));
             if (bat != null) lines.Add($"if exist \"%~dp0{Path.GetFileName(sub)}\\{Path.GetFileName(bat)}\" call \"%~dp0{Path.GetFileName(sub)}\\{Path.GetFileName(bat)}\"");
         }
+
+        try
+        {
+            string localCustom = CustomEvarsPath(localProjectsDir);
+            if (File.Exists(localCustom))
+            {
+                var (localText, _) = SepPaths.ReadTextSmart(localCustom);
+                var pm = PluginService.BlockRe.Match(localText);
+                if (pm.Success)
+                {
+                    lines.Add("");
+                    lines.Add(pm.Value.Trim());
+                }
+            }
+        }
+        catch { }
+
         if (lines.Count > 3) File.WriteAllText(custom, string.Join("\r\n", lines) + "\r\n", SepPaths.Gbk);
     }
 

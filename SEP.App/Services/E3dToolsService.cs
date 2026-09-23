@@ -16,12 +16,14 @@ namespace SEP.App.Services;
 /// <summary>
 /// The toolbox behind the Tools page — the port of e3d_diag.py: health check and safe repair of the E3D
 /// configuration files (evars.init / custom_evars.bat dead paths, offline network mounts, unsupported syntax),
-/// USERDATA clean-up, AutoCAD font mapping repair, and network / share diagnosis of a library path.
+/// USERDATA clean-up, and network / share diagnosis of a library path.
 /// </summary>
 public sealed class E3dToolsService
 {
     private const string ManagedStartMarker = ">>> SEP MANAGED PROJECTS";
     private const string ManagedEndMarker = "<<< SEP MANAGED PROJECTS";
+    private const string PluginsStartMarker = ">>> SEP MANAGED PLUGINS";
+    private const string PluginsEndMarker = "<<< SEP MANAGED PLUGINS";
     private static readonly TimeSpan PathProbe = TimeSpan.FromSeconds(1.5);
     private static readonly Regex SetLineRe = new(@"^\s*set\s+([a-zA-Z0-9_]+)\s*=\s*(.*)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex QuotedSetRe = new(@"^\s*set\s+""([^""]*)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -29,7 +31,7 @@ public sealed class E3dToolsService
     private static readonly Regex NetUseRe = new(@"net\s+use\s+(?:[a-zA-Z]:|\*)\s+(\\\\[^\s]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex CallRe = new(@"(?:if\s+exist\s+[""']?([^""'\r\n]+)[""']?\s+)?call\s+[""']?([^""'\r\n]+)[""']?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex ErrorCodeRe = new(@"(?:System error|发生系统错误|系统错误)\s*(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly string[] PmlVars = { "pmlui", "pmllib", "pmlnet", "pml_ui", "pml_lib" };
+    private static readonly string[] PmlVars = { "pmlui", "pmllib", "pmlnet", "caf_addins_path", "pml_ui", "pml_lib" };
     private static readonly string[] SkipCallTargets = { "projects.bat", "custom_evars.bat", "avevacatalogue", "evarsavevacatalogue.bat" };
 
     private readonly IProjectCatalog _catalog;
@@ -138,8 +140,8 @@ public sealed class E3dToolsService
                 {
                     string raw = lines[i].Trim();
                     int no = i + 1;
-                    if (raw.Contains(ManagedStartMarker)) { inManaged = true; continue; }
-                    if (raw.Contains(ManagedEndMarker)) { inManaged = false; continue; }
+                    if (raw.Contains(ManagedStartMarker) || raw.Contains(PluginsStartMarker)) { inManaged = true; continue; }
+                    if (raw.Contains(ManagedEndMarker) || raw.Contains(PluginsEndMarker)) { inManaged = false; continue; }
                     if (IsComment(raw)) continue;
 
                     if (raw is "(" or ")" || raw.EndsWith('(') || raw.StartsWith(')'))
@@ -275,8 +277,8 @@ public sealed class E3dToolsService
                 foreach (var line in text.Split('\n').Select(l => l.TrimEnd('\r')))
                 {
                     string raw = line.Trim();
-                    if (raw.Contains(ManagedStartMarker)) { inManaged = true; outLines.Add(line); continue; }
-                    if (raw.Contains(ManagedEndMarker)) { inManaged = false; outLines.Add(line); continue; }
+                    if (raw.Contains(ManagedStartMarker) || raw.Contains(PluginsStartMarker)) { inManaged = true; outLines.Add(line); continue; }
+                    if (raw.Contains(ManagedEndMarker) || raw.Contains(PluginsEndMarker)) { inManaged = false; outLines.Add(line); continue; }
                     if (inManaged || IsComment(raw)) { outLines.Add(line); continue; }
 
                     if (raw is "(" or ")" || raw.EndsWith('(') || raw.StartsWith(')'))
@@ -413,121 +415,6 @@ public sealed class E3dToolsService
             return ToolResult.Failure(string.Format(Strings.Tools_UserDataError, ex.Message), cleaned);
         }
         return ToolResult.Success(cleaned.Count > 0 ? string.Format(Strings.Tools_UserDataDone, cleaned.Count, bytes / 1024) : Strings.Tools_UserDataClean, cleaned);
-    });
-
-    // ── AutoCAD fonts ────────────────────────────────────────────────────────────
-
-    public Task<ToolResult> FixCadFontsAsync() => Task.Run(() =>
-    {
-        var fontDirs = new List<string>();
-        var supportDirs = new List<string>();
-        var changes = new List<string>();
-
-        foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.IsReady).Select(d => d.RootDirectory.FullName))
-        {
-            foreach (var root in new[] { drive, Path.Combine(drive, "Program Files", "Autodesk"), Path.Combine(drive, "Program Files (x86)", "Autodesk"), Path.Combine(drive, "ZWSOFT") })
-            {
-                if (!Directory.Exists(root)) continue;
-                IEnumerable<string> dirs;
-                try { dirs = Directory.EnumerateDirectories(root).Where(d => Path.GetFileName(d).StartsWith("AutoCAD", StringComparison.OrdinalIgnoreCase) || Path.GetFileName(d).StartsWith("ZWCAD", StringComparison.OrdinalIgnoreCase)); }
-                catch { continue; }
-                foreach (var d in dirs)
-                {
-                    string f = Path.Combine(d, "Fonts"), s = Path.Combine(d, "support");
-                    if (Directory.Exists(f) && !fontDirs.Contains(f, StringComparer.OrdinalIgnoreCase)) fontDirs.Add(f);
-                    if (Directory.Exists(s) && !supportDirs.Contains(s, StringComparer.OrdinalIgnoreCase)) supportDirs.Add(s);
-                }
-            }
-        }
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        foreach (var vendor in new[] { Path.Combine(appData, "Autodesk"), Path.Combine(appData, "ZWSOFT") })
-        {
-            if (!Directory.Exists(vendor)) continue;
-            try
-            {
-                foreach (var s in Directory.EnumerateDirectories(vendor, "support", SearchOption.AllDirectories))
-                    if (!supportDirs.Contains(s, StringComparer.OrdinalIgnoreCase)) supportDirs.Add(s);
-            }
-            catch { }
-        }
-
-        foreach (var fonts in fontDirs)
-        {
-            string gbcbig = Path.Combine(fonts, "gbcbig.shx"), hztxt = Path.Combine(fonts, "hztxt.shx"), simplex = Path.Combine(fonts, "simplex.shx");
-            string? big = File.Exists(gbcbig) ? gbcbig : File.Exists(hztxt) ? hztxt : null;
-            string? smp = File.Exists(simplex) ? simplex : null;
-            if (big == null) continue;
-            var aliases = new Dictionary<string, string>
-            {
-                ["hzfs.shx"] = big, ["HZDX.SHX"] = big, ["@~!hztxt.shx"] = big, ["tssdchn.shx"] = big, ["pkpm.shx"] = big,
-                ["fs68.shx"] = big, ["fs.shx"] = big, ["ht68.shx"] = big, ["kt68.shx"] = big, ["hztxt.shx"] = big,
-            };
-            if (smp != null) { aliases["SUPEROS.SHX"] = smp; aliases["roma.shx"] = smp; aliases["tssdeng.shx"] = smp; aliases["txt.shx"] = smp; }
-            foreach (var (name, src) in aliases)
-            {
-                string dst = Path.Combine(fonts, name);
-                if (File.Exists(dst)) continue;
-                try { File.Copy(src, dst); changes.Add($"{Path.GetFileName(Path.GetDirectoryName(fonts))}: {name}"); } catch { }
-            }
-        }
-
-        string[] fmpEntries =
-        {
-            "hzfs;gbcbig.shx", "hzfs.shx;gbcbig.shx", "hzdx;gbcbig.shx", "hzdx.shx;gbcbig.shx", "HZDX.SHX;gbcbig.shx",
-            "@~!hztxt;hztxt.shx", "@~!hztxt.shx;hztxt.shx", "hztxt;hztxt.shx", "hztxt.shx;gbcbig.shx",
-            "hztxt_e;simplex.shx", "hztxt_e.shx;simplex.shx", "superos;simplex.shx", "superos.shx;simplex.shx",
-            "SUPEROS.SHX;simplex.shx", "roma;simplex.shx", "roma.shx;simplex.shx",
-            "FangSong_GB2312;simplex.shx", "FangSong_GB2312.shx;simplex.shx", "KaiTi_GB2312;simplex.shx", "KaiTi_GB2312.shx;simplex.shx",
-            "@Arial Unicode MS;gbcbig.shx", "@Arial Unicode MS.shx;gbcbig.shx", "Arial Unicode MS;gbcbig.shx",
-            "PC_TEXTSTYLE;gbcbig.shx", "YQ_DIM;gbcbig.shx", "hz2;gbcbig.shx", "hz;gbcbig.shx",
-            "tssdchn;gbcbig.shx", "tssdchn.shx;gbcbig.shx", "tssdeng;simplex.shx", "tssdeng.shx;simplex.shx",
-            "pkpm;gbcbig.shx", "pkpm.shx;gbcbig.shx", "fs68;gbcbig.shx", "fs68.shx;gbcbig.shx",
-            "fs;gbcbig.shx", "fs.shx;gbcbig.shx", "ht68;gbcbig.shx", "ht68.shx;gbcbig.shx",
-            "kt68;gbcbig.shx", "kt68.shx;gbcbig.shx", "txt;simplex.shx", "txt.shx;simplex.shx",
-        };
-        foreach (var support in supportDirs)
-        {
-            string fmp = Path.Combine(support, "acad.fmp");
-            if (File.Exists(fmp))
-            {
-                try
-                {
-                    var (text, enc) = SepPaths.ReadTextSmart(fmp);
-                    var lines = text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
-                    var keys = new HashSet<string>(lines.Select(l => l.Split(';')[0].Trim().ToLowerInvariant()));
-                    int added = 0;
-                    foreach (var e in fmpEntries)
-                    {
-                        string k = e.Split(';')[0].Trim().ToLowerInvariant();
-                        if (keys.Add(k)) { lines.Add(e); added++; }
-                    }
-                    if (added > 0)
-                    {
-                        File.WriteAllText(fmp, string.Join("\r\n", lines) + "\r\n", enc);
-                        changes.Add($"acad.fmp: +{added}");
-                    }
-                }
-                catch { }
-            }
-            string lsp = Path.Combine(support, "acaddoc.lsp");
-            if (File.Exists(lsp))
-            {
-                try
-                {
-                    var (text, enc) = SepPaths.ReadTextSmart(lsp);
-                    if (!text.Contains("FONTALT"))
-                    {
-                        string code = "\r\n;;; SEP: silent substitution of missing fonts\r\n(vl-catch-all-apply 'setvar (list \"FONTALT\" \"gbcbig.shx\"))\r\n(vl-catch-all-apply 'setvar (list \"FONTEVAL\" 0))\r\n";
-                        File.WriteAllText(lsp, text.TrimEnd('\r', '\n') + code, enc);
-                        changes.Add("acaddoc.lsp: FONTALT/FONTEVAL");
-                    }
-                }
-                catch { }
-            }
-        }
-
-        if (fontDirs.Count == 0 && supportDirs.Count == 0) return ToolResult.Failure(Strings.Tools_CadNotFound);
-        return ToolResult.Success(changes.Count > 0 ? string.Format(Strings.Tools_CadDone, changes.Count) : Strings.Tools_CadUpToDate, changes);
     });
 
     // ── library / share diagnosis ────────────────────────────────────────────────

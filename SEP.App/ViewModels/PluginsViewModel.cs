@@ -19,25 +19,31 @@ public sealed record ChainEntry(int Index, string Variable, string Source, strin
 public partial class PluginsViewModel : ObservableObject
 {
     private readonly PluginService _plugins;
+    private readonly PluginDiscoveryService _discovery;
     private readonly IDialogService _dialogs;
     private readonly ToastService _toasts;
+    private readonly IProjectCatalog _catalog;
 
     private List<PluginInfo> _all = new();
 
     public ObservableCollection<PluginInfo> Items { get; } = new();
     public ObservableCollection<PluginConflict> Conflicts { get; } = new();
     public ObservableCollection<ChainEntry> Chain { get; } = new();
+    public ObservableCollection<DiscoveredPluginInfo> DiscoveredItems { get; } = new();
 
     [ObservableProperty] private string _pluginsDir = string.Empty;
     [ObservableProperty] private string _filter = string.Empty;
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(RefreshCommand))] private bool _isBusy;
+    [ObservableProperty] private bool _isScanningSystem;
     [ObservableProperty] private string _statusMessage = Strings.Common_Ready;
     [ObservableProperty] private bool _statusIsError;
     [ObservableProperty] private int _total;
     [ObservableProperty] private int _enabledCount;
+    [ObservableProperty] private int _discoveredCount;
+    [ObservableProperty] private int _unmanagedCount;
     [ObservableProperty] private bool _hasLoaded;
     [ObservableProperty] private bool _isEmpty;
-    /// <summary>"list" | "conflicts" | "chain" | "macro"</summary>
+    /// <summary>"list" | "conflicts" | "chain" | "macro" | "discovery"</summary>
     [ObservableProperty] private string _panel = "list";
     [ObservableProperty] private string _macroText = string.Empty;
     [ObservableProperty] private string _macroPath = string.Empty;
@@ -47,14 +53,34 @@ public partial class PluginsViewModel : ObservableObject
     public bool ShowConflicts => Panel == "conflicts";
     public bool ShowChain => Panel == "chain";
     public bool ShowMacro => Panel == "macro";
+    public bool ShowDiscovery => Panel == "discovery";
 
-    public PluginsViewModel(PluginService plugins, IDialogService dialogs, ToastService toasts)
+    public PluginsViewModel(
+        PluginService plugins,
+        PluginDiscoveryService discovery,
+        IDialogService dialogs,
+        ToastService toasts,
+        IProjectCatalog catalog)
     {
         _plugins = plugins;
+        _discovery = discovery;
         _dialogs = dialogs;
         _toasts = toasts;
+        _catalog = catalog;
         PluginsDir = plugins.PluginsDir;
+        _plugins.PluginsDirectoryChanged += OnPluginsDirectoryChanged;
         _ = RefreshAsync();
+    }
+
+    private void OnPluginsDirectoryChanged()
+    {
+        if (Application.Current?.Dispatcher is { } d && !d.HasShutdownStarted)
+        {
+            d.BeginInvoke(async () =>
+            {
+                if (!IsBusy) await RefreshAsync();
+            });
+        }
     }
 
     partial void OnPanelChanged(string value)
@@ -63,6 +89,7 @@ public partial class PluginsViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowConflicts));
         OnPropertyChanged(nameof(ShowChain));
         OnPropertyChanged(nameof(ShowMacro));
+        OnPropertyChanged(nameof(ShowDiscovery));
     }
 
     partial void OnFilterChanged(string value) => ApplyFilter();
@@ -210,6 +237,29 @@ public partial class PluginsViewModel : ObservableObject
     private void OpenFolder(PluginInfo? plugin) => _plugins.OpenFolder(plugin?.Path);
 
     [RelayCommand]
+    private async Task EditDisplayNameAsync(PluginInfo? plugin)
+    {
+        if (plugin == null) return;
+        var res = await _dialogs.PromptAsync(new PromptRequest
+        {
+            Title = Strings.Plugins_EditDisplayNameTitle,
+            Message = Strings.Plugins_EditDisplayNameBody,
+            TextLabel = Strings.Plugins_EditDisplayNameLabel,
+            TextInitial = plugin.DisplayName,
+            TextPlaceholder = plugin.EffectiveDisplayName,
+            TextMaxLength = 50,
+            OkLabel = Strings.Common_Save,
+        });
+        if (res == null) return;
+
+        string trimmed = res.Text?.Trim() ?? string.Empty;
+        _catalog.SetPluginDisplayName(plugin.Name, string.IsNullOrEmpty(trimmed) ? null : trimmed);
+        plugin.DisplayName = trimmed;
+        _plugins.SyncE3dRibbon();
+        _toasts.Success(Strings.Plugins_DisplayNameUpdated);
+    }
+
+    [RelayCommand]
     private async Task CreateAsync()
     {
         var res = await _dialogs.PromptAsync(new PromptRequest
@@ -264,5 +314,97 @@ public partial class PluginsViewModel : ObservableObject
         _plugins.SetPluginsDir(folder);
         PluginsDir = _plugins.PluginsDir;
         await RefreshAsync();
+    }
+
+    [RelayCommand]
+    private async Task UninstallAsync(PluginInfo? plugin)
+    {
+        if (plugin == null) return;
+        bool confirmed = await _dialogs.ConfirmAsync(
+            Strings.Plugins_UninstallConfirmTitle,
+            string.Format(Strings.Plugins_UninstallConfirmBody, plugin.EffectiveDisplayName),
+            Strings.Plugins_Uninstall,
+            danger: true
+        );
+        if (!confirmed) return;
+
+        plugin.IsBusy = true;
+        var res = await _plugins.UninstallPluginAsync(plugin.Name);
+        plugin.IsBusy = false;
+        _toasts.Result(res.Ok, res.Message);
+        if (res.Ok)
+        {
+            await RefreshAsync();
+        }
+    }
+
+    [RelayCommand]
+    private async Task ScanSystemPluginsAsync()
+    {
+        if (IsScanningSystem) return;
+        IsScanningSystem = true;
+        Panel = "discovery";
+        SetStatus(Strings.Plugins_ScanningSystem, false);
+        try
+        {
+            var progress = new Progress<(string Path, int Count)>(p =>
+            {
+                StatusMessage = $"{Strings.Plugins_ScanningSystem} ({p.Count}) {System.IO.Path.GetFileName(p.Path)}";
+            });
+
+            var discovered = await _discovery.ScanSystemPluginsAsync(progress);
+            DiscoveredItems.Clear();
+            foreach (var item in discovered)
+            {
+                DiscoveredItems.Add(item);
+            }
+            DiscoveredCount = DiscoveredItems.Count;
+            UnmanagedCount = DiscoveredItems.Count(d => !d.IsAlreadyManaged);
+            SetStatus(string.Format(Strings.Plugins_ScanSystemDone, DiscoveredCount, DiscoveredCount - UnmanagedCount, UnmanagedCount), false);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(string.Format(Strings.Plugins_ScanFailed, ex.Message), true);
+        }
+        finally
+        {
+            IsScanningSystem = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task HostDiscoveredAsync(DiscoveredPluginInfo? item)
+    {
+        if (item == null) return;
+        IsBusy = true;
+        var res = await _discovery.HostIntoSepAsync(item, enableImmediately: false);
+        IsBusy = false;
+        _toasts.Result(res.Ok, res.Message);
+        if (res.Ok)
+        {
+            await RefreshAsync();
+            await ScanSystemPluginsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private async Task HostAndEnableAsync(DiscoveredPluginInfo? item)
+    {
+        if (item == null) return;
+        IsBusy = true;
+        var res = await _discovery.HostIntoSepAsync(item, enableImmediately: true);
+        IsBusy = false;
+        _toasts.Result(res.Ok, res.Message);
+        if (res.Ok)
+        {
+            await RefreshAsync();
+            await ScanSystemPluginsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void OpenDiscoveredFolder(DiscoveredPluginInfo? item)
+    {
+        if (item?.Path != null) _plugins.OpenFolder(item.Path);
     }
 }

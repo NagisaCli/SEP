@@ -15,6 +15,7 @@ public sealed class SepData
     [JsonPropertyName("settings")] public SepSettings Settings { get; set; } = new();
     [JsonPropertyName("categories")] public List<CategoryRecord> Categories { get; set; } = new();
     [JsonPropertyName("project_meta")] public Dictionary<string, ProjectMetaRecord> ProjectMeta { get; set; } = new();
+    [JsonPropertyName("plugin_meta")] public Dictionary<string, PluginMetaRecord> PluginMeta { get; set; } = new();
     [JsonPropertyName("libraries")] public List<LibraryRecord> Libraries { get; set; } = new();
     [JsonPropertyName("my_projects")] public List<MyProjectRecord> MyProjects { get; set; } = new();
     [JsonPropertyName("all_projects_cache")] public List<ProjectRecord> AllProjectsCache { get; set; } = new();
@@ -125,3 +126,10 @@ public sealed class NotificationRecord
     [JsonPropertyName("dismissed")] public bool Dismissed { get; set; }
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }
+
+public sealed class PluginMetaRecord
+{
+    [JsonPropertyName("display_name")] public string? DisplayName { get; set; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Strings.resx = English (neutral language); Strings.zh-CN.resx = Simplified Chinese.
@@ -1090,6 +1090,9 @@ Save them anyway?</value>
   <data name="Batch_RemoveFromMine" xml:space="preserve">
     <value>Remove from My Projects</value>
   </data>
+  <data name="Batch_LaunchSelected" xml:space="preserve">
+    <value>Launch selected</value>
+  </data>
   <data name="Batch_Edit" xml:space="preserve">
     <value>Edit selected…</value>
   </data>
@@ -1534,6 +1537,21 @@ Save them anyway?</value>
   <data name="Plugins_IndexNoDir" xml:space="preserve">
     <value>no pmllib folder</value>
   </data>
+  <data name="Plugins_EditDisplayNameTitle" xml:space="preserve">
+    <value>Customize Plugin Display Name</value>
+  </data>
+  <data name="Plugins_EditDisplayNameBody" xml:space="preserve">
+    <value>Enter the display name for the E3D Ribbon group. Leave empty to use the default name.</value>
+  </data>
+  <data name="Plugins_EditDisplayNameLabel" xml:space="preserve">
+    <value>Display Name</value>
+  </data>
+  <data name="Plugins_EditDisplayNameTooltip" xml:space="preserve">
+    <value>Edit E3D Ribbon display name</value>
+  </data>
+  <data name="Plugins_DisplayNameUpdated" xml:space="preserve">
+    <value>Plugin display name updated and Ribbon synchronized.</value>
+  </data>
   <data name="Plugins_IndexNoFiles" xml:space="preserve">
     <value>no .pml files to index</value>
   </data>
@@ -1567,6 +1585,75 @@ Save them anyway?</value>
   <data name="Plugins_ImportFailed" xml:space="preserve">
     <value>Import failed: {0}</value>
   </data>
+  <data name="Plugins_Uninstall" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="Plugins_UninstallTooltip" xml:space="preserve">
+    <value>Completely uninstall this plugin and safely clean all mounts</value>
+  </data>
+  <data name="Plugins_UninstallConfirmTitle" xml:space="preserve">
+    <value>Uninstall Plugin</value>
+  </data>
+  <data name="Plugins_UninstallConfirmBody" xml:space="preserve">
+    <value>Are you sure you want to uninstall "{0}"?&#xD;&#xA;&#xD;&#xA;This will safely withdraw all E3D evars, Ribbon buttons, deployed Addin assemblies, and move the folder to backup recycle.</value>
+  </data>
+  <data name="Plugins_UninstallSuccess" xml:space="preserve">
+    <value>Plugin "{0}" has been completely uninstalled.</value>
+  </data>
+  <data name="Plugins_UninstallFailed" xml:space="preserve">
+    <value>Failed to uninstall plugin: {0}</value>
+  </data>
+  <data name="Plugins_TabDiscovery" xml:space="preserve">
+    <value>System Scan</value>
+  </data>
+  <data name="Plugins_ScanSystem" xml:space="preserve">
+    <value>Scan System Plugins</value>
+  </data>
+  <data name="Plugins_ScanningSystem" xml:space="preserve">
+    <value>Scanning system drives for E3D plugins...</value>
+  </data>
+  <data name="Plugins_ScanSystemDone" xml:space="preserve">
+    <value>Scan completed: found {0} plugin(s) ({1} managed, {2} unmanaged).</value>
+  </data>
+  <data name="Plugins_HostIntoSep" xml:space="preserve">
+    <value>Host into SEP</value>
+  </data>
+  <data name="Plugins_HostAndEnable" xml:space="preserve">
+    <value>Host &amp; Enable</value>
+  </data>
+  <data name="Plugins_HostSuccess" xml:space="preserve">
+    <value>Plugin "{0}" hosted into SEP successfully.</value>
+  </data>
+  <data name="Plugins_HostAndEnableSuccess" xml:space="preserve">
+    <value>Plugin "{0}" hosted into SEP and enabled.</value>
+  </data>
+  <data name="Plugins_HostFailed" xml:space="preserve">
+    <value>Failed to host plugin: {0}</value>
+  </data>
+  <data name="Plugins_DiscoveredLocation" xml:space="preserve">
+    <value>Location: {0}</value>
+  </data>
+  <data name="Plugins_DiscoveredEmpty" xml:space="preserve">
+    <value>No unmanaged external plugins found. All plugins are cleanly hosted in SEP!</value>
+  </data>
+  <data name="Plugins_StructureStandard" xml:space="preserve">
+    <value>Standard PML</value>
+  </data>
+  <data name="Plugins_StructureFlat" xml:space="preserve">
+    <value>Flat PML</value>
+  </data>
+  <data name="Plugins_StructureMultiVersion" xml:space="preserve">
+    <value>Multi-Version</value>
+  </data>
+  <data name="Plugins_StructureNested" xml:space="preserve">
+    <value>Nested Package</value>
+  </data>
+  <data name="Plugins_StructureAddin" xml:space="preserve">
+    <value>.NET Addin</value>
+  </data>
+  <data name="Plugins_StructureFunction" xml:space="preserve">
+    <value>PML Functions</value>
+  </data>
   <data name="Tools_Title" xml:space="preserve">
     <value>Diagnostics &amp; Tools</value>
   </data>
@@ -1599,9 +1686,6 @@ Save them anyway?</value>
   </data>
   <data name="Tools_UserDataBody" xml:space="preserve">
     <value>Removes the caches E3D keeps per user (session leftovers, temp files) that cause slow starts and stale forms.</value>
-  </data>
-  <data name="Tools_CadBody" xml:space="preserve">
-    <value>Repairs the CAD font mapping E3D uses for drawings when characters show up as boxes.</value>
   </data>
   <data name="Tools_ReindexBody" xml:space="preserve">
     <value>Regenerates pml.index for every enabled plug-in so E3D sees new or renamed PML files.</value>
@@ -1698,15 +1782,6 @@ Save them anyway?</value>
   </data>
   <data name="Tools_UserDataButton" xml:space="preserve">
     <value>Clean</value>
-  </data>
-  <data name="Tools_CadTitle" xml:space="preserve">
-    <value>Fix CAD fonts</value>
-  </data>
-  <data name="Tools_CadConfirm" xml:space="preserve">
-    <value>Update the font mapping files in the E3D installation (backups are kept)?</value>
-  </data>
-  <data name="Tools_CadButton" xml:space="preserve">
-    <value>Fix fonts</value>
   </data>
   <data name="Tools_ReindexTitle" xml:space="preserve">
     <value>Plug-in indexes</value>
@@ -1824,15 +1899,6 @@ Save them anyway?</value>
   </data>
   <data name="Tools_UserDataError" xml:space="preserve">
     <value>Cleaning stopped: {0}</value>
-  </data>
-  <data name="Tools_CadNotFound" xml:space="preserve">
-    <value>No font or support folder found in the E3D installation.</value>
-  </data>
-  <data name="Tools_CadDone" xml:space="preserve">
-    <value>{0} font mapping file(s) updated.</value>
-  </data>
-  <data name="Tools_CadUpToDate" xml:space="preserve">
-    <value>The font mapping is already up to date.</value>
   </data>
   <data name="Tools_NetPath" xml:space="preserve">
     <value>Path</value>
@@ -2142,5 +2208,32 @@ Save them anyway?</value>
   </data>
   <data name="Decommission_Hint" xml:space="preserve">
     <value>Archive the project as a zip, unregister it from E3D and optionally delete the folder.</value>
+  </data>
+  <data name="Plugins_AdoptedTitle" xml:space="preserve">
+    <value>E3D environment configs adopted</value>
+  </data>
+  <data name="Plugins_AdoptedBody" xml:space="preserve">
+    <value>Safely adopted {0} legacy plug-in(s) and {1} project config(s) into SEP managed blocks. Original lines were commented and backed up to {2}.</value>
+  </data>
+  <data name="Tools_CheckAdoptStatus" xml:space="preserve">
+    <value>Legacy environment configuration adoption</value>
+  </data>
+  <data name="Tools_CheckAdoptClean" xml:space="preserve">
+    <value>All environment configurations are fully managed by SEP.</value>
+  </data>
+  <data name="Tools_CheckAdoptNeeded" xml:space="preserve">
+    <value>Detected {0} unmanaged legacy configuration(s) in custom_evars.bat; adoption recommended.</value>
+  </data>
+  <data name="Tools_AdoptAction" xml:space="preserve">
+    <value>Adopt &amp; Manage</value>
+  </data>
+  <data name="Tools_AdoptSuccess" xml:space="preserve">
+    <value>Successfully adopted {0} plug-in(s) and {1} project(s).</value>
+  </data>
+  <data name="Plugins_UicTooltip" xml:space="preserve">
+    <value>Contains E3D Ribbon UI customization file (.uic)</value>
+  </data>
+  <data name="Plugins_AddinTooltip" xml:space="preserve">
+    <value>Registered in E3D native .NET add-in list (DesignAddins.xml)</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Strings.resx = English (neutral language); Strings.zh-CN.resx = Simplified Chinese.
@@ -1090,6 +1090,9 @@
   <data name="Batch_RemoveFromMine" xml:space="preserve">
     <value>移出我的项目</value>
   </data>
+  <data name="Batch_LaunchSelected" xml:space="preserve">
+    <value>启动所选工程</value>
+  </data>
   <data name="Batch_Edit" xml:space="preserve">
     <value>批量编辑…</value>
   </data>
@@ -1534,6 +1537,21 @@
   <data name="Plugins_IndexNoDir" xml:space="preserve">
     <value>没有 pmllib 目录</value>
   </data>
+  <data name="Plugins_EditDisplayNameTitle" xml:space="preserve">
+    <value>自定义插件显示名称</value>
+  </data>
+  <data name="Plugins_EditDisplayNameBody" xml:space="preserve">
+    <value>请输入在 E3D 功能区 (Ribbon) 中显示的英文字符/名称。留空将恢复为默认名称。</value>
+  </data>
+  <data name="Plugins_EditDisplayNameLabel" xml:space="preserve">
+    <value>显示名称 (Display Name)</value>
+  </data>
+  <data name="Plugins_EditDisplayNameTooltip" xml:space="preserve">
+    <value>自定义该插件在 E3D 功能区上的名称</value>
+  </data>
+  <data name="Plugins_DisplayNameUpdated" xml:space="preserve">
+    <value>已更新插件显示名称并同步功能区。</value>
+  </data>
   <data name="Plugins_IndexNoFiles" xml:space="preserve">
     <value>没有可索引的 .pml 文件</value>
   </data>
@@ -1567,6 +1585,75 @@
   <data name="Plugins_ImportFailed" xml:space="preserve">
     <value>导入失败：{0}</value>
   </data>
+  <data name="Plugins_Uninstall" xml:space="preserve">
+    <value>卸载</value>
+  </data>
+  <data name="Plugins_UninstallTooltip" xml:space="preserve">
+    <value>彻底卸载此插件（安全撤回 E3D 挂载与部署文件）</value>
+  </data>
+  <data name="Plugins_UninstallConfirmTitle" xml:space="preserve">
+    <value>卸载插件</value>
+  </data>
+  <data name="Plugins_UninstallConfirmBody" xml:space="preserve">
+    <value>确定要彻底卸载插件 “{0}” 吗？&#xD;&#xA;&#xD;&#xA;此操作将安全撤回该插件在 E3D 中的所有环境变量挂载、Ribbon 界面按钮及部署的 Addin 程序集，并将插件文件夹移动至备份回收站。</value>
+  </data>
+  <data name="Plugins_UninstallSuccess" xml:space="preserve">
+    <value>插件 “{0}” 已彻底卸载并清理完成。</value>
+  </data>
+  <data name="Plugins_UninstallFailed" xml:space="preserve">
+    <value>卸载插件失败：{0}</value>
+  </data>
+  <data name="Plugins_TabDiscovery" xml:space="preserve">
+    <value>全盘检测</value>
+  </data>
+  <data name="Plugins_ScanSystem" xml:space="preserve">
+    <value>全盘检测插件</value>
+  </data>
+  <data name="Plugins_ScanningSystem" xml:space="preserve">
+    <value>正在全盘扫描 E3D 插件...</value>
+  </data>
+  <data name="Plugins_ScanSystemDone" xml:space="preserve">
+    <value>全盘扫描完成：共发现 {0} 个插件（{1} 个已托管，{2} 个待托管）。</value>
+  </data>
+  <data name="Plugins_HostIntoSep" xml:space="preserve">
+    <value>一键托管至 SEP</value>
+  </data>
+  <data name="Plugins_HostAndEnable" xml:space="preserve">
+    <value>托管并启用</value>
+  </data>
+  <data name="Plugins_HostSuccess" xml:space="preserve">
+    <value>插件 “{0}” 已成功规范化并托管至 SEP！</value>
+  </data>
+  <data name="Plugins_HostAndEnableSuccess" xml:space="preserve">
+    <value>插件 “{0}” 已托管至 SEP 并立即启用！</value>
+  </data>
+  <data name="Plugins_HostFailed" xml:space="preserve">
+    <value>托管插件失败：{0}</value>
+  </data>
+  <data name="Plugins_DiscoveredLocation" xml:space="preserve">
+    <value>来源位置：{0}</value>
+  </data>
+  <data name="Plugins_DiscoveredEmpty" xml:space="preserve">
+    <value>未在系统其他路径发现未托管的散装插件，所有插件均已由 SEP 统一管理！</value>
+  </data>
+  <data name="Plugins_StructureStandard" xml:space="preserve">
+    <value>标准 PML 库</value>
+  </data>
+  <data name="Plugins_StructureFlat" xml:space="preserve">
+    <value>扁平结构</value>
+  </data>
+  <data name="Plugins_StructureMultiVersion" xml:space="preserve">
+    <value>多版本兼容</value>
+  </data>
+  <data name="Plugins_StructureNested" xml:space="preserve">
+    <value>嵌套分包</value>
+  </data>
+  <data name="Plugins_StructureAddin" xml:space="preserve">
+    <value>.NET 插件</value>
+  </data>
+  <data name="Plugins_StructureFunction" xml:space="preserve">
+    <value>PML 纯函数库</value>
+  </data>
   <data name="Tools_Title" xml:space="preserve">
     <value>诊断与工具</value>
   </data>
@@ -1599,9 +1686,6 @@
   </data>
   <data name="Tools_UserDataBody" xml:space="preserve">
     <value>清除 E3D 按用户保存的缓存（会话残留、临时文件），解决启动慢和窗体过期问题。</value>
-  </data>
-  <data name="Tools_CadBody" xml:space="preserve">
-    <value>修复 E3D 出图时使用的 CAD 字体映射（字符显示为方框时）。</value>
   </data>
   <data name="Tools_ReindexBody" xml:space="preserve">
     <value>为所有已启用插件重新生成 pml.index，让 E3D 识别新增或重命名的 PML 文件。</value>
@@ -1698,15 +1782,6 @@
   </data>
   <data name="Tools_UserDataButton" xml:space="preserve">
     <value>清理</value>
-  </data>
-  <data name="Tools_CadTitle" xml:space="preserve">
-    <value>修复 CAD 字体</value>
-  </data>
-  <data name="Tools_CadConfirm" xml:space="preserve">
-    <value>更新 E3D 安装目录中的字体映射文件（保留备份）？</value>
-  </data>
-  <data name="Tools_CadButton" xml:space="preserve">
-    <value>修复字体</value>
   </data>
   <data name="Tools_ReindexTitle" xml:space="preserve">
     <value>插件索引</value>
@@ -1824,15 +1899,6 @@
   </data>
   <data name="Tools_UserDataError" xml:space="preserve">
     <value>清理中断：{0}</value>
-  </data>
-  <data name="Tools_CadNotFound" xml:space="preserve">
-    <value>在 E3D 安装目录中未找到字体或 support 目录。</value>
-  </data>
-  <data name="Tools_CadDone" xml:space="preserve">
-    <value>已更新 {0} 个字体映射文件。</value>
-  </data>
-  <data name="Tools_CadUpToDate" xml:space="preserve">
-    <value>字体映射已是最新。</value>
   </data>
   <data name="Tools_NetPath" xml:space="preserve">
     <value>路径</value>
@@ -2142,5 +2208,32 @@
   </data>
   <data name="Decommission_Hint" xml:space="preserve">
     <value>将工程打包为 zip 归档、从 E3D 注销，并可选删除目录。</value>
+  </data>
+  <data name="Plugins_AdoptedTitle" xml:space="preserve">
+    <value>E3D 环境配置已自动安全接管</value>
+  </data>
+  <data name="Plugins_AdoptedBody" xml:space="preserve">
+    <value>已自动安全接管 {0} 个存量手写插件配置与 {1} 个项目配置，环境现已由 SEP 统一托管。原手写行已安全注释并备份至 {2}。</value>
+  </data>
+  <data name="Tools_CheckAdoptStatus" xml:space="preserve">
+    <value>存量环境配置接管状态</value>
+  </data>
+  <data name="Tools_CheckAdoptClean" xml:space="preserve">
+    <value>环境配置已全部由 SEP 规范化托管。</value>
+  </data>
+  <data name="Tools_CheckAdoptNeeded" xml:space="preserve">
+    <value>在 custom_evars.bat 中检测到 {0} 处手写脱管配置，建议立即安全接管。</value>
+  </data>
+  <data name="Tools_AdoptAction" xml:space="preserve">
+    <value>一键安全接管</value>
+  </data>
+  <data name="Tools_AdoptSuccess" xml:space="preserve">
+    <value>已成功接管 {0} 个插件与 {1} 个项目配置。</value>
+  </data>
+  <data name="Plugins_UicTooltip" xml:space="preserve">
+    <value>包含 E3D 功能区 (Ribbon) 界面自定义文件 (.uic)</value>
+  </data>
+  <data name="Plugins_AddinTooltip" xml:space="preserve">
+    <value>已注册到 E3D 原生 .NET 加载项 (DesignAddins.xml)</value>
   </data>
 </root>

@@ -120,9 +120,10 @@ public static class LibraryScanner
         }
         direct.Sort(StringComparer.OrdinalIgnoreCase);
 
-        // Probe the sub-folders in parallel (network round-trips dominate).
+        // Probe the sub-folders in parallel (network round-trips dominate; throttle UNC to prevent SMB connection limits).
+        int maxDop = SepPaths.IsUnc(norm) ? 4 : 16;
         var subfolderEvars = new ConcurrentDictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-        Parallel.ForEach(subdirs, new ParallelOptions { MaxDegreeOfParallelism = 16, CancellationToken = ct }, d =>
+        Parallel.ForEach(subdirs, new ParallelOptions { MaxDegreeOfParallelism = maxDop, CancellationToken = ct }, d =>
         {
             var evs = DirectEvars(d);
             if (evs.Count > 0) subfolderEvars[d] = evs;
@@ -221,21 +222,59 @@ public static class LibraryScanner
 
     private static void ReadCodes(List<ProjectRecord> projects, CancellationToken ct)
     {
-        Parallel.ForEach(projects, new ParallelOptions { MaxDegreeOfParallelism = 16, CancellationToken = ct },
+        bool anyUnc = projects.Any(p => SepPaths.IsUnc(p.BatPath));
+        int maxDop = anyUnc ? 4 : 16;
+        Parallel.ForEach(projects, new ParallelOptions { MaxDegreeOfParallelism = maxDop, CancellationToken = ct },
             p => p.Code = SepPaths.ReadProjectCode(p.BatPath));
     }
 
-    /// <summary>Lock files (*.lck) inside the project's *000 folders; null when the folder could not be listed.</summary>
+    private static readonly string[] LockExtensions = { ".lok", ".lck", ".lock", ".tmp" };
+
+    /// <summary>Lock files (*.lck, *.lok, *.lock, *.tmp) inside candidate database folders; null when unreadable.</summary>
     public static List<string>? FindLockFiles(string projectDir)
     {
+        if (string.IsNullOrWhiteSpace(projectDir)) return null;
         try
         {
-            var locks = new List<string>();
-            foreach (var d in Directory.EnumerateDirectories(projectDir, "*000"))
+            if (!Directory.Exists(projectDir)) return null;
+
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { projectDir };
+            try
             {
-                locks.AddRange(Directory.EnumerateFiles(d, "*.lck"));
-                locks.AddRange(Directory.EnumerateFiles(d, "*.lok"));
+                foreach (var d in Directory.EnumerateDirectories(projectDir))
+                {
+                    string name = Path.GetFileName(d);
+                    if (name.EndsWith("000", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("000", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith("sys", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith("com", StringComparison.OrdinalIgnoreCase))
+                    {
+                        candidates.Add(d);
+                    }
+                }
             }
+            catch { }
+
+            var locks = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var dir in candidates)
+            {
+                if (!Directory.Exists(dir)) continue;
+                try
+                {
+                    foreach (var file in Directory.EnumerateFiles(dir))
+                    {
+                        string ext = Path.GetExtension(file);
+                        if (LockExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                        {
+                            if (seen.Add(file)) locks.Add(file);
+                        }
+                    }
+                }
+                catch { }
+            }
+
             return locks;
         }
         catch

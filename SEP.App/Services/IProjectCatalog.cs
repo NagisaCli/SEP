@@ -84,5 +84,8 @@ public interface IProjectCatalog
     /// <summary>Replaces the whole data set (config bundle import) and rebuilds every model.</summary>
     void ImportData(SepData data);
 
+    string? GetPluginDisplayName(string pluginName);
+    void SetPluginDisplayName(string pluginName, string? displayName);
+
     void Save();
 }

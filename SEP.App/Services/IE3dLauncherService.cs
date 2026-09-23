@@ -17,5 +17,8 @@ public interface IE3dLauncherService
     /// <summary>Rewrites the environment for one project without starting E3D (switch only).</summary>
     Task<(bool Success, string Message)> SwitchAsync(ProjectItem project);
 
+    /// <summary>Loads an arbitrary list of selected projects into custom_evars.bat and starts E3D.</summary>
+    Task<(bool Success, string Message)> SwitchAndLaunchMultipleAsync(System.Collections.Generic.IEnumerable<ProjectItem> projects);
+
     Task<(bool Success, string Message)> LaunchE3dProcessAsync();
 }
