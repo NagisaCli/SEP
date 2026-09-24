@@ -62,6 +62,15 @@ public interface IProjectCatalog
     void SetMyProjects(IEnumerable<ProjectItem> projects, bool mine);
     void ClearMyProjects();
 
+    // ── my project groups ────────────────────────────────────────────────────────
+    IReadOnlyList<MyProjectGroupRecord> MyProjectGroups { get; }
+    MyProjectGroupRecord AddMyProjectGroup(string name);
+    bool RenameMyProjectGroup(string groupId, string newName);
+    bool RemoveMyProjectGroup(string groupId);
+    void SetProjectGroup(ProjectItem project, string? groupId);
+    void SetMyProjectGroupExpanded(string groupId, bool isExpanded);
+    void MoveMyProject(ProjectItem project, int delta);
+
     void SetLastLaunched(ProjectItem project, string mode);
     void SetLastLaunchedLibrary(LibraryItem library);
     /// <summary>Mode "all": every project of "my projects" is loaded.</summary>

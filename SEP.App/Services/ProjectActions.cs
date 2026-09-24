@@ -24,6 +24,7 @@ public partial class ProjectActions : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchCommand))]
     [NotifyCanExecuteChangedFor(nameof(LaunchAllMineCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LaunchGroupCommand))]
     private bool _isLaunching;
 
     /// <summary>Raised when a page should open (e.g. the Users page for a project).</summary>
@@ -38,7 +39,7 @@ public partial class ProjectActions : ObservableObject
         _toasts = toasts;
     }
 
-    private bool CanLaunch() => !IsLaunching;
+    public bool CanLaunch() => !IsLaunching;
 
     [RelayCommand(CanExecute = nameof(CanLaunch))]
     public async Task LaunchAsync(ProjectItem? item)
@@ -62,6 +63,22 @@ public partial class ProjectActions : ObservableObject
         {
             _toasts.Info(Strings.Launch_AllStarting);
             var res = await _launcher.LoadMyProjectsAndLaunchAsync();
+            _toasts.Result(res.Success, res.Message);
+        }
+        finally { IsLaunching = false; }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanLaunch))]
+    public async Task LaunchGroupAsync(IEnumerable<ProjectItem>? projects)
+    {
+        if (projects == null) return;
+        var list = projects.ToList();
+        if (list.Count == 0) return;
+        IsLaunching = true;
+        try
+        {
+            _toasts.Info(Strings.Launch_AllStarting);
+            var res = await _launcher.SwitchAndLaunchMultipleAsync(list);
             _toasts.Result(res.Success, res.Message);
         }
         finally { IsLaunching = false; }

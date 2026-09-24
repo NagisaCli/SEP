@@ -2236,4 +2236,58 @@ Save them anyway?</value>
   <data name="Plugins_AddinTooltip" xml:space="preserve">
     <value>Registered in E3D native .NET add-in list (DesignAddins.xml)</value>
   </data>
+  <data name="Nav_Live" xml:space="preserve"><value>Live launch</value></data>
+  <data name="Live_Title" xml:space="preserve"><value>Start E3D Live</value></data>
+  <data name="Live_Subtitle" xml:space="preserve"><value>Choose any SEP project and enter its MDB. e3d_live supplies the supported modules and access modes; existing SEP launch actions remain unchanged.</value></data>
+  <data name="Live_Connection" xml:space="preserve"><value>Live entry connection</value></data>
+  <data name="Live_Root" xml:space="preserve"><value>e3d_live repository folder</value></data>
+  <data name="Live_Python" xml:space="preserve"><value>Python executable</value></data>
+  <data name="Live_Refresh" xml:space="preserve"><value>Save connection and load options</value></data>
+  <data name="Live_Scope" xml:space="preserve"><value>Target scope</value></data>
+  <data name="Live_Project" xml:space="preserve"><value>Project</value></data>
+  <data name="Live_Mdb" xml:space="preserve"><value>MDB</value></data>
+  <data name="Live_Module" xml:space="preserve"><value>Module</value></data>
+  <data name="Live_AccessMode" xml:space="preserve"><value>Access mode</value></data>
+  <data name="Live_Start" xml:space="preserve"><value>Start Live</value></data>
+  <data name="Live_SelectScope" xml:space="preserve"><value>Load the Live options, then select a target scope.</value></data>
+  <data name="Live_LoadingOptions" xml:space="preserve"><value>Reading configured Live targets…</value></data>
+  <data name="Live_NoTargets" xml:space="preserve"><value>No Live targets are configured.</value></data>
+  <data name="Live_OptionsLoaded" xml:space="preserve"><value>Loaded {0} configured Live target(s).</value></data>
+  <data name="Live_ProfilesLoaded" xml:space="preserve"><value>Loaded {0} Live module profile(s) for {1} SEP project(s). MDB must exist in E3D.</value></data>
+  <data name="Live_ProjectsWithoutCode" xml:space="preserve"><value>{0} project record(s) without a valid AVEVA code were excluded.</value></data>
+  <data name="Live_RuntimeReady" xml:space="preserve"><value>runtime prepared</value></data>
+  <data name="Live_RuntimeMissing" xml:space="preserve"><value>runtime missing</value></data>
+  <data name="Live_WaitForLogin" xml:space="preserve"><value>Starting Live. If E3D opens a login window, log in and enter the selected module; SEP will wait for exact gateway binding.</value></data>
+  <data name="Live_Ready" xml:space="preserve"><value>Live ready: {0}/{1}/{2} ({3}), E3D PID {4}.</value></data>
+  <data name="Live_Sessions" xml:space="preserve"><value>Active Live sessions</value></data>
+  <data name="Live_RefreshSessions" xml:space="preserve"><value>Refresh sessions</value></data>
+  <data name="Live_SessionsCount" xml:space="preserve"><value>{0} healthy Live session(s).</value></data>
+  <data name="Live_StopTitle" xml:space="preserve"><value>Stop Live connection?</value></data>
+  <data name="Live_StopBody" xml:space="preserve"><value>Stop the Live gateway for {0}/{1}/{2}, E3D PID {3}? E3D remains open; unsaved work is not discarded.</value></data>
+  <data name="Live_StopConfirm" xml:space="preserve"><value>Stop Live</value></data>
+  <data name="Live_Stopped" xml:space="preserve"><value>Live gateway stopped. The E3D process remains open.</value></data>
+  <data name="Live_BrowseTitle" xml:space="preserve"><value>Select the e3d_live repository folder</value></data>
+  <data name="Live_WriteTitle" xml:space="preserve"><value>Start a write-capable Live gateway?</value></data>
+  <data name="Live_WriteBody" xml:space="preserve"><value>This will start {0}/{1}/{2} in controlled-write gateway mode. E3D panel write grants and full-command access remain separate.</value></data>
+  <data name="Live_WriteConfirm" xml:space="preserve"><value>Start controlled write</value></data>
+  <data name="My_NewGroup" xml:space="preserve"><value>New group</value></data>
+  <data name="My_NewGroupTitle" xml:space="preserve"><value>New project group</value></data>
+  <data name="My_NewGroupPrompt" xml:space="preserve"><value>Enter group name:</value></data>
+  <data name="My_RenameGroup" xml:space="preserve"><value>Rename group</value></data>
+  <data name="My_RenameGroupTitle" xml:space="preserve"><value>Rename group</value></data>
+  <data name="My_RenameGroupPrompt" xml:space="preserve"><value>Enter new group name:</value></data>
+  <data name="My_DeleteGroup" xml:space="preserve"><value>Delete group</value></data>
+  <data name="My_DeleteGroupTitle" xml:space="preserve"><value>Delete group?</value></data>
+  <data name="My_DeleteGroupBody" xml:space="preserve"><value>Delete group '{0}'? Projects inside will not be deleted, but moved to ungrouped.</value></data>
+  <data name="My_DeleteGroupConfirm" xml:space="preserve"><value>Delete group</value></data>
+  <data name="My_LaunchGroup" xml:space="preserve"><value>Launch group</value></data>
+  <data name="My_LaunchGroupTooltip" xml:space="preserve"><value>Write all projects in this group to custom_evars.bat and launch E3D</value></data>
+  <data name="My_Ungrouped" xml:space="preserve"><value>Ungrouped projects</value></data>
+  <data name="My_MoveToGroup" xml:space="preserve"><value>Move to group…</value></data>
+  <data name="My_MoveToGroupTitle" xml:space="preserve"><value>Move to group</value></data>
+  <data name="My_MoveToGroupPrompt" xml:space="preserve"><value>Select target group:</value></data>
+  <data name="My_MoveToUngrouped" xml:space="preserve"><value>(Ungrouped)</value></data>
+  <data name="My_MovedToGroup" xml:space="preserve"><value>Moved {0} to group '{1}'.</value></data>
+  <data name="My_GroupEmptyHint" xml:space="preserve"><value>No projects in this group yet. Use "Move to group" to add projects here.</value></data>
+  <data name="Common_Saved" xml:space="preserve"><value>Saved.</value></data>
 </root>

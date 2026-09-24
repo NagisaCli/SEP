@@ -11,6 +11,7 @@ SEP — AVEVA E3D 工程管理系统：扫描项目库、维护工程信息、�
 | `SEP.App/` | The WPF client (`SEP.exe`). Pages: Overview, Project Workbench, My Projects, Plug-ins, Users & Permissions, Diagnostics & Tools, Settings. |
 | `ADMIN/E3dAdmin/` | Library + CLI (`e3d-admin`) that drives AVEVA `adm.exe` for user / team administration; referenced by the app. |
 | `build.ps1` | `dotnet publish` single-file release into `dist\SEP.exe` and copies it to the repo root. |
+| `SEP.App/Services/LiveEntryAdapter.cs` | Optional, isolated adapter to the separate `e3d_live` entry API. |
 
 ## Build
 
@@ -30,6 +31,31 @@ or `dotnet build SEP.App\SEP.App.csproj -c Release` for a quick build.
 
 A folder is a project when it contains `evarsXXX.bat`; a folder whose sub-folders contain such files is a project library. Local paths and `\\server\share` are supported.
 
+## Optional Live launch
+
+The **Live launch** page is separate from every existing SEP launch action. It
+reads target choices from `python -m integrations.e3d_live.live_entry options`
+in the selected `e3d_live` checkout. The Live repository remains responsible
+for its module profiles, runtimes, E3D process selection, gateway,
+session, permissions, and verification. SEP stores only the checkout path and
+Python executable in `live_entry.json` under its normal data directory. It
+does not copy or compile Live source into SEP.
+
+SEP lists any discovered project with a valid AVEVA code. The page calls SEP's
+existing `SwitchAsync` to prepare that exact project's evars (without the
+ordinary E3D launch), then passes its evars path, code, the entered MDB, module
+and access mode to the Live CLI. Live verifies the evars code before launch;
+its module profile decides whether the selected runtime/mode is supported.
+The ordinary
+project-card, title-bar, library and batch launch buttons are unchanged.
+
+SEP does not present an unverified free-text project as launchable. An MDB may
+be entered but must actually exist in E3D; login remains interactive. A `ready`
+message confirms exact Live session and
+gateway binding, not an in-panel write grant or saved E3D work. See the
+separate `e3d_live/integrations/e3d_live/docs/live-entry-api.md` for the CLI
+contract and runtime registry.
+
 ## Data
 
 Everything lives in `%APPDATA%\SEP` (or next to the exe when a `.portable` file is present):
@@ -44,4 +70,6 @@ Settings → *Export bundle* packs these into one file to move to another PC.
 ## Command-line switches
 
 - `--page=overview|projects|mine|plugins|users|tools|settings` – open a page directly
+- `--page=live` – open the optional Live launch page
+- The Live page lists health-verified E3D Live sessions and can gracefully stop an exact gateway binding. Stop Live leaves E3D open so its normal Save Work and close flow remains available. Separate project/MDB/module scopes can run concurrently on distinct gateway ports; a pending native login is serialized.
 - `--shot-dir=<folder>` – UI-check aid: drop `main.req` into the folder to get `main.png` rendered from the visual tree

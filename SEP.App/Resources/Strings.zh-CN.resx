@@ -2236,4 +2236,58 @@
   <data name="Plugins_AddinTooltip" xml:space="preserve">
     <value>已注册到 E3D 原生 .NET 加载项 (DesignAddins.xml)</value>
   </data>
+  <data name="Nav_Live" xml:space="preserve"><value>Live 启动</value></data>
+  <data name="Live_Title" xml:space="preserve"><value>启动 E3D Live</value></data>
+  <data name="Live_Subtitle" xml:space="preserve"><value>选择 SEP 中的任意项目并输入 MDB；可用模块和访问模式由 e3d_live 提供。SEP 原有启动功能保持不变。</value></data>
+  <data name="Live_Connection" xml:space="preserve"><value>Live 入口连接</value></data>
+  <data name="Live_Root" xml:space="preserve"><value>e3d_live 项目文件夹</value></data>
+  <data name="Live_Python" xml:space="preserve"><value>Python 可执行程序</value></data>
+  <data name="Live_Refresh" xml:space="preserve"><value>保存连接并读取选项</value></data>
+  <data name="Live_Scope" xml:space="preserve"><value>目标范围</value></data>
+  <data name="Live_Project" xml:space="preserve"><value>项目</value></data>
+  <data name="Live_Mdb" xml:space="preserve"><value>MDB</value></data>
+  <data name="Live_Module" xml:space="preserve"><value>模块</value></data>
+  <data name="Live_AccessMode" xml:space="preserve"><value>访问模式</value></data>
+  <data name="Live_Start" xml:space="preserve"><value>启动 Live</value></data>
+  <data name="Live_SelectScope" xml:space="preserve"><value>请先读取 Live 选项，再选择目标范围。</value></data>
+  <data name="Live_LoadingOptions" xml:space="preserve"><value>正在读取已配置的 Live 目标…</value></data>
+  <data name="Live_NoTargets" xml:space="preserve"><value>尚未配置 Live 目标。</value></data>
+  <data name="Live_OptionsLoaded" xml:space="preserve"><value>已读取 {0} 个 Live 目标。</value></data>
+  <data name="Live_ProfilesLoaded" xml:space="preserve"><value>已读取 {0} 个 Live 模块配置，可用于 SEP 的 {1} 个项目。MDB 必须在 E3D 中存在。</value></data>
+  <data name="Live_ProjectsWithoutCode" xml:space="preserve"><value>另有 {0} 个项目缺少有效的 AVEVA 工程代码，未列入。</value></data>
+  <data name="Live_RuntimeReady" xml:space="preserve"><value>运行时已准备</value></data>
+  <data name="Live_RuntimeMissing" xml:space="preserve"><value>运行时缺失</value></data>
+  <data name="Live_WaitForLogin" xml:space="preserve"><value>正在启动 Live。如 E3D 弹出登录窗口，请登录并进入所选模块；SEP 会等待精确的网关绑定。</value></data>
+  <data name="Live_Ready" xml:space="preserve"><value>Live 已就绪：{0}/{1}/{2}（{3}），E3D PID {4}。</value></data>
+  <data name="Live_Sessions" xml:space="preserve"><value>正在运行的 Live 会话</value></data>
+  <data name="Live_RefreshSessions" xml:space="preserve"><value>刷新会话</value></data>
+  <data name="Live_SessionsCount" xml:space="preserve"><value>当前有 {0} 个健康的 Live 会话。</value></data>
+  <data name="Live_StopTitle" xml:space="preserve"><value>停止 Live 连接？</value></data>
+  <data name="Live_StopBody" xml:space="preserve"><value>停止 {0}/{1}/{2}、E3D PID {3} 的 Live 网关？E3D 将保持打开，未保存工作不会被丢弃。</value></data>
+  <data name="Live_StopConfirm" xml:space="preserve"><value>停止 Live</value></data>
+  <data name="Live_Stopped" xml:space="preserve"><value>Live 网关已停止，E3D 进程仍保持打开。</value></data>
+  <data name="Live_BrowseTitle" xml:space="preserve"><value>选择 e3d_live 项目文件夹</value></data>
+  <data name="Live_WriteTitle" xml:space="preserve"><value>启动可写入的 Live 网关？</value></data>
+  <data name="Live_WriteBody" xml:space="preserve"><value>将以受控写入网关模式启动 {0}/{1}/{2}。E3D 面板内的写入授权和完整命令权限仍需另外授予。</value></data>
+  <data name="Live_WriteConfirm" xml:space="preserve"><value>启动受控写入</value></data>
+  <data name="My_NewGroup" xml:space="preserve"><value>新建分组</value></data>
+  <data name="My_NewGroupTitle" xml:space="preserve"><value>新建项目分组</value></data>
+  <data name="My_NewGroupPrompt" xml:space="preserve"><value>请输入分组名称：</value></data>
+  <data name="My_RenameGroup" xml:space="preserve"><value>重命名分组</value></data>
+  <data name="My_RenameGroupTitle" xml:space="preserve"><value>重命名分组</value></data>
+  <data name="My_RenameGroupPrompt" xml:space="preserve"><value>请输入新的分组名称：</value></data>
+  <data name="My_DeleteGroup" xml:space="preserve"><value>删除分组</value></data>
+  <data name="My_DeleteGroupTitle" xml:space="preserve"><value>删除分组？</value></data>
+  <data name="My_DeleteGroupBody" xml:space="preserve"><value>确定要删除分组“{0}”吗？分组内的工程不会被删除，将移至未分组。</value></data>
+  <data name="My_DeleteGroupConfirm" xml:space="preserve"><value>删除分组</value></data>
+  <data name="My_LaunchGroup" xml:space="preserve"><value>启动本组</value></data>
+  <data name="My_LaunchGroupTooltip" xml:space="preserve"><value>将本组内的所有工程写入 custom_evars.bat 并启动 E3D</value></data>
+  <data name="My_Ungrouped" xml:space="preserve"><value>未分组工程</value></data>
+  <data name="My_MoveToGroup" xml:space="preserve"><value>移至分组…</value></data>
+  <data name="My_MoveToGroupTitle" xml:space="preserve"><value>移至分组</value></data>
+  <data name="My_MoveToGroupPrompt" xml:space="preserve"><value>请选择目标分组：</value></data>
+  <data name="My_MoveToUngrouped" xml:space="preserve"><value>（移出分组 / 未分组）</value></data>
+  <data name="My_MovedToGroup" xml:space="preserve"><value>已将 {0} 移至分组“{1}”。</value></data>
+  <data name="My_GroupEmptyHint" xml:space="preserve"><value>该分组暂无工程，可点击下方工程的“移至分组”添加到此处。</value></data>
+  <data name="Common_Saved" xml:space="preserve"><value>已保存。</value></data>
 </root>

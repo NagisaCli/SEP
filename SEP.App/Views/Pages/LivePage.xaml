@@ -1,0 +1,101 @@
+<Page x:Class="SEP.App.Views.Pages.LivePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:loc="clr-namespace:SEP.App.Localization"
+      Title="{loc:Tr Nav_Live}"
+      Foreground="{DynamicResource SepTextBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,20,24,24" MaxWidth="850" HorizontalAlignment="Left">
+            <TextBlock Text="{loc:Tr Live_Title}" Style="{StaticResource SepPageTitle}" />
+            <TextBlock Text="{loc:Tr Live_Subtitle}" Style="{StaticResource SepPageSubtitle}" TextWrapping="Wrap" Margin="0,4,0,20" />
+
+            <Border Style="{StaticResource SepCard}" Padding="18" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr Live_Connection}" Style="{StaticResource SepSectionTitle}" Margin="0,0,0,10" />
+                    <TextBlock Text="{loc:Tr Live_Root}" Style="{StaticResource SepMuted}" Margin="0,0,0,4" />
+                    <DockPanel LastChildFill="True" Margin="0,0,0,12">
+                        <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Content="{loc:Tr Common_Browse}"
+                                   Command="{Binding BrowseRootCommand}" Margin="8,0,0,0" />
+                        <ui:TextBox Text="{Binding LiveRoot, UpdateSourceTrigger=PropertyChanged}" />
+                    </DockPanel>
+                    <TextBlock Text="{loc:Tr Live_Python}" Style="{StaticResource SepMuted}" Margin="0,0,0,4" />
+                    <ui:TextBox Text="{Binding PythonExecutable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                    <ui:Button Appearance="Secondary" Content="{loc:Tr Live_Refresh}" Command="{Binding RefreshCommand}"
+                               HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SepCard}" Padding="18" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr Live_Scope}" Style="{StaticResource SepSectionTitle}" Margin="0,0,0,10" />
+                    <UniformGrid Columns="2" Rows="4">
+                        <TextBlock Text="{loc:Tr Live_Project}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
+                        <ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Label" Margin="0,2,0,6" />
+                        <TextBlock Text="{loc:Tr Live_Mdb}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
+                        <ComboBox ItemsSource="{Binding Mdbs}" IsEditable="True"
+                                  Text="{Binding SelectedMdb, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6" />
+                        <TextBlock Text="{loc:Tr Live_Module}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
+                        <ComboBox ItemsSource="{Binding Modules}" SelectedItem="{Binding SelectedModule}" Margin="0,2,0,6" />
+                        <TextBlock Text="{loc:Tr Live_AccessMode}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
+                        <ComboBox ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" Margin="0,2,0,6" />
+                    </UniformGrid>
+                    <TextBlock Text="{Binding RuntimeDescription}" Style="{StaticResource SepCaption}" Margin="0,8,0,12" />
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket24}"
+                               Content="{loc:Tr Live_Start}" Command="{Binding StartLiveCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SepCard}" Padding="18" Margin="0,0,0,14">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,10">
+                        <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Content="{loc:Tr Live_RefreshSessions}"
+                                   Command="{Binding RefreshSessionsCommand}" />
+                        <TextBlock Text="{loc:Tr Live_Sessions}" Style="{StaticResource SepSectionTitle}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding SessionSummary}" Style="{StaticResource SepCaption}" Margin="0,0,0,6" />
+                    <ItemsControl ItemsSource="{Binding RunningSessions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="0,1,0,0" Padding="0,9">
+                                    <DockPanel>
+                                        <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Content="{loc:Tr Live_StopConfirm}"
+                                                   Command="{Binding DataContext.StopSessionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                   CommandParameter="{Binding}" Margin="12,0,0,0" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Scope.ProjectCode}" FontWeight="SemiBold" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Scope.Mdb}" />
+                                                <TextBlock Text=" / " />
+                                                <TextBlock Text="{Binding Scope.Module}" />
+                                                <TextBlock Text="  ·  PID " />
+                                                <TextBlock Text="{Binding TargetProcessId}" />
+                                                <TextBlock Text="  ·  " />
+                                                <TextBlock Text="{Binding AccessMode}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding GatewayUrl}" Style="{StaticResource SepCaption}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource SepCard}" Padding="16,12">
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource SepBody}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

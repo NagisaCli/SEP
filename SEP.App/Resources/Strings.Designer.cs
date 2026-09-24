@@ -1388,6 +1388,12 @@ namespace SEP.App.Resources {
             }
         }
 
+        public static string Common_Saved {
+            get {
+                return ResourceManager.GetString("Common_Saved", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
@@ -6420,6 +6426,120 @@ namespace SEP.App.Resources {
         public static string Plugins_StructureFunction {
             get {
                 return ResourceManager.GetString("Plugins_StructureFunction", resourceCulture);
+            }
+        }
+
+        public static string My_NewGroup {
+            get {
+                return ResourceManager.GetString("My_NewGroup", resourceCulture);
+            }
+        }
+
+        public static string My_NewGroupTitle {
+            get {
+                return ResourceManager.GetString("My_NewGroupTitle", resourceCulture);
+            }
+        }
+
+        public static string My_NewGroupPrompt {
+            get {
+                return ResourceManager.GetString("My_NewGroupPrompt", resourceCulture);
+            }
+        }
+
+        public static string My_RenameGroup {
+            get {
+                return ResourceManager.GetString("My_RenameGroup", resourceCulture);
+            }
+        }
+
+        public static string My_RenameGroupTitle {
+            get {
+                return ResourceManager.GetString("My_RenameGroupTitle", resourceCulture);
+            }
+        }
+
+        public static string My_RenameGroupPrompt {
+            get {
+                return ResourceManager.GetString("My_RenameGroupPrompt", resourceCulture);
+            }
+        }
+
+        public static string My_DeleteGroup {
+            get {
+                return ResourceManager.GetString("My_DeleteGroup", resourceCulture);
+            }
+        }
+
+        public static string My_DeleteGroupTitle {
+            get {
+                return ResourceManager.GetString("My_DeleteGroupTitle", resourceCulture);
+            }
+        }
+
+        public static string My_DeleteGroupBody {
+            get {
+                return ResourceManager.GetString("My_DeleteGroupBody", resourceCulture);
+            }
+        }
+
+        public static string My_DeleteGroupConfirm {
+            get {
+                return ResourceManager.GetString("My_DeleteGroupConfirm", resourceCulture);
+            }
+        }
+
+        public static string My_LaunchGroup {
+            get {
+                return ResourceManager.GetString("My_LaunchGroup", resourceCulture);
+            }
+        }
+
+        public static string My_LaunchGroupTooltip {
+            get {
+                return ResourceManager.GetString("My_LaunchGroupTooltip", resourceCulture);
+            }
+        }
+
+        public static string My_Ungrouped {
+            get {
+                return ResourceManager.GetString("My_Ungrouped", resourceCulture);
+            }
+        }
+
+        public static string My_MoveToGroup {
+            get {
+                return ResourceManager.GetString("My_MoveToGroup", resourceCulture);
+            }
+        }
+
+        public static string My_MoveToGroupTitle {
+            get {
+                return ResourceManager.GetString("My_MoveToGroupTitle", resourceCulture);
+            }
+        }
+
+        public static string My_MoveToGroupPrompt {
+            get {
+                return ResourceManager.GetString("My_MoveToGroupPrompt", resourceCulture);
+            }
+        }
+
+        public static string My_MoveToUngrouped {
+            get {
+                return ResourceManager.GetString("My_MoveToUngrouped", resourceCulture);
+            }
+        }
+
+        public static string My_MovedToGroup {
+            get {
+                return ResourceManager.GetString("My_MovedToGroup", resourceCulture);
+            }
+        }
+
+        public static string My_GroupEmptyHint {
+            get {
+                return ResourceManager.GetString("My_GroupEmptyHint", resourceCulture);
             }
         }
     }

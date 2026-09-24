@@ -75,6 +75,14 @@ public partial class ProjectItem : ObservableObject
     [ObservableProperty]
     private bool _isFavorite;
 
+    /// <summary>Custom group id in "my projects".</summary>
+    [ObservableProperty]
+    private string? _myGroupId;
+
+    /// <summary>Custom group display name in "my projects".</summary>
+    [ObservableProperty]
+    private string? _myGroupName;
+
     /// <summary>Launched last (settings.last_launched).</summary>
     [ObservableProperty]
     private bool _isActive;

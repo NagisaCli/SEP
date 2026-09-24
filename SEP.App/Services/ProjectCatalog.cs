@@ -145,8 +145,18 @@ public sealed class ProjectCatalog : IProjectCatalog
 
             _libraries = libs;
             _projects = projs;
+            var groupById = Data.MyProjectGroups.ToDictionary(g => g.Id, g => g.Name);
             _myProjects = Data.MyProjects
-                .Select(m => projs.FirstOrDefault(p => p.Id == m.Id) ?? projs.FirstOrDefault(p => string.Equals(p.BatPath, SepPaths.Normalize(m.BatPath), StringComparison.OrdinalIgnoreCase)))
+                .Select(m =>
+                {
+                    var p = projs.FirstOrDefault(x => x.Id == m.Id) ?? projs.FirstOrDefault(x => string.Equals(x.BatPath, SepPaths.Normalize(x.BatPath), StringComparison.OrdinalIgnoreCase));
+                    if (p != null)
+                    {
+                        p.MyGroupId = m.GroupId;
+                        p.MyGroupName = m.GroupId != null && groupById.TryGetValue(m.GroupId, out var gn) ? gn : null;
+                    }
+                    return p;
+                })
                 .Where(p => p != null).Select(p => p!).Distinct().ToList();
             _allTags = Data.ProjectMeta.Values.SelectMany(m => m.Tags ?? new List<string>())
                 .GroupBy(t => t, StringComparer.OrdinalIgnoreCase)
@@ -414,11 +424,132 @@ public sealed class ProjectCatalog : IProjectCatalog
     {
         lock (_gate)
         {
+            var groupById = Data.MyProjectGroups.ToDictionary(g => g.Id, g => g.Name);
             _myProjects = Data.MyProjects
-                .Select(m => _projects.FirstOrDefault(p => p.Id == m.Id))
+                .Select(m =>
+                {
+                    var p = _projects.FirstOrDefault(x => x.Id == m.Id);
+                    if (p != null)
+                    {
+                        p.MyGroupId = m.GroupId;
+                        p.MyGroupName = m.GroupId != null && groupById.TryGetValue(m.GroupId, out var gn) ? gn : null;
+                    }
+                    return p;
+                })
                 .Where(p => p != null).Select(p => p!).Distinct().ToList();
         }
         Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    public IReadOnlyList<MyProjectGroupRecord> MyProjectGroups
+    {
+        get
+        {
+            lock (_gate) return Data.MyProjectGroups.OrderBy(g => g.Order).ToList();
+        }
+    }
+
+    public MyProjectGroupRecord AddMyProjectGroup(string name)
+    {
+        name = name.Trim();
+        string id = SepPaths.GenerateId("grp", name + "_" + DateTime.UtcNow.Ticks);
+        var rec = new MyProjectGroupRecord
+        {
+            Id = id,
+            Name = name,
+            IsExpanded = true,
+            Order = Data.MyProjectGroups.Count
+        };
+        lock (_gate)
+        {
+            Data.MyProjectGroups.Add(rec);
+        }
+        Save();
+        Changed?.Invoke(this, EventArgs.Empty);
+        return rec;
+    }
+
+    public bool RenameMyProjectGroup(string groupId, string newName)
+    {
+        newName = newName.Trim();
+        if (string.IsNullOrEmpty(newName)) return false;
+        lock (_gate)
+        {
+            var grp = Data.MyProjectGroups.FirstOrDefault(g => g.Id == groupId);
+            if (grp == null) return false;
+            grp.Name = newName;
+            foreach (var p in _myProjects.Where(p => p.MyGroupId == groupId))
+                p.MyGroupName = newName;
+        }
+        Save();
+        Changed?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    public bool RemoveMyProjectGroup(string groupId)
+    {
+        lock (_gate)
+        {
+            var grp = Data.MyProjectGroups.FirstOrDefault(g => g.Id == groupId);
+            if (grp == null) return false;
+            Data.MyProjectGroups.Remove(grp);
+            foreach (var m in Data.MyProjects.Where(m => m.GroupId == groupId))
+                m.GroupId = null;
+            foreach (var p in _myProjects.Where(p => p.MyGroupId == groupId))
+            {
+                p.MyGroupId = null;
+                p.MyGroupName = null;
+            }
+        }
+        Save();
+        Changed?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    public void SetProjectGroup(ProjectItem project, string? groupId)
+    {
+        lock (_gate)
+        {
+            var m = Data.MyProjects.FirstOrDefault(x => x.Id == project.Id ||
+                string.Equals(SepPaths.Normalize(x.BatPath), project.BatPath, StringComparison.OrdinalIgnoreCase));
+            if (m != null)
+            {
+                m.GroupId = string.IsNullOrWhiteSpace(groupId) ? null : groupId;
+            }
+            project.MyGroupId = m?.GroupId;
+            var grp = Data.MyProjectGroups.FirstOrDefault(g => g.Id == project.MyGroupId);
+            project.MyGroupName = grp?.Name;
+        }
+        Save();
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void SetMyProjectGroupExpanded(string groupId, bool isExpanded)
+    {
+        lock (_gate)
+        {
+            var grp = Data.MyProjectGroups.FirstOrDefault(g => g.Id == groupId);
+            if (grp != null && grp.IsExpanded != isExpanded)
+            {
+                grp.IsExpanded = isExpanded;
+                Save();
+            }
+        }
+    }
+
+    public void MoveMyProject(ProjectItem project, int delta)
+    {
+        lock (_gate)
+        {
+            var list = Data.MyProjects;
+            int idx = list.FindIndex(m => m.Id == project.Id ||
+                string.Equals(SepPaths.Normalize(m.BatPath), project.BatPath, StringComparison.OrdinalIgnoreCase));
+            int target = idx + delta;
+            if (idx < 0 || target < 0 || target >= list.Count) return;
+            (list[idx], list[target]) = (list[target], list[idx]);
+        }
+        RefreshMyProjects();
+        Save();
     }
 
     public void SetLastLaunched(ProjectItem project, string mode)

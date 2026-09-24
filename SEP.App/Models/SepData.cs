@@ -18,6 +18,7 @@ public sealed class SepData
     [JsonPropertyName("plugin_meta")] public Dictionary<string, PluginMetaRecord> PluginMeta { get; set; } = new();
     [JsonPropertyName("libraries")] public List<LibraryRecord> Libraries { get; set; } = new();
     [JsonPropertyName("my_projects")] public List<MyProjectRecord> MyProjects { get; set; } = new();
+    [JsonPropertyName("my_project_groups")] public List<MyProjectGroupRecord> MyProjectGroups { get; set; } = new();
     [JsonPropertyName("all_projects_cache")] public List<ProjectRecord> AllProjectsCache { get; set; } = new();
     [JsonPropertyName("notifications")] public List<NotificationRecord> Notifications { get; set; } = new();
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
@@ -81,6 +82,16 @@ public sealed class MyProjectRecord
     [JsonPropertyName("lib_id")] public string? LibId { get; set; }
     [JsonPropertyName("source")] public string Source { get; set; } = "user";
     [JsonPropertyName("added_at")] public string? AddedAt { get; set; }
+    [JsonPropertyName("group_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? GroupId { get; set; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+public sealed class MyProjectGroupRecord
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("is_expanded")] public bool IsExpanded { get; set; } = true;
+    [JsonPropertyName("order")] public int Order { get; set; }
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 

@@ -8,6 +8,7 @@ bin_publish/
 # Runtime data / logs the app writes next to a portable exe (real data lives in %APPDATA%\SEP)
 e3d_paths.json
 e3d_projects.json
+live_entry.json
 e3d_projects.json.bak*
 sep_admin_creds.json
 sep_user_cache.json

@@ -71,6 +71,7 @@
                 <ui:NavigationViewItem Content="{loc:Tr Nav_Overview}" Icon="{ui:SymbolIcon Symbol=Home24}" TargetPageType="{x:Type pages:OverviewPage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_Projects}" Icon="{ui:SymbolIcon Symbol=Folder24}" TargetPageType="{x:Type pages:ProjectsPage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_MyProjects}" Icon="{ui:SymbolIcon Symbol=Star24}" TargetPageType="{x:Type pages:MyProjectsPage}" />
+                <ui:NavigationViewItem Content="{loc:Tr Nav_Live}" Icon="{ui:SymbolIcon Symbol=Rocket24}" TargetPageType="{x:Type pages:LivePage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_Plugins}" Icon="{ui:SymbolIcon Symbol=PuzzlePiece24}" TargetPageType="{x:Type pages:PluginsPage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_UserAdmin}" Icon="{ui:SymbolIcon Symbol=People24}" TargetPageType="{x:Type pages:UserAdminPage}" />
                 <ui:NavigationViewItem Content="{loc:Tr Nav_Tools}" Icon="{ui:SymbolIcon Symbol=Toolbox24}" TargetPageType="{x:Type pages:ToolsPage}" />
