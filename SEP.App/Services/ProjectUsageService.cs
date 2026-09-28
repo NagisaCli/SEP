@@ -22,15 +22,16 @@ public sealed record UsageSummary(int Checked, int InUse, int Free, int Unreacha
 ///     session in the project holds that file open, so the file server refuses the open while anybody is in —
 ///     without a handle being created, so nobody is disturbed. When the project is free the file is held for a few
 ///     milliseconds only.
-///  2. Who: E3D records each login in the project's communications database (&lt;code&gt;com) as a process tag
-///     "X&lt;hex&gt;-&lt;host&gt;", Windows user, computer, terminal and start time. The file also keeps records of
-///     sessions that ended, so these logins are shown as "recent logins" and only while step 1 says the project is
-///     in use.
+///  2. Who: every AVEVA program that enters the project (Design, Draw, Admin, batch adm.exe, …) leaves a record
+///     in the project's communications database (&lt;code&gt;com): process tag "X&lt;hex pid&gt;-&lt;computer&gt;",
+///     Windows user (lower and upper case), computer, and start time "HH:mm dd MMM" in that computer's own clock.
+///     Records stay after the session ends and carry no module name, so they are shown as "sessions started
+///     recently" — who may be in — and only while step 1 says the project is in use.
 /// </summary>
 public sealed class ProjectUsageService
 {
     private static readonly TimeSpan PerProjectDeadline = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan LoginWindow = TimeSpan.FromDays(14);   // older register records are ended sessions
+    private static readonly TimeSpan LoginWindow = TimeSpan.FromDays(7);   // older register records are ended sessions
     private const int MaxRegisterBytes = 32 * 1024 * 1024;
     private const int SharingViolation = 32, LockViolation = 33;
     private static readonly Regex TagRe = new(@"^X[0-9A-Fa-f]{2,8}-[A-Za-z0-9_.\-]+$", RegexOptions.Compiled);
@@ -190,8 +191,9 @@ public sealed class ProjectUsageService
     }
 
     /// <summary>
-    /// Records are runs of 36-byte slots, each a big-endian length and up to 32 ASCII bytes:
-    /// process tag "X&lt;hex&gt;-&lt;host&gt;", Windows user, computer, terminal, start time "HH:mm dd MMM".
+    /// Records are runs of 36-byte slots, each a big-endian length and up to 32 ASCII bytes (bytes after the length
+    /// are left-overs of older, longer values): process tag "X&lt;hex pid&gt;-&lt;computer&gt;", Windows user,
+    /// Windows user in upper case, computer, start time "HH:mm dd MMM".
     /// </summary>
     internal static IReadOnlyList<ProjectSession> ParseRegister(byte[] data, DateTime now)
     {
@@ -203,7 +205,8 @@ public sealed class ProjectUsageService
             string? tag = Slot(data, i - 4);
             if (tag == null || !TagRe.IsMatch(tag)) continue;
             string? user = Slot(data, i + 32);
-            string? computer = Slot(data, i + 68);
+            string? computer = Slot(data, i + 104);
+            if (string.IsNullOrEmpty(computer)) computer = tag[(tag.IndexOf('-') + 1)..];
             string? time = Slot(data, i + 140);
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(computer) || time == null) continue;
             DateTime? since = ParseTime(time, now);

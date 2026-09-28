@@ -194,7 +194,7 @@
                         <controls:Badge Tone="Purple" Margin="0,2,6,2" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
-                                <TextBlock Text="{Binding OnlineCount}" />
+                                <TextBlock Text="{Binding OnlineBadgeText}" />
                             </StackPanel>
                         </controls:Badge>
                         <controls:Badge Tone="Success" Margin="0,2,6,2" Visibility="{Binding IsUsageFree, Converter={StaticResource BoolToVisibilityConverter}}"

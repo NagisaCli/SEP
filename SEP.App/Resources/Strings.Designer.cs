@@ -6833,5 +6833,41 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Usage_FreeBadge", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to In use.
+        /// </summary>
+        public static string Usage_InUseBadge {
+            get {
+                return ResourceManager.GetString("Usage_InUseBadge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open on this PC: {0} @ {1}.
+        /// </summary>
+        public static string Usage_ThisPc {
+            get {
+                return ResourceManager.GetString("Usage_ThisPc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to In use. Sessions started in the last 7 days (newest first; each computer's own clock; people who already left may still be listed):.
+        /// </summary>
+        public static string Usage_RecentHeader {
+            get {
+                return ResourceManager.GetString("Usage_RecentHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to … and {0} earlier.
+        /// </summary>
+        public static string Usage_More {
+            get {
+                return ResourceManager.GetString("Usage_More", resourceCulture);
+            }
+        }
     }
 }

@@ -2331,7 +2331,11 @@ Save them anyway?</value>
   <data name="Usage_OneInUse" xml:space="preserve"><value>{0} is in use: {1}</value></data>
   <data name="Usage_OneFree" xml:space="preserve"><value>{0} is free — nobody has it open.</value></data>
   <data name="Usage_OneUnknown" xml:space="preserve"><value>{0} could not be checked (server unreachable or database folder not found).</value></data>
-  <data name="Usage_InUseUnknown" xml:space="preserve"><value>in use (logins not readable)</value></data>
-  <data name="Usage_CheckedAt" xml:space="preserve"><value>checked {0}</value></data>
+  <data name="Usage_InUseUnknown" xml:space="preserve"><value>In use (the session register could not be read)</value></data>
+  <data name="Usage_CheckedAt" xml:space="preserve"><value>Checked at {0}</value></data>
   <data name="Usage_FreeBadge" xml:space="preserve"><value>Free</value></data>
+  <data name="Usage_InUseBadge" xml:space="preserve"><value>In use</value></data>
+  <data name="Usage_ThisPc" xml:space="preserve"><value>Open on this PC: {0} @ {1}</value></data>
+  <data name="Usage_RecentHeader" xml:space="preserve"><value>In use. Sessions started in the last 7 days (newest first; each computer's own clock; people who already left may still be listed):</value></data>
+  <data name="Usage_More" xml:space="preserve"><value>… and {0} earlier</value></data>
 </root>

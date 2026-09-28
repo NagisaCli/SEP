@@ -241,7 +241,7 @@
                                                                     <controls:Badge Tone="Purple" Margin="6,0,0,0" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
                                                                         <StackPanel Orientation="Horizontal">
                                                                             <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
-                                                                            <TextBlock Text="{Binding OnlineSummary}" />
+                                                                            <TextBlock Text="{Binding OnlineBadgeText}" />
                                                                         </StackPanel>
                                                                     </controls:Badge>
                                                                     <controls:Badge Tone="Danger" Margin="6,0,0,0" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr My_Offline}" ToolTip="{loc:Tr My_OfflineTooltip}" />

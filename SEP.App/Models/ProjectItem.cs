@@ -113,6 +113,7 @@ public partial class ProjectItem : ObservableObject
     /// <summary>People connected right now (SEP heartbeats and lock owners); empty until probed.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(OnlineCount))]
+    [NotifyPropertyChangedFor(nameof(OnlineBadgeText))]
     [NotifyPropertyChangedFor(nameof(IsOnline))]
     [NotifyPropertyChangedFor(nameof(OnlineSummary))]
     private IReadOnlyList<ProjectSession> _sessions = Array.Empty<ProjectSession>();
@@ -123,6 +124,7 @@ public partial class ProjectItem : ObservableObject
     /// <summary>Result of the last manual usage check (never set automatically).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(OnlineCount))]
+    [NotifyPropertyChangedFor(nameof(OnlineBadgeText))]
     [NotifyPropertyChangedFor(nameof(IsOnline))]
     [NotifyPropertyChangedFor(nameof(OnlineSummary))]
     [NotifyPropertyChangedFor(nameof(IsUsageFree))]
@@ -154,32 +156,43 @@ public partial class ProjectItem : ObservableObject
     public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
     public bool HasStatus => Status.Length > 0;
     public bool HasCategory => Category != null;
-    /// <summary>People known to be in the project: this PC's own session plus, after a manual check that found the
-    /// project in use, the logins E3D recorded (at least one when the register could not be read).</summary>
-    public int OnlineCount
-    {
-        get
-        {
-            if (Usage != UsageState.InUse) return Sessions.Count;
-            int known = Sessions.Concat(UsageLogins).Select(s => $"{s.User}@{s.Computer}".ToLowerInvariant()).Distinct().Count();
-            return Math.Max(1, known);
-        }
-    }
+    /// <summary>
+    /// Sessions known for certain: this PC's own. A manual check that finds the project in use proves at least one
+    /// session but not how many — E3D's register also keeps sessions that already ended.
+    /// </summary>
+    public int OnlineCount => Usage == UsageState.InUse ? Math.Max(1, Sessions.Count) : Sessions.Count;
+
+    /// <summary>Badge text: the number of this PC's sessions, or "In use" when a check found other sessions too.</summary>
+    public string OnlineBadgeText => Usage == UsageState.InUse && Sessions.Count == 0 ? Resources.Strings.Usage_InUseBadge : OnlineCount.ToString();
 
     public bool IsOnline => Sessions.Count > 0 || Usage == UsageState.InUse;
     public bool IsUsageFree => Usage == UsageState.Free;
 
+    /// <summary>
+    /// Tooltip: this PC's sessions (certain), then — when a check found the project in use — the sessions E3D
+    /// recorded as started recently, newest first (who may be in; start times in each computer's own clock).
+    /// </summary>
     public string OnlineSummary
     {
         get
         {
-            var people = Sessions.Concat(Usage == UsageState.InUse ? UsageLogins : Array.Empty<ProjectSession>())
-                .GroupBy(s => $"{s.User}@{s.Computer}".ToLowerInvariant())
-                .Select(g => g.First())
-                .Select(s => s.Since is { } since ? $"{s.User}@{s.Computer} ({since:dd MMM HH:mm})" : $"{s.User}@{s.Computer}")
-                .ToList();
-            string who = people.Count > 0 ? string.Join(", ", people) : (Usage == UsageState.InUse ? Resources.Strings.Usage_InUseUnknown : string.Empty);
-            return UsageCheckedAt is { } at ? $"{who}{(who.Length > 0 ? " · " : string.Empty)}{string.Format(Resources.Strings.Usage_CheckedAt, at.ToString("HH:mm"))}" : who;
+            var lines = new List<string>();
+            foreach (var s in Sessions)
+                lines.Add(string.Format(Resources.Strings.Usage_ThisPc, s.User, s.Computer));
+            if (Usage == UsageState.InUse)
+            {
+                var recent = UsageLogins.Where(l => !Sessions.Any(s => s.IsThisDevice && l.IsThisDevice)).ToList();
+                if (recent.Count == 0 && Sessions.Count == 0) lines.Add(Resources.Strings.Usage_InUseUnknown);
+                if (recent.Count > 0)
+                {
+                    lines.Add(Resources.Strings.Usage_RecentHeader);
+                    foreach (var l in recent.Take(6))
+                        lines.Add($"  {l.User} @ {l.Computer}  {l.Since:dd MMM HH:mm}");
+                    if (recent.Count > 6) lines.Add("  " + string.Format(Resources.Strings.Usage_More, recent.Count - 6));
+                }
+            }
+            if (UsageCheckedAt is { } at) lines.Add(string.Format(Resources.Strings.Usage_CheckedAt, at.ToString("HH:mm")));
+            return string.Join("\n", lines);
         }
     }
 
