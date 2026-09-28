@@ -66,7 +66,7 @@ internal static class OpenFileProbe
 
         // Own file handle: tells which object type index means "File" on this Windows build, so handles of other
         // types (named pipes behind sync I/O, events, …) are never duplicated or queried.
-        using var marker = new FileStream(Environment.ProcessPath ?? typeof(OpenFileProbe).Assembly.Location,
+        using var marker = new FileStream(Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "SEP.exe"),
             FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         IntPtr markerHandle = marker.SafeFileHandle.DangerousGetHandle();
         int me = Environment.ProcessId;
