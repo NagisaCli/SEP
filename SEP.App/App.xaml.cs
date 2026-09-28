@@ -149,6 +149,7 @@ public partial class App : Application
             services.AddSingleton<IE3dDiagService, E3dDiagService>();
             services.AddSingleton<IE3dAdminBridge, E3dAdminBridge>();
             services.AddSingleton<SessionService>();
+            services.AddSingleton<ProjectUsageService>();
             services.AddSingleton<E3dToolsService>();
             services.AddSingleton<PluginService>();
             services.AddSingleton<PluginDiscoveryService>();

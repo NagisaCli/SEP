@@ -8,8 +8,14 @@ namespace SEP.App.Models;
 /// <summary>A category as shown on a project (name + colour); null when the project has none.</summary>
 public sealed record CategoryInfo(string Id, string Name, string Color);
 
-/// <summary>Someone connected to a project: a SEP heartbeat (.sep_sessions) or the owner of a database lock.</summary>
+/// <summary>
+/// Someone in a project: Source "local" = open in E3D on this PC (from the local handle table), "e3d" = a login
+/// recorded in the project's E3D session register (read by a manual usage check).
+/// </summary>
 public sealed record ProjectSession(string User, string Computer, string Source, bool IsThisDevice, DateTime? Since);
+
+/// <summary>Outcome of the last manual "who is in this project" check.</summary>
+public enum UsageState { Unknown, Free, InUse, Unreachable }
 
 /// <summary>A discovered E3D project (one evarsXXX.bat) as shown in the UI.</summary>
 public partial class ProjectItem : ObservableObject
@@ -114,6 +120,24 @@ public partial class ProjectItem : ObservableObject
     [ObservableProperty]
     private bool _sessionsKnown;
 
+    /// <summary>Result of the last manual usage check (never set automatically).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OnlineCount))]
+    [NotifyPropertyChangedFor(nameof(IsOnline))]
+    [NotifyPropertyChangedFor(nameof(OnlineSummary))]
+    [NotifyPropertyChangedFor(nameof(IsUsageFree))]
+    private UsageState _usage;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OnlineSummary))]
+    private DateTime? _usageCheckedAt;
+
+    /// <summary>Logins E3D recorded for the project, newest first; only filled while the project is in use.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OnlineCount))]
+    [NotifyPropertyChangedFor(nameof(OnlineSummary))]
+    private IReadOnlyList<ProjectSession> _usageLogins = Array.Empty<ProjectSession>();
+
     /// <summary>Selected in batch mode on the Projects page.</summary>
     [ObservableProperty]
     private bool _isSelected;
@@ -130,9 +154,34 @@ public partial class ProjectItem : ObservableObject
     public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
     public bool HasStatus => Status.Length > 0;
     public bool HasCategory => Category != null;
-    public int OnlineCount => Sessions.Count;
-    public bool IsOnline => Sessions.Count > 0;
-    public string OnlineSummary => string.Join(", ", Sessions.Select(s => $"{s.User}@{s.Computer}"));
+    /// <summary>People known to be in the project: this PC's own session plus, after a manual check that found the
+    /// project in use, the logins E3D recorded (at least one when the register could not be read).</summary>
+    public int OnlineCount
+    {
+        get
+        {
+            if (Usage != UsageState.InUse) return Sessions.Count;
+            int known = Sessions.Concat(UsageLogins).Select(s => $"{s.User}@{s.Computer}".ToLowerInvariant()).Distinct().Count();
+            return Math.Max(1, known);
+        }
+    }
+
+    public bool IsOnline => Sessions.Count > 0 || Usage == UsageState.InUse;
+    public bool IsUsageFree => Usage == UsageState.Free;
+
+    public string OnlineSummary
+    {
+        get
+        {
+            var people = Sessions.Concat(Usage == UsageState.InUse ? UsageLogins : Array.Empty<ProjectSession>())
+                .GroupBy(s => $"{s.User}@{s.Computer}".ToLowerInvariant())
+                .Select(g => g.First())
+                .Select(s => s.Since is { } since ? $"{s.User}@{s.Computer} ({since:dd MMM HH:mm})" : $"{s.User}@{s.Computer}")
+                .ToList();
+            string who = people.Count > 0 ? string.Join(", ", people) : (Usage == UsageState.InUse ? Resources.Strings.Usage_InUseUnknown : string.Empty);
+            return UsageCheckedAt is { } at ? $"{who}{(who.Length > 0 ? " · " : string.Empty)}{string.Format(Resources.Strings.Usage_CheckedAt, at.ToString("HH:mm"))}" : who;
+        }
+    }
 
     /// <summary>Badge text: the project code when known, otherwise the first letters of the name.</summary>
     public string Badge => !string.IsNullOrEmpty(Code) ? Code : (Name.Length <= 5 ? Name.ToUpperInvariant() : Name[..3].ToUpperInvariant());

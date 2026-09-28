@@ -6716,5 +6716,122 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Setup_NotSingleFile", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check who is in this project.
+        /// </summary>
+        public static string Usage_CheckOne {
+            get {
+                return ResourceManager.GetString("Usage_CheckOne", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Who is in.
+        /// </summary>
+        public static string Usage_CheckAll {
+            get {
+                return ResourceManager.GetString("Usage_CheckAll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check every project now: in use or free, and the recent E3D logins of the ones in use. Runs only when you click; nothing is written on the server..
+        /// </summary>
+        public static string Usage_CheckAllTooltip {
+            get {
+                return ResourceManager.GetString("Usage_CheckAllTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check who is in the projects of this library (runs only when you click).
+        /// </summary>
+        public static string Usage_CheckLibraryTooltip {
+            get {
+                return ResourceManager.GetString("Usage_CheckLibraryTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check who is in the projects of this group (runs only when you click).
+        /// </summary>
+        public static string Usage_CheckGroupTooltip {
+            get {
+                return ResourceManager.GetString("Usage_CheckGroupTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Checking {0} project(s)….
+        /// </summary>
+        public static string Usage_Checking {
+            get {
+                return ResourceManager.GetString("Usage_Checking", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Checked {0} project(s): {1} in use, {2} free, {3} could not be checked..
+        /// </summary>
+        public static string Usage_Summary {
+            get {
+                return ResourceManager.GetString("Usage_Summary", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is in use: {1}.
+        /// </summary>
+        public static string Usage_OneInUse {
+            get {
+                return ResourceManager.GetString("Usage_OneInUse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is free — nobody has it open..
+        /// </summary>
+        public static string Usage_OneFree {
+            get {
+                return ResourceManager.GetString("Usage_OneFree", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} could not be checked (server unreachable or database folder not found)..
+        /// </summary>
+        public static string Usage_OneUnknown {
+            get {
+                return ResourceManager.GetString("Usage_OneUnknown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to in use (logins not readable).
+        /// </summary>
+        public static string Usage_InUseUnknown {
+            get {
+                return ResourceManager.GetString("Usage_InUseUnknown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to checked {0}.
+        /// </summary>
+        public static string Usage_CheckedAt {
+            get {
+                return ResourceManager.GetString("Usage_CheckedAt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Free.
+        /// </summary>
+        public static string Usage_FreeBadge {
+            get {
+                return ResourceManager.GetString("Usage_FreeBadge", resourceCulture);
+            }
+        }
     }
 }

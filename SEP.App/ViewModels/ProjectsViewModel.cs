@@ -350,6 +350,10 @@ public partial class ProjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private Task CheckLibraryUsageAsync(LibraryGroup? group) =>
+        group == null ? Task.CompletedTask : Actions.CheckUsageForAsync(_catalog.Projects.Where(p => p.LibraryId == group.Library.Id).ToList(), report: true);
+
+    [RelayCommand]
     private void OpenLibraryFolder(LibraryGroup? group)
     {
         if (group != null) _projectService.OpenFolder(group.Library.Path);

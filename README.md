@@ -65,6 +65,13 @@ Guest, so SEP keeps its footprint small:
   held open by the local E3D processes (`des`, `draw`, `mon`, …) are read from the Windows handle table, and a
   project counts as open when its system database `<code>000\<code>sys` is among them (catalogue projects that E3D
   only reads from are not counted). This works whether or not E3D was started from SEP.
+- **Who is in (manual only):** a card's menu (one project), the people button on a library or a My Projects group,
+  *Who is in* on the Project Workbench (all projects) and *Who is online* on My Projects check other people too —
+  only when clicked, never on a timer. Per project SEP opens `<code>000\<code>sys` read-only without sharing: the
+  file server refuses that while any E3D session holds the project, so the project is reported *in use* without a
+  handle being created (when free, the file is held for a few milliseconds). For projects in use, the recent logins
+  E3D recorded in `<code>com` (Windows user, computer, start time; last 14 days) are listed in the badge tooltip.
+  Nothing is written on the server.
 
 ## Optional Live launch
 

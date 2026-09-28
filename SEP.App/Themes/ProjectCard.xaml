@@ -25,6 +25,9 @@
         <MenuItem Header="{loc:Tr Project_MenuEdit}" Icon="{ui:SymbolIcon Symbol=Edit24}"
                   Command="{Binding PlacementTarget.Tag.EditCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                   CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+        <MenuItem Header="{loc:Tr Usage_CheckOne}" Icon="{ui:SymbolIcon Symbol=PeopleSearch24}"
+                  Command="{Binding PlacementTarget.Tag.CheckUsageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
         <MenuItem Header="{loc:Tr Project_MenuUsers}" Icon="{ui:SymbolIcon Symbol=People24}"
                   Command="{Binding PlacementTarget.Tag.ShowUsersCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                   CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -194,6 +197,8 @@
                                 <TextBlock Text="{Binding OnlineCount}" />
                             </StackPanel>
                         </controls:Badge>
+                        <controls:Badge Tone="Success" Margin="0,2,6,2" Visibility="{Binding IsUsageFree, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Content="{loc:Tr Usage_FreeBadge}" ToolTip="{Binding OnlineSummary}" />
                         <controls:Badge Margin="0,2,6,2" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr Project_Cached}" />
                         <ItemsControl ItemsSource="{Binding Tags}" ItemTemplate="{StaticResource TagChip}" Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibilityConverter}}">
                             <ItemsControl.ItemsPanel>

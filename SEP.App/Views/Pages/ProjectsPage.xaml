@@ -52,6 +52,8 @@
                            Command="{Binding Actions.ManageCategoriesCommand}" Margin="0,0,8,0" />
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=CheckboxChecked24}" ToolTip="{loc:Tr Batch_Toggle}" AutomationProperties.Name="{loc:Tr Batch_Toggle}"
                            Command="{Binding ToggleBatchModeCommand}" Margin="0,0,8,0" />
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=People24}" Content="{loc:Tr Usage_CheckAll}" Command="{Binding Actions.CheckAllUsageCommand}" Margin="0,0,8,0"
+                           ToolTip="{loc:Tr Usage_CheckAllTooltip}" />
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" Command="{Binding RescanAllCommand}" ToolTip="{loc:Tr Projects_RefreshTooltip}"
                            AutomationProperties.Name="{loc:Tr Projects_RefreshTooltip}" />
             </StackPanel>
@@ -254,6 +256,8 @@
                                         <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                             <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Layer24}" Content="{loc:Tr Lib_LoadWhole}" Margin="0,0,6,0" Padding="10,5"
                                                        ToolTip="{loc:Tr Lib_LoadWholeTooltip}" Command="{Binding DataContext.LoadLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=People24}" ToolTip="{loc:Tr Usage_CheckLibraryTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckLibraryTooltip}"
+                                                       Command="{Binding DataContext.CheckLibraryUsageCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                             <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" ToolTip="{loc:Tr Lib_Rescan}" AutomationProperties.Name="{loc:Tr Lib_Rescan}"
                                                        Command="{Binding DataContext.RescanLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                             <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" ToolTip="{loc:Tr Lib_OpenFolder}" AutomationProperties.Name="{loc:Tr Lib_OpenFolder}"

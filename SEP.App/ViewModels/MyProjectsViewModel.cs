@@ -288,8 +288,9 @@ public partial class MyProjectsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Manual check of every project in My Projects (never automatic: it asks the file servers).</summary>
     [RelayCommand]
-    private Task ProbeSessionsAsync() => _sessions.ProbeAsync(Items.ToList());
+    private Task ProbeSessionsAsync() => Actions.CheckUsageForAsync(Items.ToList(), report: true);
 
     [RelayCommand]
     private void GoProjects() => Actions.Navigate(typeof(Views.Pages.ProjectsPage));

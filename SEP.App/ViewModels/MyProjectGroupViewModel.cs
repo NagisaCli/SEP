@@ -93,6 +93,10 @@ public partial class MyProjectGroupViewModel : ObservableObject
         IsExpanded = !IsExpanded;
     }
 
+    /// <summary>Manual check of who is in the projects of this group.</summary>
+    [RelayCommand]
+    public Task CheckUsageAsync() => _actions.CheckUsageForAsync(Items.ToList(), report: true);
+
     [RelayCommand(CanExecute = nameof(CanLaunchGroup))]
     public async Task LaunchGroupAsync()
     {
