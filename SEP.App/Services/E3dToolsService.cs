@@ -516,6 +516,9 @@ public sealed class E3dToolsService
                 {
                     shareOk = Bounded(() => Directory.Exists(share), TimeSpan.FromSeconds(8));
                     shareDetail = shareOk ? Strings.Tools_NetShareConnected : Strings.Tools_NetShareNoRead;
+                    // The anonymous connection was only a test: close it at once, or it keeps one of the server's
+                    // few connection slots (Windows 10/11 file servers accept 20) until this user logs off.
+                    RunHidden("net", $"use \"{share}\" /delete /y", 8);
                 }
                 else shareDetail = NetErrorText(errNum);
             }

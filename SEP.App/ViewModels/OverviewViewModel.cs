@@ -62,6 +62,7 @@ public partial class OverviewViewModel : ObservableObject
 
         var refresh = new CoalescedUiAction(Refresh);
         _catalog.Changed += (_, _) => refresh.Request();
+        _sessions.PresenceChanged += (_, _) => refresh.Request();   // E3D opened / closed a project on this PC
         _catalog.ScanStateChanged += (_, _) => OnUiThread(() => IsScanning = _catalog.IsScanning);
         Loc.Instance.LanguageChanged += (_, _) => OnUiThread(Refresh);
         Refresh();

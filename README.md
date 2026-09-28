@@ -52,6 +52,20 @@ Hand out `dist\SEP-<version>-setup.zip` (or the `dist` folder). On the target PC
 
 A folder is a project when it contains `evarsXXX.bat`; a folder whose sub-folders contain such files is a project library. Local paths and `\\server\share` are supported.
 
+## File-server load and project usage
+
+Network libraries are often on Windows PCs acting as file servers (at most 20 SMB connections) and are reached as
+Guest, so SEP keeps its footprint small:
+
+- Automatic scans (start-up, opening a page) cover local libraries only; a network library is listed when you
+  press refresh, or once when it was never scanned. Cached results are shown meanwhile.
+- SEP reads and writes nothing on a server in the background: no heartbeat or presence files, no lock-file sweeps.
+  An idle SEP therefore lets its SMB session time out, which frees the server's connection slot.
+- *Online now* / the project badges show which projects are open in E3D **on this PC**, detected locally: the files
+  held open by the local E3D processes (`des`, `draw`, `mon`, …) are read from the Windows handle table, and a
+  project counts as open when its system database `<code>000\<code>sys` is among them (catalogue projects that E3D
+  only reads from are not counted). This works whether or not E3D was started from SEP.
+
 ## Optional Live launch
 
 The **Live launch** page is separate from every existing SEP launch action. It

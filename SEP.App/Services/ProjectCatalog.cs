@@ -13,7 +13,6 @@ namespace SEP.App.Services;
 public sealed class ProjectCatalog : IProjectCatalog
 {
     private static readonly TimeSpan LibraryScanTimeout = TimeSpan.FromSeconds(12);   // same as rescan_library(timeout=12)
-    private static readonly TimeSpan LockProbeTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan ScanReuseWindow = TimeSpan.FromSeconds(60);
 
     /// <summary>Same palette as e3d_store.CATEGORY_COLORS, assigned round-robin to new categories.</summary>
@@ -212,7 +211,13 @@ public sealed class ProjectCatalog : IProjectCatalog
             if (_runningScan != null && !_runningScan.IsCompleted) return _runningScan;
             if (!force && DateTime.UtcNow - _lastFullScan < ScanReuseWindow) return Task.CompletedTask;
             if (force) LibraryScanner.ForgetOfflineHosts();   // the user asked: try servers that were down again
-            _runningScan = ScanLibrariesAsync(Data.Libraries.ToList(), markFull: true);
+            // Automatic scans (start-up, page open) stay on this PC: a network library is only listed when the user
+            // refreshes, or once when it has never been scanned. Every PC re-listing every share on each start was
+            // what kept SMB sessions busy and filled the server's connection limit (system error 71).
+            var records = force
+                ? Data.Libraries.ToList()
+                : Data.Libraries.Where(l => !SepPaths.IsUnc(l.Path) || string.IsNullOrEmpty(l.LastScan)).ToList();
+            _runningScan = ScanLibrariesAsync(records, markFull: true);
             return _runningScan;
         }
     }
@@ -262,7 +267,6 @@ public sealed class ProjectCatalog : IProjectCatalog
             SetScanning(false);
         }
 
-        _ = ProbeLocksAsync(records.Select(r => r.Id).ToHashSet());
     }
 
     private void ApplyScanResult(LibraryRecord rec, ScanResult result)
@@ -287,35 +291,6 @@ public sealed class ProjectCatalog : IProjectCatalog
                 Data.AllProjectsCache.Add(p);
             }
         }
-    }
-
-    /// <summary>Lock-file probe for the projects of reachable libraries, in parallel and under a deadline each.</summary>
-    private async Task ProbeLocksAsync(HashSet<string> libraryIds)
-    {
-        List<ProjectItem> targets;
-        lock (_gate)
-        {
-            var reachable = _libraries.Where(l => l.IsReachable && libraryIds.Contains(l.Id)).Select(l => l.Id).ToHashSet();
-            targets = _projects.Where(p => reachable.Contains(p.LibraryId)).ToList();
-        }
-        using var limiter = new SemaphoreSlim(4);
-        await Task.WhenAll(targets.Select(async p =>
-        {
-            await limiter.WaitAsync();
-            try
-            {
-                var work = Task.Run(() => LibraryScanner.FindLockFiles(p.ProjectDir));
-                if (await Task.WhenAny(work, Task.Delay(LockProbeTimeout)) != work) return;
-                var locks = await work;
-                if (locks == null) return;
-                p.LockFiles = locks;
-                p.LockCount = locks.Count;
-                p.IsLocked = locks.Count > 0;
-                p.LockStateKnown = true;
-            }
-            catch { }
-            finally { limiter.Release(); }
-        }));
     }
 
     private LibraryItem? FindItem(string id) { lock (_gate) return _libraries.FirstOrDefault(l => l.Id == id); }
@@ -367,7 +342,6 @@ public sealed class ProjectCatalog : IProjectCatalog
         }
         RebuildModels();
         Save();
-        _ = ProbeLocksAsync(new HashSet<string> { id });
         return (true, string.Format(Strings.Lib_Added, name, result.Projects.Count));
     }
 
