@@ -16,6 +16,8 @@ public sealed class LiveEntrySettings
 {
     public string LiveRoot { get; set; } = string.Empty;
     public string PythonExecutable { get; set; } = "python";
+    // Primary SEP project id -> explicitly mounted support project ids.
+    public Dictionary<string, List<string>> MountProfiles { get; set; } = new();
 }
 
 public sealed class LiveEntryOptions
@@ -46,6 +48,8 @@ public sealed class LiveEntryTarget
 {
     [JsonIgnore]
     public string? ProjectEvarsPath { get; set; }
+    [JsonIgnore]
+    public List<string> SupportEvarsPaths { get; set; } = new();
     [JsonPropertyName("project_code")]
     public string ProjectCode { get; set; } = string.Empty;
     [JsonPropertyName("mdb")]
@@ -146,6 +150,7 @@ public sealed class LiveEntryAdapter
         File.WriteAllText(temporary, JsonSerializer.Serialize(new LiveEntrySettings
         {
             LiveRoot = root, PythonExecutable = python,
+            MountProfiles = settings.MountProfiles,
         }, JsonOptions), new UTF8Encoding(false));
         File.Move(temporary, _settingsPath, overwrite: true);
     }
@@ -193,6 +198,11 @@ public sealed class LiveEntryAdapter
         {
             arguments.Add("--project-evars-path");
             arguments.Add(target.ProjectEvarsPath);
+        }
+        foreach (string path in target.SupportEvarsPaths)
+        {
+            arguments.Add("--support-evars-path");
+            arguments.Add(path);
         }
         using var process = StartProcess(settings, arguments.ToArray());
         Task<string> stdout = process.StandardOutput.ReadToEndAsync();

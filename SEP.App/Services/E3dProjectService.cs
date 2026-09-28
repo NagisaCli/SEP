@@ -113,16 +113,21 @@ SET {code}000ID={code}
             return (false, Strings.Decommission_DirMissing);
 
         string code = project.Code ?? project.Name.ToUpperInvariant();
+        if (doDelete)
+        {
+            string? refusal = WhyNotDeletable(project);
+            if (refusal != null) return (false, refusal);
+        }
 
         var result = await Task.Run(() =>
         {
             try
             {
-                // Check locks
-                var locks = Directory.GetFiles(projectPath, "*.lck", SearchOption.AllDirectories);
-                if (locks.Length > 0)
+                // Check locks (DABACON writes *.lck and *.lok while somebody has the project open)
+                int locks = Directory.EnumerateFiles(projectPath, "*.*", SearchOption.AllDirectories).Count(LibraryScanner.IsLockFile);
+                if (locks > 0)
                 {
-                    return (false, string.Format(Strings.Decommission_LocksFound, locks.Length));
+                    return (false, string.Format(Strings.Decommission_LocksFound, locks));
                 }
 
                 // Archive
@@ -155,6 +160,38 @@ SET {code}000ID={code}
 
         if (result.Item1) await _catalog.RescanLibraryAsync(project.LibraryId);
         return result;
+    }
+
+    /// <summary>
+    /// Deleting is only allowed for a folder that holds exactly this one project. A project whose evars file sits
+    /// directly in the library (or is referenced from custom_evars.bat) has the library root as its folder, and
+    /// deleting that would take every other project with it.
+    /// </summary>
+    private string? WhyNotDeletable(ProjectItem project)
+    {
+        string dir = SepPaths.Normalize(project.ProjectDir);
+        string root = Path.GetPathRoot(dir) ?? string.Empty;
+        bool isRoot = dir.Length == 0 || string.Equals(dir.TrimEnd('\\'), root.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
+                      || (SepPaths.IsUnc(dir) && dir.TrimStart('\\').Split('\\', StringSplitOptions.RemoveEmptyEntries).Length <= 2);   // \\server\share
+        if (isRoot) return string.Format(Strings.Decommission_DeleteRefused, dir);
+
+        bool isLibrary = _catalog.Libraries.Any(l => string.Equals(SepPaths.Normalize(l.Path), dir, StringComparison.OrdinalIgnoreCase))
+                         || string.Equals(dir, SepPaths.Normalize(_catalog.LocalProjectsDir), StringComparison.OrdinalIgnoreCase);
+        if (isLibrary) return string.Format(Strings.Decommission_DeleteRefused, dir);
+
+        string prefix = dir.TrimEnd('\\') + "\\";
+        bool sharesFolder = _catalog.Projects.Any(p => p.Id != project.Id &&
+            (p.BatPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(SepPaths.Normalize(p.ProjectDir), dir, StringComparison.OrdinalIgnoreCase)));
+        if (sharesFolder) return string.Format(Strings.Decommission_DeleteRefused, dir);
+
+        try
+        {
+            int evars = Directory.EnumerateFiles(dir, "evars*.bat").Count(f => !Path.GetFileName(f).Equals("evars.bat", StringComparison.OrdinalIgnoreCase));
+            if (evars > 1) return string.Format(Strings.Decommission_DeleteRefused, dir);
+        }
+        catch { }
+        return null;
     }
 
     /// <summary>After creating a project: rescan the library that owns <paramref name="root"/>, or register the folder as a new library.</summary>
@@ -274,7 +311,7 @@ SET {code}000ID={code}
             if (content.IndexOf(sectionHeader, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 // Update
-                string pattern = $@"\[{code}\][^\[]*";
+                string pattern = $@"\[{Regex.Escape(code)}\][^\[]*";
                 string replacement = $"[{code}]\r\nPATH = {address}\r\nNAME = {name}\r\nDESCRIPTION = {name}\r\n\r\n";
                 content = Regex.Replace(content, pattern, replacement, RegexOptions.IgnoreCase);
             }
@@ -296,7 +333,7 @@ SET {code}000ID={code}
             if (string.IsNullOrEmpty(iniPath) || !File.Exists(iniPath)) return;
 
             string content = File.ReadAllText(iniPath, SepPaths.Gbk);
-            string pattern = $@"\[{code}\][^\[]*";
+            string pattern = $@"\[{Regex.Escape(code)}\][^\[]*";
             content = Regex.Replace(content, pattern, "", RegexOptions.IgnoreCase);
             File.WriteAllText(iniPath, content, SepPaths.Gbk);
         }

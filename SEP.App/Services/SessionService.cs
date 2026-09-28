@@ -28,6 +28,9 @@ public sealed class SessionService : IDisposable
     private static readonly TimeSpan ProbeTimeoutUnc = TimeSpan.FromSeconds(5.0);
     private static readonly TimeSpan HeartbeatEvery = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan StaleAfter = TimeSpan.FromSeconds(180);
+    // Another PC's session file is only deleted once it is clearly abandoned: clocks of different machines (and the
+    // file server) drift, and removing a live heartbeat would hide a colleague who is working in the project.
+    private static readonly TimeSpan AbandonedAfter = TimeSpan.FromHours(24);
     private static readonly HashSet<string> E3dProcesses = new(StringComparer.OrdinalIgnoreCase)
         { "mon", "design", "draw", "isodraft", "e3ddes", "e3d" };
 
@@ -42,6 +45,7 @@ public sealed class SessionService : IDisposable
     private readonly Timer _heartbeat;
     private DateTime _e3dCheckedAt = DateTime.MinValue;
     private bool _e3dRunning;
+    private int _heartbeatBusy;
 
     public SessionService()
     {
@@ -85,6 +89,14 @@ public sealed class SessionService : IDisposable
     private void Heartbeat()
     {
         if (_local.IsEmpty) return;
+        // a slow share can make one round take longer than the timer period; never run two at once
+        if (Interlocked.Exchange(ref _heartbeatBusy, 1) == 1) return;
+        try { HeartbeatCore(); }
+        finally { Volatile.Write(ref _heartbeatBusy, 0); }
+    }
+
+    private void HeartbeatCore()
+    {
         bool alive = IsE3dRunning(force: true);
         foreach (var s in _local.Values.ToList())
         {
@@ -107,7 +119,15 @@ public sealed class SessionService : IDisposable
         if (!force && DateTime.UtcNow - _e3dCheckedAt < TimeSpan.FromSeconds(5)) return _e3dRunning;
         try
         {
-            _e3dRunning = Process.GetProcesses().Any(p => { try { return E3dProcesses.Contains(p.ProcessName); } catch { return false; } });
+            bool found = false;
+            foreach (var p in Process.GetProcesses())
+            {
+                using (p)   // every Process object holds a handle; dispose them instead of waiting for the finalizer
+                {
+                    try { found |= E3dProcesses.Contains(p.ProcessName); } catch { }
+                }
+            }
+            _e3dRunning = found;
         }
         catch { _e3dRunning = false; }
         _e3dCheckedAt = DateTime.UtcNow;
@@ -121,7 +141,11 @@ public sealed class SessionService : IDisposable
         RunBounded(() =>
         {
             string dir = SessionDir(s.BatPath);
-            Directory.CreateDirectory(dir);
+            if (!Directory.Exists(dir))
+            {
+                var info = Directory.CreateDirectory(dir);
+                try { info.Attributes |= FileAttributes.Hidden; } catch { }
+            }
             string file = Path.Combine(dir, s.SessionId + ".json");
             string tmp = file + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(s, JsonOptions), new UTF8Encoding(false));
@@ -193,10 +217,15 @@ public sealed class SessionService : IDisposable
                 {
                     var s = JsonSerializer.Deserialize<SessionFile>(File.ReadAllText(file, Encoding.UTF8), JsonOptions);
                     if (s == null) continue;
+                    // Fresh if either clock says so: the writer's own timestamp or the server's modification time.
                     var hb = SepPaths.ParseIso(s.LastHeartbeat ?? s.StartedAt);
-                    if (hb != null && DateTime.Now - hb.Value >= StaleAfter)
+                    TimeSpan byStamp = hb == null ? TimeSpan.MaxValue : DateTime.Now - hb.Value;
+                    TimeSpan byFile = DateTime.UtcNow - File.GetLastWriteTimeUtc(file);
+                    TimeSpan age = byStamp < byFile ? byStamp : byFile;
+                    if (age >= StaleAfter)
                     {
-                        try { File.Delete(file); } catch { }
+                        bool ownFile = string.Equals(s.ComputerName, me, StringComparison.OrdinalIgnoreCase);
+                        if (ownFile || age >= AbandonedAfter) { try { File.Delete(file); } catch { } }
                         continue;
                     }
                     sessions.Add(new ProjectSession(s.UserName ?? "?", s.ComputerName ?? "?", "sep",

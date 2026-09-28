@@ -68,6 +68,9 @@ public class E3dAdminBridge : IE3dAdminBridge
     public Task<(List<UserInfo> Users, List<TeamInfo> Teams)> GetUsersAndTeamsAsync(ProjectItem project)
         => _adminService.ListUsersAndTeamsAsync(Context(project));
 
+    public Task<List<string>> GetMdbsAsync(ProjectItem project)
+        => _adminService.ListMdbsAsync(Context(project));
+
     // ── users ────────────────────────────────────────────────────────────────────
 
     public Task<AdminResult> AddUserAsync(ProjectItem project, string username, string? team, string? password, string security, string? description)

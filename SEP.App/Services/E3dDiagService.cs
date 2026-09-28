@@ -68,6 +68,19 @@ public class E3dDiagService : IE3dDiagService
             {
                 if (!File.Exists(item.FilePath))
                     return (true, Strings.Unlock_AlreadyCleared);
+                if (!LibraryScanner.IsLockFile(item.FilePath))
+                    return (false, string.Format(Strings.Unlock_Failed, item.FileName));
+
+                // A lock that a running E3D session still holds open is not stale: deleting it on the server
+                // would let a second writer into the same database. Only a lock nobody has open may go.
+                try
+                {
+                    using var probe = new FileStream(item.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                }
+                catch (IOException)
+                {
+                    return (false, string.Format(Strings.Unlock_InUse, item.FileName));
+                }
 
                 File.Delete(item.FilePath);
                 return (true, string.Format(Strings.Unlock_Success, item.FileName));

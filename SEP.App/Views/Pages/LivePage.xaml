@@ -5,8 +5,8 @@
       xmlns:loc="clr-namespace:SEP.App.Localization"
       Title="{loc:Tr Nav_Live}"
       Foreground="{DynamicResource SepTextBrush}">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="24,20,24,24" MaxWidth="850" HorizontalAlignment="Left">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16,20,16,24" MaxWidth="850" HorizontalAlignment="Stretch">
             <TextBlock Text="{loc:Tr Live_Title}" Style="{StaticResource SepPageTitle}" />
             <TextBlock Text="{loc:Tr Live_Subtitle}" Style="{StaticResource SepPageSubtitle}" TextWrapping="Wrap" Margin="0,4,0,20" />
 
@@ -29,18 +29,30 @@
             <Border Style="{StaticResource SepCard}" Padding="18" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Text="{loc:Tr Live_Scope}" Style="{StaticResource SepSectionTitle}" Margin="0,0,0,10" />
-                    <UniformGrid Columns="2" Rows="4">
-                        <TextBlock Text="{loc:Tr Live_Project}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
+                    <UniformGrid Columns="2" Rows="5">
+                        <TextBlock Text="{loc:Tr Live_PrimaryProject}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
                         <ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Label" Margin="0,2,0,6" />
+                        <TextBlock Text="{loc:Tr Live_SupportProjects}" Style="{StaticResource SepMuted}" Margin="0,4,12,4"
+                                   ToolTip="{loc:Tr Live_SupportHint}" />
+                        <ComboBox ItemsSource="{Binding SupportProjects}" SelectedItem="{Binding SelectedSupportProject}" DisplayMemberPath="Label"
+                                  ToolTip="{loc:Tr Live_SupportHint}" Margin="0,2,0,6" />
                         <TextBlock Text="{loc:Tr Live_Mdb}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
-                        <ComboBox ItemsSource="{Binding Mdbs}" IsEditable="True"
-                                  Text="{Binding SelectedMdb, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,6" />
+                        <DockPanel LastChildFill="True" Margin="0,2,0,6">
+                            <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Content="{loc:Tr Live_RefreshMdbs}"
+                                       Command="{Binding RefreshMdbsCommand}" Margin="6,0,0,0" />
+                            <ComboBox ItemsSource="{Binding Mdbs}" IsEditable="True"
+                                      Text="{Binding SelectedMdb, UpdateSourceTrigger=PropertyChanged}" />
+                        </DockPanel>
                         <TextBlock Text="{loc:Tr Live_Module}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
                         <ComboBox ItemsSource="{Binding Modules}" SelectedItem="{Binding SelectedModule}" Margin="0,2,0,6" />
                         <TextBlock Text="{loc:Tr Live_AccessMode}" Style="{StaticResource SepMuted}" Margin="0,4,12,4" />
                         <ComboBox ItemsSource="{Binding AccessModes}" SelectedItem="{Binding SelectedAccessMode}" Margin="0,2,0,6" />
                     </UniformGrid>
-                    <TextBlock Text="{Binding RuntimeDescription}" Style="{StaticResource SepCaption}" Margin="0,8,0,12" />
+                    <TextBlock Text="{Binding MdbLookupMessage}" Style="{StaticResource SepCaption}"
+                               TextWrapping="Wrap" Margin="0,2,0,2" />
+                    <TextBlock Text="{loc:Tr Live_SupportHint}" Style="{StaticResource SepCaption}"
+                               TextWrapping="Wrap" Margin="0,2,0,2" />
+                    <TextBlock Text="{Binding RuntimeDescription}" Style="{StaticResource SepCaption}" Margin="0,4,0,12" />
                     <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket24}"
                                Content="{loc:Tr Live_Start}" Command="{Binding StartLiveCommand}" HorizontalAlignment="Left" />
                 </StackPanel>
@@ -68,12 +80,15 @@
                                                 <TextBlock Text="{Binding Scope.Mdb}" />
                                                 <TextBlock Text=" / " />
                                                 <TextBlock Text="{Binding Scope.Module}" />
-                                                <TextBlock Text="  ·  PID " />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="PID " />
                                                 <TextBlock Text="{Binding TargetProcessId}" />
                                                 <TextBlock Text="  ·  " />
                                                 <TextBlock Text="{Binding AccessMode}" />
                                             </StackPanel>
-                                            <TextBlock Text="{Binding GatewayUrl}" Style="{StaticResource SepCaption}" />
+                                            <TextBlock Text="{Binding GatewayUrl}" Style="{StaticResource SepCaption}"
+                                                       TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </DockPanel>
                                 </Border>

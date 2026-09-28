@@ -49,7 +49,7 @@ public sealed class ProjectCatalog : IProjectCatalog
         {
             string dir = SepPaths.Normalize(Data.Settings.LocalProjectsDir);
             if (dir.Length == 0) dir = SepPaths.Normalize(Paths.ProjectsDir);
-            return dir.Length == 0 ? @"D:\AVEVA\Projects\E3D3.1" : dir;
+            return dir.Length == 0 ? Path.Combine(E3dLocator.AvevaRoot(Paths.InstallDir) ?? @"D:\AVEVA", "Projects", "E3D3.1") : dir;
         }
     }
 
@@ -82,17 +82,27 @@ public sealed class ProjectCatalog : IProjectCatalog
             var previousLibs = _libraries.ToDictionary(l => l.Id, l => l);
             libs = Data.Libraries.Select(r =>
             {
+                string name = string.IsNullOrWhiteSpace(r.Name) ? r.Path : r.Name;
+                // Same library as before: update it in place, so the page keeps its group and cards instead of
+                // re-creating every card on each change (a favourite toggle used to rebuild the whole page).
+                if (previousLibs.TryGetValue(r.Id, out var old) && old.Name == name && old.Path == r.Path)
+                {
+                    old.IsCollection = r.Type != "project";
+                    old.LastError = string.IsNullOrWhiteSpace(r.LastError) ? null : r.LastError;
+                    old.LastScan = SepPaths.ParseIso(r.LastScan);
+                    return old;
+                }
                 var item = new LibraryItem
                 {
                     Id = r.Id,
-                    Name = string.IsNullOrWhiteSpace(r.Name) ? r.Path : r.Name,
+                    Name = name,
                     Path = r.Path,
                     IsUnc = SepPaths.IsUnc(r.Path),
                     IsCollection = r.Type != "project",
                     LastError = string.IsNullOrWhiteSpace(r.LastError) ? null : r.LastError,
                     LastScan = SepPaths.ParseIso(r.LastScan),
                 };
-                if (previousLibs.TryGetValue(r.Id, out var old))
+                if (old != null)
                 {
                     item.IsExpanded = old.IsExpanded;
                     item.IsScanning = old.IsScanning;
@@ -149,7 +159,9 @@ public sealed class ProjectCatalog : IProjectCatalog
             _myProjects = Data.MyProjects
                 .Select(m =>
                 {
-                    var p = projs.FirstOrDefault(x => x.Id == m.Id) ?? projs.FirstOrDefault(x => string.Equals(x.BatPath, SepPaths.Normalize(x.BatPath), StringComparison.OrdinalIgnoreCase));
+                    string bat = SepPaths.Normalize(m.BatPath);
+                    var p = projs.FirstOrDefault(x => x.Id == m.Id) ??
+                            (bat.Length == 0 ? null : projs.FirstOrDefault(x => string.Equals(x.BatPath, bat, StringComparison.OrdinalIgnoreCase)));
                     if (p != null)
                     {
                         p.MyGroupId = m.GroupId;
@@ -199,6 +211,7 @@ public sealed class ProjectCatalog : IProjectCatalog
         {
             if (_runningScan != null && !_runningScan.IsCompleted) return _runningScan;
             if (!force && DateTime.UtcNow - _lastFullScan < ScanReuseWindow) return Task.CompletedTask;
+            if (force) LibraryScanner.ForgetOfflineHosts();   // the user asked: try servers that were down again
             _runningScan = ScanLibrariesAsync(Data.Libraries.ToList(), markFull: true);
             return _runningScan;
         }
@@ -207,7 +220,9 @@ public sealed class ProjectCatalog : IProjectCatalog
     public Task RescanLibraryAsync(string libraryId)
     {
         var rec = Data.Libraries.FirstOrDefault(l => l.Id == libraryId);
-        return rec == null ? Task.CompletedTask : ScanLibrariesAsync(new List<LibraryRecord> { rec }, markFull: false);
+        if (rec == null) return Task.CompletedTask;
+        if (SepPaths.IsUnc(rec.Path)) LibraryScanner.ForgetOfflineHosts();
+        return ScanLibrariesAsync(new List<LibraryRecord> { rec }, markFull: false);
     }
 
     private async Task ScanLibrariesAsync(List<LibraryRecord> records, bool markFull)
@@ -217,51 +232,61 @@ public sealed class ProjectCatalog : IProjectCatalog
         foreach (var rec in records) { var it = FindItem(rec.Id); if (it != null) it.IsScanning = true; }
         try
         {
+            // Each library is applied as soon as its own scan finishes: a fast local library shows up at once
+            // instead of waiting for the slowest (or an offline) server.
             using var limiter = new SemaphoreSlim(8);
-            var tasks = records.Select(async rec =>
+            int pending = records.Count;
+            await Task.WhenAll(records.Select(async rec =>
             {
+                ScanResult result;
                 await limiter.WaitAsync();
-                try { return (rec, result: await LibraryScanner.ScanAsync(rec.Path, LibraryScanTimeout)); }
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                try { result = await LibraryScanner.ScanAsync(rec.Path, LibraryScanTimeout); }
+                catch (Exception ex) { result = new ScanResult(LibraryKind.Invalid, string.Format(Strings.Scan_Error, ex.Message), new()); }
                 finally { limiter.Release(); }
-            }).ToList();
-            var results = await Task.WhenAll(tasks);
+                App.Log($"Scan {rec.Path}: {(result.Ok ? $"{result.Projects.Count} project(s)" : result.Reason)} in {watch.ElapsedMilliseconds} ms");
 
-            lock (_gate)
-            {
-                foreach (var (rec, result) in results)
-                {
-                    rec.LastScan = SepPaths.NowIso();
-                    if (result.Ok)
-                    {
-                        rec.LastError = null;
-                        rec.Type = result.Kind == LibraryKind.Project ? "project" : "collection";
-                        string norm = SepPaths.Normalize(rec.Path);
-                        Data.AllProjectsCache.RemoveAll(p => p.LibId == rec.Id ||
-                            (p.LibId == null && string.Equals(p.LibPath, norm, StringComparison.OrdinalIgnoreCase)));
-                        foreach (var p in result.Projects)
-                        {
-                            p.LibId = rec.Id;
-                            p.DiscoveredAt = rec.LastScan;
-                            Data.AllProjectsCache.Add(p);
-                        }
-                    }
-                    else
-                    {
-                        rec.LastError = result.Reason;   // cached projects are kept, exactly like the Python tool
-                    }
-                }
-            }
+                ApplyScanResult(rec, result);
+                var it = FindItem(rec.Id);
+                if (it != null) it.IsScanning = false;
+                if (Interlocked.Decrement(ref pending) > 0) RebuildModels();   // the last one is rebuilt below
+            }));
+
             if (markFull) _lastFullScan = DateTime.UtcNow;
-            foreach (var rec in records) { var it = FindItem(rec.Id); if (it != null) it.IsScanning = false; }
             RebuildModels();
             Save();
         }
         finally
         {
+            foreach (var rec in records) { var it = FindItem(rec.Id); if (it != null) it.IsScanning = false; }
             SetScanning(false);
         }
 
         _ = ProbeLocksAsync(records.Select(r => r.Id).ToHashSet());
+    }
+
+    private void ApplyScanResult(LibraryRecord rec, ScanResult result)
+    {
+        lock (_gate)
+        {
+            rec.LastScan = SepPaths.NowIso();
+            if (!result.Ok)
+            {
+                rec.LastError = result.Reason;   // cached projects are kept, exactly like the Python tool
+                return;
+            }
+            rec.LastError = null;
+            rec.Type = result.Kind == LibraryKind.Project ? "project" : "collection";
+            string norm = SepPaths.Normalize(rec.Path);
+            Data.AllProjectsCache.RemoveAll(p => p.LibId == rec.Id ||
+                (p.LibId == null && string.Equals(p.LibPath, norm, StringComparison.OrdinalIgnoreCase)));
+            foreach (var p in result.Projects)
+            {
+                p.LibId = rec.Id;
+                p.DiscoveredAt = rec.LastScan;
+                Data.AllProjectsCache.Add(p);
+            }
+        }
     }
 
     /// <summary>Lock-file probe for the projects of reachable libraries, in parallel and under a deadline each.</summary>
@@ -428,7 +453,9 @@ public sealed class ProjectCatalog : IProjectCatalog
             _myProjects = Data.MyProjects
                 .Select(m =>
                 {
-                    var p = _projects.FirstOrDefault(x => x.Id == m.Id);
+                    string bat = SepPaths.Normalize(m.BatPath);
+                    var p = _projects.FirstOrDefault(x => x.Id == m.Id) ??
+                            (bat.Length == 0 ? null : _projects.FirstOrDefault(x => string.Equals(x.BatPath, bat, StringComparison.OrdinalIgnoreCase)));
                     if (p != null)
                     {
                         p.MyGroupId = m.GroupId;
@@ -550,6 +577,56 @@ public sealed class ProjectCatalog : IProjectCatalog
         }
         RefreshMyProjects();
         Save();
+    }
+
+    public void ReorderMyProject(ProjectItem project, string? targetGroupId, ProjectItem? targetRelativeItem, bool insertAfter = false)
+    {
+        lock (_gate)
+        {
+            var list = Data.MyProjects;
+            int srcIdx = list.FindIndex(m => m.Id == project.Id ||
+                string.Equals(SepPaths.Normalize(m.BatPath), project.BatPath, StringComparison.OrdinalIgnoreCase));
+            if (srcIdx < 0) return;
+
+            var record = list[srcIdx];
+            record.GroupId = string.IsNullOrWhiteSpace(targetGroupId) ? null : targetGroupId;
+            project.MyGroupId = record.GroupId;
+            var grp = Data.MyProjectGroups.FirstOrDefault(g => g.Id == project.MyGroupId);
+            project.MyGroupName = grp?.Name;
+
+            list.RemoveAt(srcIdx);
+
+            if (targetRelativeItem != null)
+            {
+                int targetIdx = list.FindIndex(m => m.Id == targetRelativeItem.Id ||
+                    string.Equals(SepPaths.Normalize(m.BatPath), targetRelativeItem.BatPath, StringComparison.OrdinalIgnoreCase));
+                if (targetIdx >= 0)
+                {
+                    int insertIdx = insertAfter ? targetIdx + 1 : targetIdx;
+                    if (insertIdx > list.Count) insertIdx = list.Count;
+                    list.Insert(insertIdx, record);
+                }
+                else
+                {
+                    list.Add(record);
+                }
+            }
+            else
+            {
+                int lastInGroup = list.FindLastIndex(m => string.Equals(m.GroupId, record.GroupId, StringComparison.OrdinalIgnoreCase));
+                if (lastInGroup >= 0)
+                {
+                    list.Insert(lastInGroup + 1, record);
+                }
+                else
+                {
+                    list.Add(record);
+                }
+            }
+        }
+        RefreshMyProjects();
+        Save();
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void SetLastLaunched(ProjectItem project, string mode)
@@ -814,8 +891,8 @@ public sealed class ProjectCatalog : IProjectCatalog
                 Data.PluginMeta[pluginName] = meta;
             }
             meta.DisplayName = displayName;
-            _store.SaveData(Data);
         }
+        Save();
         Changed?.Invoke(this, EventArgs.Empty);
     }
 }

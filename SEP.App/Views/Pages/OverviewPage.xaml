@@ -20,7 +20,7 @@
             <Style x:Key="StatTile" TargetType="Border" BasedOn="{StaticResource SepCard}">
                 <Setter Property="Padding" Value="16,12" />
                 <Setter Property="Margin" Value="0,0,12,12" />
-                <Setter Property="MinWidth" Value="168" />
+                <Setter Property="MinWidth" Value="140" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -150,8 +150,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- KPI tiles -->
-                <WrapPanel Orientation="Horizontal">
+                <!-- KPI tiles: one even row on a wide window, two rows on a narrow one (see OverviewPage.xaml.cs) -->
+                <UniformGrid x:Name="KpiGrid" Rows="1" Margin="0,0,-12,0">
                     <Border Style="{StaticResource StatTile}" MouseLeftButtonUp="OnProjectsTile" AutomationProperties.Name="{loc:Tr Overview_Projects}">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
@@ -202,7 +202,7 @@
                                 <ui:SymbolIcon Symbol="Rocket24" Foreground="{DynamicResource SepSuccessBrush}" Margin="0,0,6,0" />
                                 <TextBlock Text="{loc:Tr Overview_Active}" Style="{StaticResource SepLabel}" Margin="0" VerticalAlignment="Center" />
                             </StackPanel>
-                            <TextBlock Text="{Binding ActiveLabel}" Style="{StaticResource StatValue}" FontSize="18" Margin="0,8,0,2" TextTrimming="CharacterEllipsis" MaxWidth="220" ToolTip="{Binding ActiveLabel}" FontFamily="{StaticResource SepMonoFont}" />
+                            <TextBlock Text="{Binding ActiveLabel}" Style="{StaticResource StatValue}" FontSize="18" Margin="0,8,0,2" TextTrimming="CharacterEllipsis" ToolTip="{Binding ActiveLabel}" FontFamily="{StaticResource SepMonoFont}" />
                             <TextBlock Text="{Binding ActiveMode}" Style="{StaticResource SepCaption}" />
                         </StackPanel>
                     </Border>
@@ -234,7 +234,7 @@
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>
-                            <TextBlock Text="{Binding E3dInstallText}" Style="{StaticResource SepMono}" MaxWidth="220" ToolTip="{Binding E3dInstallText}" />
+                            <TextBlock Text="{Binding E3dInstallText}" Style="{StaticResource SepMono}" TextTrimming="CharacterEllipsis" ToolTip="{Binding E3dInstallText}" />
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource StatTile}" MouseLeftButtonUp="OnToolsTile" AutomationProperties.Name="{loc:Tr Nav_Tools}"
@@ -248,7 +248,7 @@
                             <TextBlock Text="{loc:Tr Overview_UnreachableHint}" Style="{StaticResource SepCaption}" />
                         </StackPanel>
                     </Border>
-                </WrapPanel>
+                </UniformGrid>
 
                 <!-- two columns -->
                 <Grid Margin="0,4,0,0">

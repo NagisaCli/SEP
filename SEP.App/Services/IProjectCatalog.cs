@@ -70,6 +70,7 @@ public interface IProjectCatalog
     void SetProjectGroup(ProjectItem project, string? groupId);
     void SetMyProjectGroupExpanded(string groupId, bool isExpanded);
     void MoveMyProject(ProjectItem project, int delta);
+    void ReorderMyProject(ProjectItem project, string? targetGroupId, ProjectItem? targetRelativeItem, bool insertAfter = false);
 
     void SetLastLaunched(ProjectItem project, string mode);
     void SetLastLaunchedLibrary(LibraryItem library);

@@ -60,7 +60,8 @@ public partial class OverviewViewModel : ObservableObject
         Actions = actions;
         DataDir = store.DataDir;
 
-        _catalog.Changed += (_, _) => OnUiThread(Refresh);
+        var refresh = new CoalescedUiAction(Refresh);
+        _catalog.Changed += (_, _) => refresh.Request();
         _catalog.ScanStateChanged += (_, _) => OnUiThread(() => IsScanning = _catalog.IsScanning);
         Loc.Instance.LanguageChanged += (_, _) => OnUiThread(Refresh);
         Refresh();

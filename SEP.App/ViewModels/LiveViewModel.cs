@@ -14,20 +14,25 @@ namespace SEP.App.ViewModels;
 
 public sealed record LiveProjectChoice(string Code, string Label, ProjectItem? SepProject);
 
+public sealed record LiveSupportProjectChoice(string Label, ProjectItem? Project);
+
 /// <summary>Launch parameters only; all Live scope/runtime rules come from e3d_live.</summary>
 public partial class LiveViewModel : ObservableObject
 {
     private readonly LiveEntryAdapter _entry;
+    private readonly IE3dAdminBridge _admin;
     private readonly IProjectCatalog _catalog;
     private readonly IDialogService _dialogs;
     private readonly ToastService _toasts;
-    private readonly IE3dLauncherService _legacyLauncher;
     private List<LiveEntryTarget> _targets = new();
     private List<LiveModuleProfile> _profiles = new();
     private bool _dynamicProjects;
+    private int _mdbQueryGeneration;
+    private readonly Dictionary<string, string> _mountSelections = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Regex ScopeIdentifier = new("^[A-Z0-9_.-]{1,64}$", RegexOptions.Compiled);
 
     public ObservableCollection<LiveProjectChoice> Projects { get; } = new();
+    public ObservableCollection<LiveSupportProjectChoice> SupportProjects { get; } = new();
     public ObservableCollection<string> Mdbs { get; } = new();
     public ObservableCollection<string> Modules { get; } = new();
     public ObservableCollection<string> AccessModes { get; } = new();
@@ -37,6 +42,7 @@ public partial class LiveViewModel : ObservableObject
     [ObservableProperty] private string _pythonExecutable = "python";
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _runtimeDescription = string.Empty;
+    [ObservableProperty] private string _mdbLookupMessage = string.Empty;
     [ObservableProperty] private string _sessionSummary = string.Empty;
     [ObservableProperty] private bool _statusIsError;
     [ObservableProperty]
@@ -46,25 +52,42 @@ public partial class LiveViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(StopSessionCommand))]
     private bool _isBusy;
     [ObservableProperty] private LiveProjectChoice? _selectedProject;
+    [ObservableProperty] private LiveSupportProjectChoice? _selectedSupportProject;
     [ObservableProperty] private string? _selectedMdb;
     [ObservableProperty] private string? _selectedModule;
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartLiveCommand))]
     private string? _selectedAccessMode;
 
-    public LiveViewModel(LiveEntryAdapter entry, IProjectCatalog catalog,
-        IE3dLauncherService legacyLauncher, IDialogService dialogs, ToastService toasts)
+    public LiveViewModel(LiveEntryAdapter entry, IE3dAdminBridge admin, IProjectCatalog catalog,
+        IDialogService dialogs, ToastService toasts)
     {
         _entry = entry;
+        _admin = admin;
         _catalog = catalog;
         _dialogs = dialogs;
         _toasts = toasts;
-        _legacyLauncher = legacyLauncher;
         try
         {
             var settings = entry.LoadSettings();
             LiveRoot = settings.LiveRoot;
             PythonExecutable = settings.PythonExecutable;
+            foreach (var profile in settings.MountProfiles)
+            {
+                if (profile.Value != null && profile.Value.Count > 0 && !string.IsNullOrWhiteSpace(profile.Value[0]))
+                    _mountSelections[profile.Key] = profile.Value[0];
+            }
+            Loc.Instance.LanguageChanged += (_, _) =>
+            {
+                if (SupportProjects.Count > 0 && SupportProjects[0].Project == null)
+                {
+                    var previous = SelectedSupportProject;
+                    var newNone = new LiveSupportProjectChoice(Loc.Instance["Live_SupportNone"], null);
+                    SupportProjects[0] = newNone;
+                    if (previous?.Project == null)
+                        SelectedSupportProject = newNone;
+                }
+            };
             StatusMessage = Loc.Instance["Live_SelectScope"];
             if (!string.IsNullOrWhiteSpace(LiveRoot)) _ = RefreshCoreAsync(saveSettings: false);
         }
@@ -79,6 +102,9 @@ public partial class LiveViewModel : ObservableObject
     {
         LiveRoot = LiveRoot,
         PythonExecutable = PythonExecutable,
+        MountProfiles = _mountSelections.Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .ToDictionary(pair => pair.Key,
+                pair => new List<string> { pair.Value }, StringComparer.OrdinalIgnoreCase),
     };
 
     private bool CanRefresh() => !IsBusy;
@@ -146,7 +172,7 @@ public partial class LiveViewModel : ObservableObject
         {
             _targets.Clear();
             _profiles.Clear();
-            Projects.Clear(); Mdbs.Clear(); Modules.Clear(); AccessModes.Clear();
+            Projects.Clear(); SupportProjects.Clear(); Mdbs.Clear(); Modules.Clear(); AccessModes.Clear();
             StatusIsError = true;
             StatusMessage = ex.Message;
         }
@@ -235,7 +261,108 @@ public partial class LiveViewModel : ObservableObject
         RebuildMdbs();
     }
 
-    partial void OnSelectedProjectChanged(LiveProjectChoice? value) => RebuildMdbs();
+    partial void OnSelectedProjectChanged(LiveProjectChoice? value)
+    {
+        ++_mdbQueryGeneration;
+        RebuildSupportProjects();
+        RebuildMdbs();
+        if (value?.SepProject is { } project)
+            _ = LoadMdbsAsync(project, _mdbQueryGeneration);
+        else MdbLookupMessage = string.Empty;
+    }
+
+    private async Task LoadMdbsAsync(ProjectItem project, int generation)
+    {
+        MdbLookupMessage = Loc.Instance["Live_MdbLoading"];
+        string? initialSelection = SelectedMdb;
+        try
+        {
+            var names = await _admin.GetMdbsAsync(project);
+            if (generation != _mdbQueryGeneration || SelectedProject?.SepProject?.Id != project.Id)
+                return;
+            if (names.Count == 0)
+            {
+                MdbLookupMessage = Loc.Instance["Live_MdbEmpty"];
+                return;
+            }
+            string? previous = SelectedMdb;
+            Mdbs.Clear();
+            foreach (string name in names) Mdbs.Add(name);
+            bool operatorChangedSelection = !string.Equals(previous, initialSelection,
+                StringComparison.OrdinalIgnoreCase);
+            SelectedMdb = previous != null && (Mdbs.Contains(previous) || operatorChangedSelection)
+                ? previous : Mdbs.Contains("ALL") ? "ALL" : Mdbs[0];
+            MdbLookupMessage = string.Format(Loc.Instance["Live_MdbLoaded"], names.Count);
+        }
+        catch (Exception ex)
+        {
+            if (generation != _mdbQueryGeneration || SelectedProject?.SepProject?.Id != project.Id)
+                return;
+            MdbLookupMessage = string.Format(Loc.Instance["Live_MdbUnavailable"], ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void RefreshMdbs()
+    {
+        if (SelectedProject?.SepProject is { } project)
+            _ = LoadMdbsAsync(project, ++_mdbQueryGeneration);
+    }
+
+    private void RebuildSupportProjects()
+    {
+        SupportProjects.Clear();
+        var primary = SelectedProject?.SepProject;
+        if (primary == null)
+        {
+            SelectedSupportProject = null;
+            return;
+        }
+
+        string noneLabel = Loc.Instance["Live_SupportNone"];
+        var noneChoice = new LiveSupportProjectChoice(noneLabel, null);
+        SupportProjects.Add(noneChoice);
+
+        _mountSelections.TryGetValue(primary.Id, out var rememberedId);
+
+        LiveSupportProjectChoice? matchedChoice = null;
+        foreach (var project in _catalog.Projects.Where(p =>
+                     p.Id != primary.Id &&
+                     !string.Equals(p.Code, primary.Code, StringComparison.OrdinalIgnoreCase) &&
+                     ScopeIdentifier.IsMatch((p.Code ?? string.Empty).Trim().ToUpperInvariant()))
+                     .OrderBy(p => p.Code).ThenBy(p => p.Title))
+        {
+            string label = $"{project.Code} — {project.Title} ({project.LibraryName})";
+            var choice = new LiveSupportProjectChoice(label, project);
+            SupportProjects.Add(choice);
+            if (rememberedId != null && (string.Equals(project.Id, rememberedId, StringComparison.OrdinalIgnoreCase) ||
+                                         string.Equals(project.Code, rememberedId, StringComparison.OrdinalIgnoreCase)))
+            {
+                matchedChoice = choice;
+            }
+        }
+
+        SelectedSupportProject = matchedChoice ?? noneChoice;
+    }
+
+    partial void OnSelectedSupportProjectChanged(LiveSupportProjectChoice? value)
+    {
+        if (SelectedProject?.SepProject is not { } primary) return;
+        if (value?.Project is { } supportProject)
+        {
+            _mountSelections[primary.Id] = supportProject.Id;
+        }
+        else
+        {
+            _mountSelections.Remove(primary.Id);
+        }
+        try { _entry.SaveSettings(CurrentSettings); }
+        catch (Exception ex)
+        {
+            StatusIsError = true;
+            StatusMessage = ex.Message;
+        }
+    }
     partial void OnSelectedMdbChanged(string? value)
     {
         if (_dynamicProjects) StartLiveCommand.NotifyCanExecuteChanged();
@@ -306,9 +433,12 @@ public partial class LiveViewModel : ObservableObject
         {
             if (SelectedProject?.SepProject is { } sepProject)
             {
-                var switched = await _legacyLauncher.SwitchAsync(sepProject);
-                if (!switched.Success) throw new InvalidOperationException(switched.Message);
                 target.ProjectEvarsPath = sepProject.BatPath;
+                // Explicit database mounts only. Live makes per-launch startup files;
+                // SEP's ordinary custom_evars.bat and project switch stay untouched.
+                target.SupportEvarsPaths = SelectedSupportProject?.Project?.BatPath != null
+                    ? new List<string> { SelectedSupportProject.Project.BatPath }
+                    : new List<string>();
             }
             var job = await _entry.StartAsync(CurrentSettings, target, mode);
             await LoadSessionsAsync();

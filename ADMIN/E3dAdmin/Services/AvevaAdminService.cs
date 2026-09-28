@@ -97,6 +97,33 @@ $P === LIST TEAMS END ===
         return (ParseUsers(output), ParseTeams(output));
     }
 
+    /// <summary>Read the primary project's named MDBs without changing ADMIN state.</summary>
+    public async Task<List<string>> ListMdbsAsync(AdminContext context)
+    {
+        AdminSafeguards.ValidateIdentifier(context.Project, nameof(context.Project));
+        const string macro = @"$P === LIST MDBS ===
+/*M
+!mdbs = !!collectAllFor('MDB', '', ce)
+do !mdb values !mdbs
+  !name = !mdb.namn
+  $P MDB_DATA|$!name
+enddo
+$P === LIST MDBS END ===
+FINISH
+";
+        string output = await RunAsync(context, macro);
+        if (!output.Contains("=== LIST MDBS END ===", StringComparison.Ordinal))
+            throw new AvevaAdminException(AdminErrorKind.MacroError,
+                FirstErrorText(output) ?? "ADMIN returned no complete MDB list.", output);
+        return output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(line => line.StartsWith("MDB_DATA|", StringComparison.Ordinal))
+            .Select(line => line["MDB_DATA|".Length..].Trim().TrimStart('/'))
+            .Where(name => Regex.IsMatch(name, "^[A-Za-z0-9_.-]{1,64}$"))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     private static List<UserInfo> ParseUsers(string output)
     {
         var users = new List<UserInfo>();

@@ -238,12 +238,21 @@
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="{loc:Tr Settings_AboutHeader}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{Binding VersionText, StringFormat='SEP.App {0}'}" Style="{StaticResource SepCaption}" />
+                                    <TextBlock Text="{Binding VersionText, StringFormat='SEP {0}'}" Style="{StaticResource SepCaption}" />
                                 </StackPanel>
                             </StackPanel>
                             <TextBlock Text="{loc:Tr Settings_AboutTagline}" Style="{StaticResource SepBody}" FontWeight="SemiBold" Foreground="{DynamicResource SepAccentBrush}" TextWrapping="Wrap" />
                             <TextBlock Text="{loc:Tr Settings_AboutArch}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,4,0,0" />
                             <TextBlock Text="{loc:Tr Settings_AboutStyle}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            <!-- per-user installation: Start menu / desktop shortcut, Apps & features entry -->
+                            <Border Style="{StaticResource SepWell}" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding InstallStatusText}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" />
+                                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" Content="{Binding InstallButtonText}" Margin="0,10,0,0"
+                                               Command="{Binding InstallOnThisPcCommand}" ToolTip="{loc:Tr Settings_InstallTooltip}"
+                                               Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
                 </StackPanel>

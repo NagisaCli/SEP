@@ -84,7 +84,8 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:MyProjectGroupViewModel}">
                             <Border Style="{StaticResource SepCard}" Margin="0,0,0,16" Padding="0"
-                                    Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}">
+                                    Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}"
+                                    beh:ProjectDragDrop.IsDropTargetGroup="True" beh:ProjectDragDrop.GroupId="{Binding Id}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -180,33 +181,44 @@
                                     <!-- Group Content (when expanded) -->
                                     <StackPanel Grid.Row="1" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}" Margin="8,8,8,10">
                                         <!-- Empty Hint within group -->
-                                        <TextBlock Text="{loc:Tr My_GroupEmptyHint}" Style="{StaticResource SepMuted}" Margin="16,16,16,16"
-                                                   HorizontalAlignment="Center"
-                                                   Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                        <Border beh:ProjectDragDrop.IsDropTargetGroup="True" beh:ProjectDragDrop.GroupId="{Binding Id}"
+                                                Background="Transparent" Padding="16"
+                                                Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                            <TextBlock Text="{loc:Tr My_GroupEmptyHint}" Style="{StaticResource SepMuted}" HorizontalAlignment="Center" />
+                                        </Border>
 
                                         <!-- Projects in this group -->
                                         <ItemsControl ItemsSource="{Binding Items}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type models:ProjectItem}">
-                                                    <Border Style="{StaticResource SepRow}" Margin="4,2" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}">
+                                                    <Border Style="{StaticResource SepRow}" Margin="4,2" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                            beh:ProjectDragDrop.IsDraggable="True"
+                                                            beh:ProjectDragDrop.IsDropTargetItem="True"
+                                                            beh:ProjectDragDrop.GroupId="{Binding MyGroupId}">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
+                                                            <!-- drag handle -->
+                                                            <Border Grid.Column="0" Width="18" Height="30" Cursor="SizeAll" Background="Transparent"
+                                                                    ToolTip="{loc:Tr My_DragReorderTooltip}" Margin="0,0,4,0" VerticalAlignment="Center">
+                                                                <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="16" Foreground="{DynamicResource SepText3Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
                                                             <!-- order -->
-                                                            <StackPanel Margin="0,0,10,0" VerticalAlignment="Center">
+                                                            <StackPanel Grid.Column="1" Margin="0,0,10,0" VerticalAlignment="Center">
                                                                 <ui:Button Style="{StaticResource SepIconButton}" MinWidth="24" MinHeight="22" Padding="2" Icon="{ui:SymbolIcon Symbol=ChevronUp20}" ToolTip="{loc:Tr My_MoveUp}" AutomationProperties.Name="{loc:Tr My_MoveUp}"
                                                                            Command="{Binding DataContext.MoveUpCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" MinWidth="24" MinHeight="22" Padding="2" Icon="{ui:SymbolIcon Symbol=ChevronDown20}" ToolTip="{loc:Tr My_MoveDown}" AutomationProperties.Name="{loc:Tr My_MoveDown}"
                                                                            Command="{Binding DataContext.MoveDownCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                             </StackPanel>
-                                                            <Border Grid.Column="1" Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
+                                                            <Border Grid.Column="2" Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
                                                                 <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" Foreground="#FFFFFF" FontSize="12" />
                                                             </Border>
-                                                            <StackPanel Grid.Column="2" Margin="12,0,12,0" VerticalAlignment="Center">
+                                                            <StackPanel Grid.Column="3" Margin="12,0,12,0" VerticalAlignment="Center">
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <TextBlock Text="{Binding Title}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
                                                                     <controls:Badge Content="{loc:Tr Projects_ActiveBadge}" Tone="Success" IsSolid="True" Margin="8,0,0,0" Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -247,7 +259,7 @@
                                                                 </StackPanel>
                                                                 <TextBlock Text="{Binding Description}" Style="{StaticResource SepMuted}" Margin="0,3,0,0" Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                             </StackPanel>
-                                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" Padding="10,5" Margin="0,0,6,0"
                                                                            Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Folder24}" ToolTip="{loc:Tr My_MoveToGroup}" AutomationProperties.Name="{loc:Tr My_MoveToGroup}"

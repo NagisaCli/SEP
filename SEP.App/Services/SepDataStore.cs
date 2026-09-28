@@ -36,9 +36,13 @@ public sealed class SepDataStore
 
     public static string ExeDir => AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-    private static string ResolveDataDir()
+    /// <summary>Portable mode: a ".portable" file next to the exe, or SEP_PORTABLE=1.</summary>
+    public static bool IsPortable =>
+        Environment.GetEnvironmentVariable("SEP_PORTABLE") == "1" || File.Exists(Path.Combine(ExeDir, ".portable"));
+
+    public static string ResolveDataDir()
     {
-        if (Environment.GetEnvironmentVariable("SEP_PORTABLE") == "1" || File.Exists(Path.Combine(ExeDir, ".portable")))
+        if (IsPortable)
             return ExeDir;
         string? appData = Environment.GetEnvironmentVariable("APPDATA");
         return string.IsNullOrEmpty(appData)
@@ -90,11 +94,21 @@ public sealed class SepDataStore
         if (File.Exists(path))
         {
             try { File.Copy(path, path + ".bak", overwrite: true); } catch { }
-            File.Replace(tmp, path, null);
+            try
+            {
+                File.Replace(tmp, path, null);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+            {
+                // File.Replace is refused by some redirected profile folders, network shares and virus scanners
+                // holding the old file; an overwriting move is still a single rename there.
+                App.Log($"Atomic replace of {Path.GetFileName(path)} failed ({ex.Message}); falling back to move");
+                File.Move(tmp, path, overwrite: true);
+            }
         }
         else
         {
-            File.Move(tmp, path);
+            File.Move(tmp, path, overwrite: true);
         }
         lastJson = json;
     }

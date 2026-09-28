@@ -22,6 +22,7 @@ public interface IE3dAdminBridge
     Task<AdminResult> VerifyCredentialsAsync(ProjectItem project, string adminUser, string adminPassword);
 
     Task<(List<UserInfo> Users, List<TeamInfo> Teams)> GetUsersAndTeamsAsync(ProjectItem project);
+    Task<List<string>> GetMdbsAsync(ProjectItem project);
 
     Task<AdminResult> AddUserAsync(ProjectItem project, string username, string? team, string? password, string security, string? description);
     Task<AdminResult> DeleteUserAsync(ProjectItem project, string username);

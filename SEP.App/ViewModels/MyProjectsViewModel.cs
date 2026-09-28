@@ -45,7 +45,8 @@ public partial class MyProjectsViewModel : ObservableObject
         _dialogs = dialogs;
         _toasts = toasts;
         Actions = actions;
-        _catalog.Changed += (_, _) => OnUiThread(Rebuild);
+        var rebuild = new CoalescedUiAction(Rebuild);
+        _catalog.Changed += (_, _) => rebuild.Request();
         Rebuild();
     }
 
@@ -266,6 +267,25 @@ public partial class MyProjectsViewModel : ObservableObject
     {
         if (item == null) return;
         _catalog.MoveMyProject(item, delta);
+    }
+
+    public void ReorderProject(ProjectItem sourceProject, string? targetGroupId, ProjectItem? targetRelativeItem, bool insertAfter)
+    {
+        if (sourceProject == null) return;
+        string? oldGroup = sourceProject.MyGroupId;
+        _catalog.ReorderMyProject(sourceProject, targetGroupId, targetRelativeItem, insertAfter);
+
+        if (!string.Equals(oldGroup ?? string.Empty, targetGroupId ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+        {
+            string grpName = string.IsNullOrEmpty(targetGroupId)
+                ? Strings.My_Ungrouped
+                : (sourceProject.MyGroupName ?? targetGroupId);
+            _toasts.Success(string.Format(Strings.My_MovedToGroup, sourceProject.Title, grpName));
+        }
+        else
+        {
+            _toasts.Info(Strings.My_Reordered);
+        }
     }
 
     [RelayCommand]

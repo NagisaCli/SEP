@@ -23,6 +23,28 @@ public sealed class ThemeService
 
     public event EventHandler? Changed;
 
+    /// <summary>
+    /// Mica needs Windows 11 (build 22000+) and a composited desktop. On Windows 10, over Remote Desktop and in
+    /// software-rendered VMs it leaves windows transparent or black, so SEP falls back to a solid background there.
+    /// </summary>
+    public static bool MicaSupported { get; } =
+        Environment.OSVersion.Version.Build >= 22000
+        && !SystemParameters.IsRemoteSession
+        && (System.Windows.Media.RenderCapability.Tier >> 16) >= 1
+        && Environment.GetEnvironmentVariable("SEP_NO_MICA") != "1";
+
+    public static WindowBackdropType Backdrop => MicaSupported ? WindowBackdropType.Mica : WindowBackdropType.None;
+
+    /// <summary>
+    /// Every FluentWindow takes <see cref="Backdrop"/> in its XAML (x:Static), so the choice is made before the window
+    /// exists: switching the backdrop of a loaded window trips WPF-UI's chrome handling.
+    /// </summary>
+    public static void LogBackdrop()
+    {
+        if (!MicaSupported)
+            App.Log($"Mica unavailable (build {Environment.OSVersion.Version.Build}, remote={SystemParameters.IsRemoteSession}); using a solid window background");
+    }
+
     public static string Normalize(string? value) => value?.Trim().ToLowerInvariant() switch
     {
         Dark => Dark,
@@ -64,7 +86,7 @@ public sealed class ThemeService
         try
         {
             var theme = dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
-            ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, updateAccent: false);
+            ApplicationThemeManager.Apply(theme, Backdrop, updateAccent: false);
             // WPF-UI's Primary buttons, toggles and selection highlights take the SEP accent, not the Windows one.
             // (Buttons already on screen keep their old fill until their page is re-created; new pages pick the new accent up.)
             if (app.TryFindResource("SepAccentStrongColor") is System.Windows.Media.Color accent)

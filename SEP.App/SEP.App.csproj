@@ -9,6 +9,11 @@
     <AssemblyName>SEP</AssemblyName>
     <RootNamespace>SEP.App</RootNamespace>
     <ApplicationIcon>SEP.ico</ApplicationIcon>
+    <Version>3.0.0</Version>
+    <Product>SEP - AVEVA E3D Project Manager</Product>
+    <Company>SEP</Company>
+    <Copyright>SEP</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- UI strings: English lives in the main assembly (Resources/Strings.resx), Chinese in the zh-CN satellite. -->
     <NeutralLanguage>en</NeutralLanguage>
     <SatelliteResourceLanguages>en;zh-CN</SatelliteResourceLanguages>

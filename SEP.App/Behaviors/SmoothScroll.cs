@@ -1,27 +1,25 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 
 namespace SEP.App.Behaviors;
 
 /// <summary>
-/// Attached behaviour for ScrollViewers (or any control that contains one, e.g. a ListView):
-///  - mouse wheel scrolls by pixels with an eased animation instead of WPF's jumpy line steps;
-///  - the middle mouse button autoscrolls like a browser: hold and drag for speed proportional to
-///    the distance from the anchor, or click once to lock autoscroll until the next click / Esc.
+/// Attached behavior for ScrollViewers:
+///  - High-performance, physics-based, frame-rate independent smooth mouse wheel scrolling (vertical & horizontal with Shift).
+///  - Native browser-style middle mouse button autoscroll (click-to-lock or hold-to-drag).
 /// Usage: <c>behaviors:SmoothScroll.IsEnabled="True"</c>.
 /// </summary>
 public static class SmoothScroll
 {
-    private const double WheelStepPixels = 110;                 // per wheel notch
-    private static readonly Duration WheelDuration = new(TimeSpan.FromMilliseconds(240));
-    private const double AutoScrollDeadZone = 10;               // px around the anchor with no movement
-    private const double AutoScrollMaxPixelsPerSecond = 2400;
+    private const double WheelStepPixels = 120.0;
+    private const double SmoothingConstant = 24.0;
+    private const double AutoScrollDeadZone = 10.0;
+    private const double AutoScrollMaxPixelsPerSecond = 2400.0;
 
     public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
         "IsEnabled", typeof(bool), typeof(SmoothScroll), new PropertyMetadata(false, OnIsEnabledChanged));
@@ -29,20 +27,14 @@ public static class SmoothScroll
     public static bool GetIsEnabled(DependencyObject d) => (bool)d.GetValue(IsEnabledProperty);
     public static void SetIsEnabled(DependencyObject d, bool value) => d.SetValue(IsEnabledProperty, value);
 
-    // Animated by BeginAnimation; each change is pushed into the ScrollViewer (VerticalOffset itself is read-only).
-    private static readonly DependencyProperty AnimatedOffsetProperty = DependencyProperty.RegisterAttached(
-        "AnimatedOffset", typeof(double), typeof(SmoothScroll),
-        new PropertyMetadata(0.0, (d, e) => (d as ScrollViewer)?.ScrollToVerticalOffset((double)e.NewValue)));
-
-    // Where the current wheel animation is heading, so consecutive notches accumulate.
-    private static readonly DependencyProperty TargetOffsetProperty = DependencyProperty.RegisterAttached(
-        "TargetOffset", typeof(double), typeof(SmoothScroll), new PropertyMetadata(double.NaN));
-
     private static readonly DependencyProperty AttachedProperty = DependencyProperty.RegisterAttached(
         "Attached", typeof(bool), typeof(SmoothScroll), new PropertyMetadata(false));
 
-    private static readonly DependencyProperty SessionProperty = DependencyProperty.RegisterAttached(
-        "Session", typeof(AutoScrollSession), typeof(SmoothScroll), new PropertyMetadata(null));
+    private static readonly DependencyProperty WheelSessionProperty = DependencyProperty.RegisterAttached(
+        "WheelSession", typeof(WheelScrollSession), typeof(SmoothScroll), new PropertyMetadata(null));
+
+    private static readonly DependencyProperty AutoScrollSessionProperty = DependencyProperty.RegisterAttached(
+        "AutoScrollSession", typeof(AutoScrollSession), typeof(SmoothScroll), new PropertyMetadata(null));
 
     private static void OnIsEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -63,44 +55,188 @@ public static class SmoothScroll
         sv.PreviewMouseMove += OnPreviewMouseMove;
         sv.PreviewKeyDown += (s, e) => { if (e.Key == Key.Escape && EndAutoScroll((ScrollViewer)s!)) e.Handled = true; };
         sv.LostMouseCapture += (s, _) => EndAutoScroll((ScrollViewer)s!);
-        // Dragging the scrollbar or programmatic scrolls must not be undone by a stale animation target.
-        sv.ScrollChanged += (s, _) =>
+
+        sv.ScrollChanged += (s, e) =>
         {
             var v = (ScrollViewer)s!;
-            if (!(bool)v.GetValue(AnimatingProperty)) v.SetValue(TargetOffsetProperty, double.NaN);
+            if (v.GetValue(WheelSessionProperty) is WheelScrollSession sess)
+            {
+                if (!sess.IsRunning)
+                {
+                    sess.CurrentVerticalOffset = v.VerticalOffset;
+                    sess.TargetVerticalOffset = v.VerticalOffset;
+                    sess.CurrentHorizontalOffset = v.HorizontalOffset;
+                    sess.TargetHorizontalOffset = v.HorizontalOffset;
+                }
+                else
+                {
+                    // Detect manual drag of scrollbar thumb or keyboard page jumps
+                    if (e.VerticalChange != 0 && Math.Abs(v.VerticalOffset - sess.CurrentVerticalOffset) > 4.0)
+                    {
+                        sess.CurrentVerticalOffset = v.VerticalOffset;
+                        sess.TargetVerticalOffset = v.VerticalOffset;
+                    }
+                    if (e.HorizontalChange != 0 && Math.Abs(v.HorizontalOffset - sess.CurrentHorizontalOffset) > 4.0)
+                    {
+                        sess.CurrentHorizontalOffset = v.HorizontalOffset;
+                        sess.TargetHorizontalOffset = v.HorizontalOffset;
+                    }
+                }
+            }
         };
     }
 
-    private static readonly DependencyProperty AnimatingProperty = DependencyProperty.RegisterAttached(
-        "Animating", typeof(bool), typeof(SmoothScroll), new PropertyMetadata(false));
+    // ── wheel smooth scrolling ────────────────────────────────────────────────────────
 
-    // ── wheel ───────────────────────────────────────────────────────────────────────
+    private sealed class WheelScrollSession
+    {
+        public readonly ScrollViewer ScrollViewer;
+        public double TargetVerticalOffset;
+        public double CurrentVerticalOffset;
+        public double TargetHorizontalOffset;
+        public double CurrentHorizontalOffset;
+        public long LastTimestamp;
+        public bool IsRunning;
+
+        public WheelScrollSession(ScrollViewer sv)
+        {
+            ScrollViewer = sv;
+            TargetVerticalOffset = sv.VerticalOffset;
+            CurrentVerticalOffset = sv.VerticalOffset;
+            TargetHorizontalOffset = sv.HorizontalOffset;
+            CurrentHorizontalOffset = sv.HorizontalOffset;
+        }
+
+        public void Stop()
+        {
+            if (IsRunning)
+            {
+                CompositionTarget.Rendering -= OnRendering;
+                IsRunning = false;
+            }
+        }
+
+        public void Start()
+        {
+            if (!IsRunning)
+            {
+                LastTimestamp = Stopwatch.GetTimestamp();
+                CompositionTarget.Rendering += OnRendering;
+                IsRunning = true;
+            }
+        }
+
+        private void OnRendering(object? sender, EventArgs e)
+        {
+            long now = Stopwatch.GetTimestamp();
+            double dt = (now - LastTimestamp) / (double)Stopwatch.Frequency;
+            LastTimestamp = now;
+
+            if (dt <= 0 || dt > 0.1) dt = 0.016;
+
+            double factor = 1.0 - Math.Exp(-SmoothingConstant * dt);
+
+            bool verticalFinished = true;
+            if (ScrollViewer.ScrollableHeight > 0)
+            {
+                double dy = TargetVerticalOffset - CurrentVerticalOffset;
+                if (Math.Abs(dy) < 0.4)
+                {
+                    CurrentVerticalOffset = TargetVerticalOffset;
+                }
+                else
+                {
+                    CurrentVerticalOffset += dy * factor;
+                    verticalFinished = false;
+                }
+                ScrollViewer.ScrollToVerticalOffset(CurrentVerticalOffset);
+            }
+            else
+            {
+                CurrentVerticalOffset = 0;
+                TargetVerticalOffset = 0;
+            }
+
+            bool horizontalFinished = true;
+            if (ScrollViewer.ScrollableWidth > 0)
+            {
+                double dx = TargetHorizontalOffset - CurrentHorizontalOffset;
+                if (Math.Abs(dx) < 0.4)
+                {
+                    CurrentHorizontalOffset = TargetHorizontalOffset;
+                }
+                else
+                {
+                    CurrentHorizontalOffset += dx * factor;
+                    horizontalFinished = false;
+                }
+                ScrollViewer.ScrollToHorizontalOffset(CurrentHorizontalOffset);
+            }
+            else
+            {
+                CurrentHorizontalOffset = 0;
+                TargetHorizontalOffset = 0;
+            }
+
+            if (verticalFinished && horizontalFinished)
+            {
+                Stop();
+            }
+        }
+    }
+
+    private static WheelScrollSession GetOrCreateWheelSession(ScrollViewer sv)
+    {
+        if (sv.GetValue(WheelSessionProperty) is not WheelScrollSession session)
+        {
+            session = new WheelScrollSession(sv);
+            sv.SetValue(WheelSessionProperty, session);
+        }
+        return session;
+    }
 
     private static void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         var sv = (ScrollViewer)sender;
-        if (sv.ScrollableHeight <= 0 || e.Delta == 0) return;                 // nothing to scroll here: let a parent take it
+        if (e.Delta == 0) return;
 
-        // A nested scrollable list under the pointer that can still move in this direction wins.
+        bool shiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+        bool canScrollVertical = sv.ScrollableHeight > 0 && !shiftHeld;
+        bool canScrollHorizontal = sv.ScrollableWidth > 0 && shiftHeld;
+
+        if (!canScrollVertical && !canScrollHorizontal) return;
+
         var inner = FindAncestor<ScrollViewer>(e.OriginalSource as DependencyObject);
-        if (inner != null && !ReferenceEquals(inner, sv) && inner.ScrollableHeight > 0 &&
-            ((e.Delta > 0 && inner.VerticalOffset > 0) || (e.Delta < 0 && inner.VerticalOffset < inner.ScrollableHeight - 0.5)))
-            return;
+        if (inner != null && !ReferenceEquals(inner, sv))
+        {
+            if (canScrollVertical && inner.ScrollableHeight > 0 &&
+                ((e.Delta > 0 && inner.VerticalOffset > 0) || (e.Delta < 0 && inner.VerticalOffset < inner.ScrollableHeight - 0.5)))
+                return;
+            if (canScrollHorizontal && inner.ScrollableWidth > 0 &&
+                ((e.Delta > 0 && inner.HorizontalOffset > 0) || (e.Delta < 0 && inner.HorizontalOffset < inner.ScrollableWidth - 0.5)))
+                return;
+        }
 
         EndAutoScroll(sv);
-        double target = (double)sv.GetValue(TargetOffsetProperty);
-        if (double.IsNaN(target)) target = sv.VerticalOffset;
-        target = Math.Clamp(target - e.Delta / 120.0 * WheelStepPixels, 0, sv.ScrollableHeight);
-        e.Handled = true;
 
-        sv.SetValue(TargetOffsetProperty, target);
-        sv.SetValue(AnimatingProperty, true);
-        var anim = new DoubleAnimation(sv.VerticalOffset, target, WheelDuration)
+        var session = GetOrCreateWheelSession(sv);
+
+        if (canScrollHorizontal)
         {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-        };
-        anim.Completed += (_, _) => sv.SetValue(AnimatingProperty, false);
-        sv.BeginAnimation(AnimatedOffsetProperty, anim, HandoffBehavior.SnapshotAndReplace);
+            if (!session.IsRunning) session.CurrentHorizontalOffset = sv.HorizontalOffset;
+            double step = e.Delta / 120.0 * WheelStepPixels;
+            session.TargetHorizontalOffset = Math.Clamp(session.TargetHorizontalOffset - step, 0, sv.ScrollableWidth);
+            session.Start();
+        }
+        else
+        {
+            if (!session.IsRunning) session.CurrentVerticalOffset = sv.VerticalOffset;
+            double step = e.Delta / 120.0 * WheelStepPixels;
+            session.TargetVerticalOffset = Math.Clamp(session.TargetVerticalOffset - step, 0, sv.ScrollableHeight);
+            session.Start();
+        }
+
+        e.Handled = true;
     }
 
     // ── middle-button autoscroll ─────────────────────────────────────────────────────
@@ -111,7 +247,7 @@ public static class SmoothScroll
         public Point Current;
         public readonly Stopwatch Held = Stopwatch.StartNew();
         public long LastTick = Stopwatch.GetTimestamp();
-        public bool Locked;                 // click-and-release: stays active until the next click
+        public bool Locked;
         public AutoScrollAdorner? Adorner;
         public EventHandler? Rendering;
     }
@@ -119,16 +255,15 @@ public static class SmoothScroll
     private static void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
         var sv = (ScrollViewer)sender;
-        bool active = sv.GetValue(SessionProperty) != null;
+        bool active = sv.GetValue(AutoScrollSessionProperty) != null;
         if (active)
         {
-            EndAutoScroll(sv);                // any click stops a locked autoscroll
+            EndAutoScroll(sv);
             e.Handled = true;
             return;
         }
         if (e.ChangedButton != MouseButton.Middle || sv.ScrollableHeight <= 0) return;
 
-        // The marker needs an adorner layer; the window's decorator or the viewer's own content presenter provides one.
         var layer = AdornerLayer.GetAdornerLayer(sv);
         var presenter = FindDescendant<ScrollContentPresenter>(sv);
         if (layer == null && presenter != null) layer = presenter.AdornerLayer;
@@ -140,9 +275,14 @@ public static class SmoothScroll
             Adorner = layer == null ? null : new AutoScrollAdorner((UIElement?)presenter ?? sv, e.GetPosition((IInputElement?)presenter ?? sv)),
         };
         if (layer != null && session.Adorner != null) layer.Add(session.Adorner);
-        sv.SetValue(SessionProperty, session);
-        sv.BeginAnimation(AnimatedOffsetProperty, null);
-        sv.SetValue(TargetOffsetProperty, double.NaN);
+        sv.SetValue(AutoScrollSessionProperty, session);
+
+        // Cancel any active wheel smoothing
+        if (sv.GetValue(WheelSessionProperty) is WheelScrollSession wheel)
+        {
+            wheel.Stop();
+        }
+
         sv.Cursor = Cursors.ScrollNS;
         sv.CaptureMouse();
         session.Rendering = (_, _) => Tick(sv, session);
@@ -153,7 +293,7 @@ public static class SmoothScroll
     private static void OnPreviewMouseMove(object sender, MouseEventArgs e)
     {
         var sv = (ScrollViewer)sender;
-        if (sv.GetValue(SessionProperty) is not AutoScrollSession session) return;
+        if (sv.GetValue(AutoScrollSessionProperty) is not AutoScrollSession session) return;
         session.Current = e.GetPosition(sv);
         double dy = session.Current.Y - session.Anchor.Y;
         sv.Cursor = dy < -AutoScrollDeadZone ? Cursors.ScrollN : dy > AutoScrollDeadZone ? Cursors.ScrollS : Cursors.ScrollNS;
@@ -162,11 +302,11 @@ public static class SmoothScroll
     private static void OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
     {
         var sv = (ScrollViewer)sender;
-        if (sv.GetValue(SessionProperty) is not AutoScrollSession session || e.ChangedButton != MouseButton.Middle) return;
+        if (sv.GetValue(AutoScrollSessionProperty) is not AutoScrollSession session || e.ChangedButton != MouseButton.Middle) return;
         e.Handled = true;
         bool quickClick = session.Held.ElapsedMilliseconds < 300 &&
                           (session.Current - session.Anchor).Length < 6;
-        if (quickClick && !session.Locked) session.Locked = true;   // browser-style: click once, scroll by moving the mouse
+        if (quickClick && !session.Locked) session.Locked = true;
         else EndAutoScroll(sv);
     }
 
@@ -179,7 +319,7 @@ public static class SmoothScroll
 
         double dy = session.Current.Y - session.Anchor.Y;
         if (Math.Abs(dy) <= AutoScrollDeadZone) return;
-        // Speed grows a little faster than linearly with the distance, capped for sanity.
+
         double magnitude = Math.Min(AutoScrollMaxPixelsPerSecond, Math.Pow(Math.Abs(dy) - AutoScrollDeadZone, 1.25) * 1.6);
         double next = Math.Clamp(sv.VerticalOffset + Math.Sign(dy) * magnitude * dt, 0, sv.ScrollableHeight);
         sv.ScrollToVerticalOffset(next);
@@ -187,8 +327,8 @@ public static class SmoothScroll
 
     private static bool EndAutoScroll(ScrollViewer sv)
     {
-        if (sv.GetValue(SessionProperty) is not AutoScrollSession session) return false;
-        sv.SetValue(SessionProperty, null);
+        if (sv.GetValue(AutoScrollSessionProperty) is not AutoScrollSession session) return false;
+        sv.SetValue(AutoScrollSessionProperty, null);
         if (session.Rendering != null) CompositionTarget.Rendering -= session.Rendering;
         if (session.Adorner != null) AdornerLayer.GetAdornerLayer(session.Adorner.AdornedElement)?.Remove(session.Adorner);
         sv.Cursor = null;

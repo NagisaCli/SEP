@@ -26,7 +26,9 @@ public class E3dLauncherService : IE3dLauncherService
     private static readonly Regex ManagedBlockRe = new(
         @"(?ms)^[ \t]*" + Regex.Escape(ManagedStart) + @".*?" + Regex.Escape(ManagedEnd) + @"[ \t]*\r?\n?", RegexOptions.Compiled);
     private static readonly Regex ProjectsDirRe = new(@"(?im)^(\s*(?:set\s+)?projects_dir=)[^\r\n]*", RegexOptions.Compiled);
-    private static readonly char[] DangerousBatChars = { '"', '\r', '\n', '\0', '&', '|', '<', '>', '^' };
+    // Characters cmd.exe would interpret inside a quoted "call" line: a folder name on a file server must never
+    // be able to run a command on this PC through custom_evars.bat (% expands variables even inside quotes).
+    internal static readonly char[] DangerousBatChars = { '"', '\r', '\n', '\0', '&', '|', '<', '>', '^', '%' };
     private static readonly TimeSpan PathCheckTimeout = TimeSpan.FromSeconds(6);
 
     private readonly IProjectCatalog _catalog;
@@ -83,7 +85,7 @@ public class E3dLauncherService : IE3dLauncherService
     /// <summary>Mode "all" (e3d_launcher.write_mode): the managed block lists every project of "my projects".</summary>
     private (bool, string) SwitchAll() => SwitchMultipleProjects(_catalog.MyProjects, isAllMine: true);
 
-    private (bool, string) SwitchMultipleProjects(IReadOnlyList<ProjectItem> targetProjects, bool isAllMine)
+    private (bool, string) SwitchMultipleProjects(IReadOnlyList<ProjectItem> targetProjects, bool isAllMine, Action? recordMode = null)
     {
         if (targetProjects.Count == 0) return (false, Strings.Launch_NoMyProjects);
 
@@ -117,7 +119,11 @@ public class E3dLauncherService : IE3dLauncherService
             SetProjectsDir(evarsBat, localDir);
             SetProjectsDir(evarsInit, localDir);
 
-            if (isAllMine)
+            if (recordMode != null)
+            {
+                recordMode();
+            }
+            else if (isAllMine)
             {
                 _catalog.SetLastLaunchedAll();
             }
@@ -184,6 +190,16 @@ public class E3dLauncherService : IE3dLauncherService
             if (!ExistsWithin(libDir, PathCheckTimeout) || !Directory.Exists(libDir))
                 return (false, string.Format(Strings.Launch_LibraryUnreachable, libDir));
 
+            // A library on a file server is shared by everybody: SEP never writes into it. Its projects go into this
+            // PC's managed block instead, which gives E3D the same project list without touching the server.
+            if (SepPaths.IsUnc(libDir))
+            {
+                var projects = _catalog.Projects.Where(p => p.LibraryId == library.Id).ToList();
+                if (projects.Count == 0) return (false, string.Format(Strings.Launch_LibraryUnreachable, libDir));
+                var (ok, msg) = SwitchMultipleProjects(projects, isAllMine: false, recordMode: () => _catalog.SetLastLaunchedLibrary(library));
+                return ok ? (true, string.Format(Strings.Launch_Library, library.Name)) : (false, msg);
+            }
+
             var (evarsBat, evarsInit) = RequireEvars();
             Backup(backups, evarsBat, evarsInit);
 
@@ -226,7 +242,7 @@ public class E3dLauncherService : IE3dLauncherService
                     if (!File.Exists(monExe)) continue;
 
                     string initFile = Path.Combine(dir, "launch.init");
-                    string userData = @"D:\AVEVA\USERDATA";
+                    string userData = Path.Combine(E3dLocator.AvevaRoot(paths.InstallDir ?? dir) ?? @"D:\AVEVA", "USERDATA");
                     var psi = new ProcessStartInfo(monExe)
                     {
                         WorkingDirectory = Directory.Exists(userData) ? userData : dir,
@@ -355,6 +371,11 @@ public class E3dLauncherService : IE3dLauncherService
         {
             string? bat = Directory.EnumerateFiles(sub, "evars*.bat")
                 .FirstOrDefault(f => !Path.GetFileName(f).Equals("evars.bat", StringComparison.OrdinalIgnoreCase));
+            if (bat != null && bat.IndexOfAny(DangerousBatChars) >= 0)
+            {
+                App.Log($"Library mode: skipped {bat} (characters cmd.exe would interpret)");
+                continue;
+            }
             if (bat != null) lines.Add($"if exist \"%~dp0{Path.GetFileName(sub)}\\{Path.GetFileName(bat)}\" call \"%~dp0{Path.GetFileName(sub)}\\{Path.GetFileName(bat)}\"");
         }
 

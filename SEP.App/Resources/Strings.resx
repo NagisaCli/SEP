@@ -2238,14 +2238,24 @@ Save them anyway?</value>
   </data>
   <data name="Nav_Live" xml:space="preserve"><value>Live launch</value></data>
   <data name="Live_Title" xml:space="preserve"><value>Start E3D Live</value></data>
-  <data name="Live_Subtitle" xml:space="preserve"><value>Choose any SEP project and enter its MDB. e3d_live supplies the supported modules and access modes; existing SEP launch actions remain unchanged.</value></data>
+  <data name="Live_Subtitle" xml:space="preserve"><value>Choose a project, MDB and module. Live starts with a private project environment; ordinary SEP launch settings remain unchanged. Support projects are masked in E3D, not access-restricted.</value></data>
   <data name="Live_Connection" xml:space="preserve"><value>Live entry connection</value></data>
   <data name="Live_Root" xml:space="preserve"><value>e3d_live repository folder</value></data>
   <data name="Live_Python" xml:space="preserve"><value>Python executable</value></data>
   <data name="Live_Refresh" xml:space="preserve"><value>Save connection and load options</value></data>
   <data name="Live_Scope" xml:space="preserve"><value>Target scope</value></data>
   <data name="Live_Project" xml:space="preserve"><value>Project</value></data>
+  <data name="Live_PrimaryProject" xml:space="preserve"><value>Primary project</value></data>
+  <data name="Live_SupportProjects" xml:space="preserve"><value>Mounted database project (optional)</value></data>
+  <data name="Live_SupportNone" xml:space="preserve"><value>(None)</value></data>
+  <data name="Live_SupportMore" xml:space="preserve"><value>{0} (+{1} more)</value></data>
+  <data name="Live_SupportHint" xml:space="preserve"><value>Select the support project required by this MDB (optional). Loaded with the primary project but masked in default E3D login list.</value></data>
   <data name="Live_Mdb" xml:space="preserve"><value>MDB</value></data>
+  <data name="Live_RefreshMdbs" xml:space="preserve"><value>Refresh list</value></data>
+  <data name="Live_MdbLoading" xml:space="preserve"><value>Loading this project's MDB list from E3D Admin…</value></data>
+  <data name="Live_MdbLoaded" xml:space="preserve"><value>{0} MDB(s) available; expand the MDB selector to choose one.</value></data>
+  <data name="Live_MdbEmpty" xml:space="preserve"><value>Admin returned no MDB names. You can type an MDB manually.</value></data>
+  <data name="Live_MdbUnavailable" xml:space="preserve"><value>MDB list unavailable: {0}. You can type an MDB manually.</value></data>
   <data name="Live_Module" xml:space="preserve"><value>Module</value></data>
   <data name="Live_AccessMode" xml:space="preserve"><value>Access mode</value></data>
   <data name="Live_Start" xml:space="preserve"><value>Start Live</value></data>
@@ -2290,4 +2300,25 @@ Save them anyway?</value>
   <data name="My_MovedToGroup" xml:space="preserve"><value>Moved {0} to group '{1}'.</value></data>
   <data name="My_GroupEmptyHint" xml:space="preserve"><value>No projects in this group yet. Use "Move to group" to add projects here.</value></data>
   <data name="Common_Saved" xml:space="preserve"><value>Saved.</value></data>
+  <data name="My_Reordered" xml:space="preserve"><value>Project order updated.</value></data>
+  <data name="My_DragReorderTooltip" xml:space="preserve"><value>Drag to reorder or move to another group</value></data>
+  <data name="Drop_ProjectLibrary" xml:space="preserve"><value>Drop project or library folder here to add</value></data>
+  <data name="Drop_PluginArchive" xml:space="preserve"><value>Drop plugin archive (.zip) or folder here to install</value></data>
+  <data name="Drop_AddToMine" xml:space="preserve"><value>Drop to add to My Projects</value></data>
+  <data name="Setup_Title" xml:space="preserve"><value>SEP Setup</value></data>
+  <data name="Setup_Installed" xml:space="preserve"><value>SEP {0} is installed in {1}.\nStart it from the Start menu or the desktop shortcut.</value></data>
+  <data name="Setup_InstalledStarting" xml:space="preserve"><value>SEP {0} is installed in {1} and is starting now.\nFrom now on start it from the Start menu or the desktop shortcut.</value></data>
+  <data name="Setup_Uninstalled" xml:space="preserve"><value>SEP has been removed from this PC. Your libraries, projects and settings in %APPDATA%\SEP were kept.</value></data>
+  <data name="Setup_UninstallConfirm" xml:space="preserve"><value>Remove SEP from this PC?\n\nShortcuts and the program folder are removed; your libraries, projects and settings are kept.</value></data>
+  <data name="Setup_InUse" xml:space="preserve"><value>SEP is still running and could not be replaced. Close every SEP window and try again.</value></data>
+  <data name="Setup_Failed" xml:space="preserve"><value>Setup failed: {0}</value></data>
+  <data name="Unlock_InUse" xml:space="preserve"><value>{0} is held open by a running E3D session and was not removed. Ask the user to leave the project first.</value></data>
+  <data name="Decommission_DeleteRefused" xml:space="preserve"><value>The folder {0} is a library or also contains other projects, so it was not deleted. Remove the project files by hand if that is really intended.</value></data>
+  <data name="Settings_InstalledAt" xml:space="preserve"><value>Installed for this user in {0}. Update by running a newer Install-SEP.cmd; remove it under Windows Settings &gt; Apps.</value></data>
+  <data name="Settings_RunningOtherCopy" xml:space="preserve"><value>This copy runs from {0}. SEP is also installed in {1}; install this version over it to update.</value></data>
+  <data name="Settings_NotInstalled" xml:space="preserve"><value>This copy runs from {0} and is not installed. Install it to get a Start menu and desktop shortcut and a fixed location for the E3D ribbon button.</value></data>
+  <data name="Settings_Install" xml:space="preserve"><value>Install on this PC</value></data>
+  <data name="Settings_UpdateInstall" xml:space="preserve"><value>Update installation</value></data>
+  <data name="Settings_InstallTooltip" xml:space="preserve"><value>Copies SEP to your user profile (no administrator rights needed), adds shortcuts and restarts SEP from there. Your data is kept.</value></data>
+  <data name="Setup_NotSingleFile" xml:space="preserve"><value>This is a development build (SEP.exe next to SEP.dll). Install from the published single-file SEP.exe built by build.ps1.</value></data>
 </root>

@@ -49,7 +49,7 @@ public sealed class E3dToolsService
         {
             string d = SepPaths.Normalize(_catalog.Paths.InstallDir);
             if (d.Length == 0 && !string.IsNullOrEmpty(_catalog.Paths.EvarsBat)) d = Path.GetDirectoryName(_catalog.Paths.EvarsBat) ?? string.Empty;
-            return d.Length == 0 ? @"D:\AVEVA\Everything3D3.1" : d;
+            return E3dLocator.InstallDirOrDefault(d);
         }
     }
 
@@ -377,7 +377,7 @@ public sealed class E3dToolsService
     {
         var (text, enc) = SepPaths.ReadTextSmart(custom);
         var lines = new List<string> { ":: >>> SEP MANAGED PROJECTS (do not edit) >>>" };
-        lines.AddRange(bats.Select(p => $"if exist \"{p}\" call \"{p}\""));
+        lines.AddRange(bats.Where(p => p.IndexOfAny(E3dLauncherService.DangerousBatChars) < 0).Select(p => $"if exist \"{p}\" call \"{p}\""));
         lines.Add(":: <<< SEP MANAGED PROJECTS <<<");
         string block = string.Join("\r\n", lines) + "\r\n";
         text = ManagedBlockRe.Replace(text, string.Empty).TrimEnd('\r', '\n') + "\r\n\r\n" + block;
@@ -509,7 +509,7 @@ public sealed class E3dToolsService
             if (shareOk) shareDetail = string.Format(Strings.Tools_NetShareOk, share);
             else
             {
-                var (code, output) = RunHidden("net", $"use {share} /user:\"\" \"\"", 8);
+                var (code, output) = RunHidden("net", $"use \"{share}\" /user:\"\" \"\" /persistent:no", 8);   // anonymous probe; never remembered across logons
                 var m = ErrorCodeRe.Match(output);
                 errNum = m.Success ? int.Parse(m.Groups[1].Value) : code;
                 if (code == 0)
@@ -603,7 +603,7 @@ public sealed class E3dToolsService
             case "smb_reconnect":
             {
                 if (string.IsNullOrEmpty(fix.Path)) return ToolResult.Failure(Strings.Tools_ReconnectUncOnly);
-                var (code, output) = RunHidden("net", $"use {fix.Path} /delete /y", 10);
+                var (code, output) = RunHidden("net", $"use \"{fix.Path}\" /delete /y", 10);
                 if (code != 0 && code != 2) return ToolResult.Failure(Strings.Tools_ReconnectFailed, output.Split('\n'));
                 return ToolResult.Success(string.Format(Strings.Tools_ReconnectDone, fix.Path));
             }

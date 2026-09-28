@@ -104,4 +104,38 @@ public partial class MainWindow : FluentWindow
         }
         return typeof(OverviewPage);
     }
+
+    private void NavMyProjects_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(SEP.App.Behaviors.ProjectDragDrop.DragFormat) || e.Data.GetDataPresent("SEP_ProjectItem"))
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+    }
+
+    private void NavMyProjects_Drop(object sender, DragEventArgs e)
+    {
+        SEP.App.Models.ProjectItem? project = null;
+        if (e.Data.GetData(SEP.App.Behaviors.ProjectDragDrop.DragFormat) is SEP.App.Behaviors.ProjectDragPayload payload)
+        {
+            project = payload.Project;
+        }
+        else if (e.Data.GetData("SEP_ProjectItem") is SEP.App.Models.ProjectItem pi)
+        {
+            project = pi;
+        }
+
+        if (project != null)
+        {
+            var catalog = App.Services.GetRequiredService<IProjectCatalog>();
+            catalog.SetMyProjects(new[] { project }, true);
+            App.Services.GetRequiredService<ToastService>().Success(string.Format(Localization.Loc.Instance["Batch_AddedToMine"], 1));
+            e.Handled = true;
+        }
+    }
 }

@@ -72,6 +72,11 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _dataDir = string.Empty;
     [ObservableProperty] private bool _isPortable;
     [ObservableProperty] private string _versionText = string.Empty;
+    /// <summary>Where this copy runs from, and whether a per-user installation exists.</summary>
+    [ObservableProperty] private string _installStatusText = string.Empty;
+    /// <summary>False when this is already the installed copy (nothing to install from here).</summary>
+    [ObservableProperty] private bool _canInstall;
+    [ObservableProperty] private string _installButtonText = string.Empty;
 
     public ObservableCollection<ChoiceOption> LanguageOptions { get; }
     public ObservableCollection<ChoiceOption> ThemeOptions { get; }
@@ -100,7 +105,8 @@ public partial class SettingsViewModel : ObservableObject
         AutoStart = settings.AutoStart;
         DataDir = store.DataDir;
         IsPortable = string.Equals(store.DataDir, SepDataStore.ExeDir, StringComparison.OrdinalIgnoreCase);
-        VersionText = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0";
+        VersionText = SepInstaller.CurrentVersion;
+        RefreshInstallState();
 
         // Native names on purpose: a user who cannot read the current language must still find their own.
         LanguageOptions = new ObservableCollection<ChoiceOption>
@@ -175,7 +181,7 @@ public partial class SettingsViewModel : ObservableObject
         {
             using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", writable: true);
             if (key == null) return;
-            string exe = Environment.ProcessPath ?? string.Empty;
+            string exe = SepInstaller.StableExePath;   // the installed copy, not whatever folder this one was started from
             if (enable && exe.Length > 0) key.SetValue("SEP", $"\"{exe}\"");
             else key.DeleteValue("SEP", throwOnMissingValue: false);
         }
@@ -202,6 +208,39 @@ public partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void BrowseLnk() { var f = _dialogs.PickFile(Strings.Settings_LnkLabel, "Shortcuts (*.lnk)|*.lnk"); if (f != null) E3dLnk = f; }
+
+    private void RefreshInstallState()
+    {
+        CanInstall = !SepInstaller.IsRunningInstalledCopy && SepInstaller.IsSingleFile;
+        InstallStatusText = SepInstaller.IsRunningInstalledCopy
+            ? string.Format(Strings.Settings_InstalledAt, SepInstaller.InstallDir)
+            : SepInstaller.IsInstalled
+                ? string.Format(Strings.Settings_RunningOtherCopy, SepInstaller.CurrentExe, SepInstaller.InstallDir)
+                : string.Format(Strings.Settings_NotInstalled, SepInstaller.CurrentExe);
+        InstallButtonText = SepInstaller.IsInstalled ? Strings.Settings_UpdateInstall : Strings.Settings_Install;
+    }
+
+    /// <summary>
+    /// Installs (or updates) this exe for the current user, then hands over to the installed copy: it waits for this
+    /// window to close, so the single-instance guard does not send it straight back here.
+    /// </summary>
+    [RelayCommand]
+    private async Task InstallOnThisPcAsync()
+    {
+        var (ok, message) = await Task.Run(() => SepInstaller.Install(launchAfter: false));
+        RefreshInstallState();
+        if (!ok) { _toasts.Error(message); return; }
+        _catalog.Save();
+        try
+        {
+            Process.Start(new ProcessStartInfo(SepInstaller.InstalledExe, "--wait-instance") { UseShellExecute = true, WorkingDirectory = SepInstaller.InstallDir });
+            System.Windows.Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            _toasts.Result(true, $"{message} ({ex.Message})");
+        }
+    }
 
     [RelayCommand]
     private void OpenDataDir()

@@ -52,7 +52,8 @@
     <DataTemplate x:Key="ProjectCardTemplate" DataType="{x:Type models:ProjectItem}">
         <Border Width="312" Margin="0,0,12,12" BorderThickness="1" CornerRadius="12" Padding="0"
                 RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" ContextMenu="{StaticResource ProjectCardMenu}"
-                Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}">
+                Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
+                beh:ProjectDragDrop.IsDraggable="True">
             <Border.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
@@ -68,8 +69,8 @@
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.18" />
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" From="8" To="0" Duration="0:0:0.2">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" From="6" To="0" Duration="0:0:0.16">
                                         <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                 </Storyboard>
@@ -81,16 +82,18 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1.012" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1.012" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="-3" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.15" />
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="0" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -118,10 +121,11 @@
                     </Border.Style>
                 </Border>
 
+                <!-- the middle row takes the slack, so the action row sits at the same height in every card of a row -->
                 <Grid Grid.Column="1" Margin="12,12,14,12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
@@ -164,7 +168,7 @@
                     </Grid>
 
                     <!-- meta pills -->
-                    <WrapPanel Grid.Row="1" Margin="0,8,0,8" Orientation="Horizontal">
+                    <WrapPanel Grid.Row="1" Margin="0,8,0,8" Orientation="Horizontal" VerticalAlignment="Top">
                         <controls:Badge Content="{loc:Tr Projects_ActiveBadge}" Tone="Success" IsSolid="True" Margin="0,2,6,2"
                                         Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
                         <controls:Badge Tone="Info" Margin="0,2,6,2" Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibilityConverter}}">

@@ -41,23 +41,47 @@ public static class LibraryScanner
 
     // Host reachability: an answer on 445 is trusted for 5 min, silence is retried after 30 s.
     private static readonly ConcurrentDictionary<string, (bool Up, DateTime At)> HostCache = new(StringComparer.OrdinalIgnoreCase);
+    // Libraries on the same server share one probe instead of each opening its own connection.
+    private static readonly ConcurrentDictionary<string, Task<bool>> PendingProbes = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly TimeSpan HostProbeTimeout = TimeSpan.FromMilliseconds(1500);
 
-    public static bool IsHostReachable(string host, int timeoutMs = 800)
+    public static bool IsHostReachable(string host, int timeoutMs = 1500) =>
+        IsHostReachableAsync(host, TimeSpan.FromMilliseconds(timeoutMs)).GetAwaiter().GetResult();
+
+    /// <summary>
+    /// TCP probe of the SMB port. The deadline covers name resolution too: an unknown NetBIOS name can otherwise
+    /// block for many seconds before the connect even starts.
+    /// </summary>
+    public static Task<bool> IsHostReachableAsync(string host, TimeSpan? timeout = null)
     {
-        if (string.IsNullOrWhiteSpace(host)) return false;
+        if (string.IsNullOrWhiteSpace(host)) return Task.FromResult(false);
         if (HostCache.TryGetValue(host, out var c) && DateTime.UtcNow - c.At < (c.Up ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(30)))
-            return c.Up;
+            return Task.FromResult(c.Up);
 
+        return PendingProbes.GetOrAdd(host, h => ProbeAsync(h, timeout ?? HostProbeTimeout));
+    }
+
+    private static async Task<bool> ProbeAsync(string host, TimeSpan timeout)
+    {
         bool up = false;
         try
         {
+            using var cts = new CancellationTokenSource(timeout);
             using var client = new TcpClient();
-            var ar = client.BeginConnect(host, 445, null, null);
-            if (ar.AsyncWaitHandle.WaitOne(timeoutMs)) { client.EndConnect(ar); up = true; }
+            await client.ConnectAsync(host, 445, cts.Token).ConfigureAwait(false);
+            up = client.Connected;
         }
         catch { }
         HostCache[host] = (up, DateTime.UtcNow);
+        PendingProbes.TryRemove(host, out _);
         return up;
+    }
+
+    /// <summary>Forgets hosts that did not answer, so a manual rescan re-probes a server that has just come back.</summary>
+    public static void ForgetOfflineHosts()
+    {
+        foreach (var kv in HostCache)
+            if (!kv.Value.Up) HostCache.TryRemove(kv.Key, out _);
     }
 
     /// <summary>Scans a library path. Never throws; a network path that does not answer within <paramref name="timeout"/> comes back as Invalid/TimedOut.</summary>
@@ -70,15 +94,23 @@ public static class LibraryScanner
         if (SepPaths.IsUnc(norm))
         {
             string host = SepPaths.UncHost(norm) ?? string.Empty;
-            bool up = await Task.Run(() => IsHostReachable(host), ct);
+            bool up = await IsHostReachableAsync(host).ConfigureAwait(false);
             if (!up) return new ScanResult(LibraryKind.Invalid, Strings.Scan_HostOffline, new());
         }
 
-        var work = Task.Run(() => ScanImpl(norm, ct), ct);
-        var done = await Task.WhenAny(work, Task.Delay(timeout, ct));
+        // The deadline also cancels the worker, so an abandoned scan stops sending requests to a slow server
+        // instead of holding thread-pool threads (and SMB sessions) in the background.
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var work = Task.Run(() => ScanImpl(norm, deadline.Token), deadline.Token);
+        var done = await Task.WhenAny(work, Task.Delay(timeout, ct)).ConfigureAwait(false);
         if (done != work)
+        {
+            deadline.Cancel();
+            _ = work.ContinueWith(t => _ = t.Exception, TaskScheduler.Default);   // observe the late failure
             return new ScanResult(LibraryKind.Invalid, string.Format(Strings.Scan_Timeout, (int)timeout.TotalSeconds), new(), TimedOut: true);
-        try { return await work; }
+        }
+        try { return await work.ConfigureAwait(false); }
+        catch (OperationCanceledException) { return new ScanResult(LibraryKind.Invalid, string.Format(Strings.Scan_Timeout, (int)timeout.TotalSeconds), new(), TimedOut: true); }
         catch (Exception ex) { return new ScanResult(LibraryKind.Invalid, string.Format(Strings.Scan_Error, ex.Message), new()); }
     }
 
@@ -120,13 +152,22 @@ public static class LibraryScanner
         }
         direct.Sort(StringComparer.OrdinalIgnoreCase);
 
-        // Probe the sub-folders in parallel (network round-trips dominate; throttle UNC to prevent SMB connection limits).
-        int maxDop = SepPaths.IsUnc(norm) ? 4 : 16;
+        // Probe the sub-folders in parallel (network round-trips dominate; throttle UNC so one client never floods
+        // the file server). The project code is read in the same pass, so each folder costs one worker visit.
+        int maxDop = SepPaths.IsUnc(norm) ? 6 : 16;
         var subfolderEvars = new ConcurrentDictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        var codes = new ConcurrentDictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         Parallel.ForEach(subdirs, new ParallelOptions { MaxDegreeOfParallelism = maxDop, CancellationToken = ct }, d =>
         {
+            if (IsSkippedFolder(d)) return;
             var evs = DirectEvars(d);
-            if (evs.Count > 0) subfolderEvars[d] = evs;
+            if (evs.Count == 0) return;
+            subfolderEvars[d] = evs;
+            foreach (var bat in evs)
+            {
+                if (ct.IsCancellationRequested) return;
+                codes[SepPaths.Normalize(bat)] = SepPaths.ReadProjectCode(bat);
+            }
         });
 
         var projects = new List<ProjectRecord>();
@@ -141,12 +182,12 @@ public static class LibraryScanner
         if (customFile != null || subfolderEvars.Count > 0)
         {
             if (projects.Count == 0) return new ScanResult(LibraryKind.Invalid, Strings.Scan_NoProjects, new());
-            ReadCodes(projects, ct);
+            ReadCodes(projects, codes, ct);
             return new ScanResult(LibraryKind.Collection, string.Empty, projects);
         }
         if (direct.Count > 0)
         {
-            ReadCodes(projects, ct);
+            ReadCodes(projects, codes, ct);
             return new ScanResult(LibraryKind.Project, string.Empty, projects);
         }
         return new ScanResult(LibraryKind.Invalid, Strings.Scan_NoProjects, new());
@@ -220,15 +261,35 @@ public static class LibraryScanner
         return projects.Where(p => seen.Add(p.BatPath)).ToList();
     }
 
-    private static void ReadCodes(List<ProjectRecord> projects, CancellationToken ct)
+    /// <summary>Codes read during the folder pass are reused; only the rest (custom_evars / root files) is read here.</summary>
+    private static void ReadCodes(List<ProjectRecord> projects, IReadOnlyDictionary<string, string?> known, CancellationToken ct)
     {
-        bool anyUnc = projects.Any(p => SepPaths.IsUnc(p.BatPath));
-        int maxDop = anyUnc ? 4 : 16;
-        Parallel.ForEach(projects, new ParallelOptions { MaxDegreeOfParallelism = maxDop, CancellationToken = ct },
+        var missing = new List<ProjectRecord>();
+        foreach (var p in projects)
+        {
+            if (known.TryGetValue(p.BatPath, out var code)) p.Code = code;
+            else missing.Add(p);
+        }
+        if (missing.Count == 0) return;
+        int maxDop = missing.Any(p => SepPaths.IsUnc(p.BatPath)) ? 6 : 16;
+        Parallel.ForEach(missing, new ParallelOptions { MaxDegreeOfParallelism = maxDop, CancellationToken = ct },
             p => p.Code = SepPaths.ReadProjectCode(p.BatPath));
     }
 
-    private static readonly string[] LockExtensions = { ".lok", ".lck", ".lock", ".tmp" };
+    /// <summary>Folders that are never a project: SEP's session folder, recycle bins, snapshot folders.</summary>
+    private static bool IsSkippedFolder(string dir)
+    {
+        string name = Path.GetFileName(dir);
+        return name.StartsWith('.') || name.StartsWith('$') ||
+               name.Equals("System Volume Information", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("~snapshot", StringComparison.OrdinalIgnoreCase);
+    }
+
+    // DABACON lock files only: *.tmp is left behind by many tools and made healthy projects look locked
+    // (and the lock-clearing tool would have deleted it).
+    private static readonly string[] LockExtensions = { ".lok", ".lck", ".lock" };
+
+    public static bool IsLockFile(string path) => LockExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Lock files (*.lck, *.lok, *.lock, *.tmp) inside candidate database folders; null when unreadable.</summary>
     public static List<string>? FindLockFiles(string projectDir)

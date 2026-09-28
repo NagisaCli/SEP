@@ -138,7 +138,10 @@ public partial class ProjectsViewModel : ObservableObject
         _toasts = toasts;
         Actions = actions;
 
-        _catalog.Changed += (_, _) => OnUiThread(Rebuild);
+        _rebuild = new CoalescedUiAction(Rebuild);
+        _catalog.Changed += (_, _) => _rebuild.Request();
+        _searchDebounce = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        _searchDebounce.Tick += (_, _) => { _searchDebounce.Stop(); ApplyFilter(); };
         _catalog.ScanStateChanged += (_, _) => OnUiThread(() => IsLoading = _catalog.IsScanning);
         Loc.Instance.LanguageChanged += (_, _) => OnUiThread(() => { foreach (var g in Groups) g.RefreshStatus(); RebuildFilters(); ApplyFilter(); UpdateSummary(); });
 
@@ -153,6 +156,9 @@ public partial class ProjectsViewModel : ObservableObject
         else dispatcher.BeginInvoke(action);
     }
 
+    private readonly CoalescedUiAction _rebuild;
+    private readonly System.Windows.Threading.DispatcherTimer _searchDebounce;
+
     private bool NotBusy() => !IsLoading;
     private bool CanAddLibrary() => !IsLoading && !string.IsNullOrWhiteSpace(NewLibraryPath);
 
@@ -162,12 +168,10 @@ public partial class ProjectsViewModel : ObservableObject
         var libs = _catalog.Libraries;
         var byId = Groups.ToDictionary(g => g.Library.Id, g => g);
 
-        Groups.Clear();
-        foreach (var lib in libs)
-        {
-            var group = byId.TryGetValue(lib.Id, out var old) && ReferenceEquals(old.Library, lib) ? old : new LibraryGroup(lib);
-            Groups.Add(group);
-        }
+        // Keep the existing group objects (and so their cards) wherever the library is unchanged.
+        var wantedGroups = libs.Select(lib =>
+            byId.TryGetValue(lib.Id, out var old) && ReferenceEquals(old.Library, lib) ? old : new LibraryGroup(lib)).ToList();
+        SyncCollection(Groups, wantedGroups);
         HasLibraries = Groups.Count > 0;
         foreach (var p in _catalog.Projects)
         {
@@ -204,7 +208,13 @@ public partial class ProjectsViewModel : ObservableObject
         return target.FirstOrDefault(o => o.Value == current) ?? target[0];
     }
 
-    partial void OnSearchKeywordChanged(string value) => ApplyFilter();
+    partial void OnSearchKeywordChanged(string value)
+    {
+        // typing re-filters once the user pauses, not on every key stroke
+        _searchDebounce.Stop();
+        if (value.Length == 0) ApplyFilter();
+        else _searchDebounce.Start();
+    }
     partial void OnFilterTabChanged(string value) => ApplyFilter();
     partial void OnCategoryFilterChanged(FilterOption? value) { if (!_refilling) ApplyFilter(); }
     partial void OnStatusFilterChanged(FilterOption? value) { if (!_refilling) ApplyFilter(); }
@@ -217,9 +227,10 @@ public partial class ProjectsViewModel : ObservableObject
         string st = StatusFilter?.Value ?? string.Empty;
         string tag = TagFilter?.Value ?? string.Empty;
         int visible = 0;
+        var byLibrary = _catalog.Projects.ToLookup(p => p.LibraryId);
         foreach (var group in Groups)
         {
-            var all = _catalog.Projects.Where(p => p.LibraryId == group.Library.Id).ToList();
+            var all = byLibrary[group.Library.Id].ToList();
             IEnumerable<ProjectItem> q = all;
             if (FilterTab == "Mine") q = q.Where(p => p.IsFavorite);
             else if (FilterTab == "Local") q = q.Where(p => !p.IsUnc);
@@ -231,16 +242,35 @@ public partial class ProjectsViewModel : ObservableObject
 
             var wanted = q.OrderByDescending(p => p.IsFavorite).ThenByDescending(p => p.IsActive)
                           .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList();
-            if (!wanted.SequenceEqual(group.Projects))
-            {
-                group.Projects.Clear();
-                foreach (var p in wanted) group.Projects.Add(p);
-            }
+            SyncCollection(group.Projects, wanted);
             group.HiddenCount = all.Count - wanted.Count;
             group.EmptyText = all.Count == 0 ? Strings.Lib_NoProjects : string.Format(Strings.Lib_NoVisibleProjects, group.HiddenCount);
             visible += wanted.Count;
         }
         VisibleCount = visible;
+    }
+
+    /// <summary>
+    /// Makes <paramref name="target"/> equal to <paramref name="wanted"/> with removes, moves and inserts only, so
+    /// items that stay keep their generated containers (no flicker, no re-templating of every card).
+    /// </summary>
+    private static void SyncCollection<T>(ObservableCollection<T> target, IReadOnlyList<T> wanted) where T : class
+    {
+        if (target.SequenceEqual(wanted)) return;
+        var keep = new HashSet<T>(wanted, ReferenceEqualityComparer.Instance as IEqualityComparer<T> ?? EqualityComparer<T>.Default);
+        for (int i = target.Count - 1; i >= 0; i--)
+            if (!keep.Contains(target[i])) target.RemoveAt(i);
+        for (int i = 0; i < wanted.Count; i++)
+        {
+            var item = wanted[i];
+            if (i < target.Count && ReferenceEquals(target[i], item)) continue;
+            int at = -1;
+            for (int j = i + 1; j < target.Count; j++)
+                if (ReferenceEquals(target[j], item)) { at = j; break; }
+            if (at >= 0) target.Move(at, i);
+            else target.Insert(i, item);
+        }
+        while (target.Count > wanted.Count) target.RemoveAt(target.Count - 1);
     }
 
     private void UpdateSummary()

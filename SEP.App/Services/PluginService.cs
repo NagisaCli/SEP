@@ -403,7 +403,7 @@ public sealed class PluginService
     {
         string name = Path.GetFileName(folder);
         string inst = !string.IsNullOrEmpty(installDir) ? SepPaths.Normalize(installDir) :
-            (Directory.Exists(@"D:\AVEVA\Everything3D3.1") ? @"D:\AVEVA\Everything3D3.1" : (Directory.Exists(@"C:\AVEVA\Everything3D3.1") ? @"C:\AVEVA\Everything3D3.1" : string.Empty));
+            (E3dLocator.InstallDir ?? string.Empty);
         string activeVersion = DetectActiveE3dVersion(inst, configuredVersion ?? _catalog.Paths.E3dVersion);
 
         string folderToInspect = folder;
@@ -848,6 +848,61 @@ public sealed class PluginService
             return ToolResult.Failure(string.Format(Strings.Plugins_WriteFailed, ex.Message));
         }
     });
+
+    /// <summary>
+    /// Enables and disables several plug-ins in one write; every other plug-in keeps its state (the headless
+    /// installer switch, see PluginCli). Disabling withdraws the add-ins SEP deployed for them from E3D.
+    /// </summary>
+    public Task<ToolResult> ChangeEnabledAsync(IEnumerable<string> enable, IEnumerable<string> disable) => Task.Run(() =>
+    {
+        try
+        {
+            var current = new HashSet<string>(ReadEnabled(), StringComparer.OrdinalIgnoreCase);
+            var off = disable.Where(n => !enable.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
+            foreach (var n in off) current.Remove(n);
+            foreach (var n in enable) current.Add(n);
+            var sorted = current.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
+            WriteBlock(sorted);
+            // add-ins of the plug-ins switched off, also ones deployed before SEP tracked them; the sync below
+            // puts back any add-in a still-enabled plug-in shares with them
+            string installDir = SepPaths.Normalize(_catalog.Paths.InstallDir);
+            if (installDir.Length > 0 && Directory.Exists(installDir))
+            {
+                foreach (var n in off)
+                {
+                    string dir = Path.Combine(PluginsDir, n);
+                    if (Directory.Exists(dir)) WithdrawAddinsForPlugin(installDir, n, dir);
+                }
+            }
+            SyncE3dRibbon(sorted);
+            return ToolResult.Success(string.Format(Strings.Plugins_AllEnabled, sorted.Count));
+        }
+        catch (Exception ex)
+        {
+            return ToolResult.Failure(string.Format(Strings.Plugins_WriteFailed, ex.Message));
+        }
+    });
+
+    /// <summary>
+    /// When no plug-in is enabled any more (SEP itself is being removed from the PC): deletes SEP.uic and its
+    /// DesignCustomization.xml entry, so E3D does not show an empty SEP tab whose "open SEP" button points nowhere.
+    /// </summary>
+    public bool RemoveRibbonIfUnused()
+    {
+        if (ReadEnabled().Count > 0) return false;
+        string installDir = SepPaths.Normalize(_catalog.Paths.InstallDir);
+        if (installDir.Length == 0 || !Directory.Exists(installDir)) return false;
+        string uic = Path.Combine(installDir, "SEP.uic");
+        if (File.Exists(uic)) File.Delete(uic);
+        string xmlPath = Path.Combine(installDir, "DesignCustomization.xml");
+        if (File.Exists(xmlPath))
+        {
+            string text = File.ReadAllText(xmlPath, Encoding.UTF8);
+            string cleaned = Regex.Replace(text, @"\s*<CustomizationFile\s+Name=""SEP""[^>]*/>", string.Empty, RegexOptions.IgnoreCase);
+            if (cleaned != text) File.WriteAllText(xmlPath, cleaned, new UTF8Encoding(false));
+        }
+        return true;
+    }
 
     /// <summary>Rewrites the plug-ins block; the projects block is kept last, as e3d_plugin.write_plugins_block does.</summary>
     private void WriteBlock(List<string> enabledNames)
@@ -1457,7 +1512,7 @@ public sealed class PluginService
             // 2. Extra safety: explicitly withdraw any deployed addins matching this plugin
             string installDir = !string.IsNullOrEmpty(_catalog.Paths.InstallDir) && Directory.Exists(_catalog.Paths.InstallDir)
                 ? SepPaths.Normalize(_catalog.Paths.InstallDir)
-                : (Directory.Exists(@"D:\AVEVA\Everything3D3.1") ? @"D:\AVEVA\Everything3D3.1" : (Directory.Exists(@"C:\AVEVA\Everything3D3.1") ? @"C:\AVEVA\Everything3D3.1" : string.Empty));
+                : (E3dLocator.InstallDir ?? string.Empty);
 
             if (!string.IsNullOrEmpty(installDir) && Directory.Exists(installDir))
             {
@@ -1491,14 +1546,49 @@ public sealed class PluginService
         }
     });
 
+    /// <summary>
+    /// Withdraws the add-ins this plug-in put into the E3D folder, and nothing else. A plug-in's bin often carries
+    /// libraries E3D ships too (System.Memory, System.Text.Json, ...): deleting every same-named DLL from the E3D
+    /// folder broke E3D itself. Only these go: add-ins SEP recorded deploying from this folder
+    /// (.sep_managed_addins.json), and add-in assemblies of the plug-in whose copy in the E3D folder is the same file
+    /// size (a hard link or copy of the plug-in's own DLL). Framework and AVEVA names are never touched.
+    /// </summary>
     private static void WithdrawAddinsForPlugin(string installDir, string pluginName, string pluginDir)
     {
         try
         {
             string xmlPath = Path.Combine(installDir, "DesignAddins.xml");
-            var candidateDlls = Directory.EnumerateFiles(pluginDir, "*.dll", SearchOption.AllDirectories)
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            string root = Path.GetFullPath(pluginDir).TrimEnd('\\') + "\\";
+            var candidateDlls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            string trackingPath = Path.Combine(installDir, ManagedAddinsFile);
+            var tracked = new List<DeployedAddinRecord>();
+            if (File.Exists(trackingPath))
+            {
+                try { tracked = System.Text.Json.JsonSerializer.Deserialize<List<DeployedAddinRecord>>(File.ReadAllText(trackingPath)) ?? new(); } catch { }
+            }
+            var ours = tracked.Where(r => r.SourceDll.StartsWith(root, StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var r in ours) candidateDlls.Add(r.AddinName);
+
+            foreach (var dll in Directory.EnumerateFiles(pluginDir, "*.dll", SearchOption.AllDirectories))
+            {
+                string asm = Path.GetFileNameWithoutExtension(dll);
+                string target = Path.Combine(installDir, asm + ".dll");
+                if (!File.Exists(target) || new FileInfo(target).Length != new FileInfo(dll).Length) continue;
+                if (ClassifyAssembly(dll, installDir).IsAddin) candidateDlls.Add(asm);
+            }
+            candidateDlls.RemoveWhere(n => n.StartsWith("System.", StringComparison.OrdinalIgnoreCase) || n.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase)
+                || n.StartsWith("Aveva.", StringComparison.OrdinalIgnoreCase) || n.StartsWith("Newtonsoft.", StringComparison.OrdinalIgnoreCase) || n.Equals("mscorlib", StringComparison.OrdinalIgnoreCase));
+
+            if (ours.Count > 0)
+            {
+                try
+                {
+                    var rest = tracked.Except(ours).ToList();
+                    File.WriteAllText(trackingPath, System.Text.Json.JsonSerializer.Serialize(rest, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
+                }
+                catch { }
+            }
 
             if (candidateDlls.Count == 0) return;
 
@@ -1565,7 +1655,7 @@ public sealed class PluginService
             var enabled = new HashSet<string>(enabledNames ?? ReadEnabled(), StringComparer.OrdinalIgnoreCase);
             string installDir = !string.IsNullOrEmpty(_catalog.Paths.InstallDir) && Directory.Exists(_catalog.Paths.InstallDir)
                 ? SepPaths.Normalize(_catalog.Paths.InstallDir)
-                : (Directory.Exists(@"D:\AVEVA\Everything3D3.1") ? @"D:\AVEVA\Everything3D3.1" : (Directory.Exists(@"C:\AVEVA\Everything3D3.1") ? @"C:\AVEVA\Everything3D3.1" : string.Empty));
+                : (E3dLocator.InstallDir ?? string.Empty);
 
             if (string.IsNullOrEmpty(installDir) || !Directory.Exists(installDir)) return;
 
@@ -1904,8 +1994,8 @@ public sealed class PluginService
 
     private void GenerateSepUic(string installDir, HashSet<string> enabled, IReadOnlyList<PluginInfo>? allPlugins = null)
     {
-        string sepExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SEP.exe");
-        if (!File.Exists(sepExePath)) sepExePath = @"C:\Muvsera\Projects\SEP\SEP.exe";
+        // the ribbon button must start a copy that stays put: the installed one when there is one
+        string sepExePath = SepInstaller.StableExePath;
         string sepExeEscaped = sepExePath.Replace("\\", "/");
 
         var formsMetaList = new List<string>();

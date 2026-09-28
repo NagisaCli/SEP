@@ -15,6 +15,8 @@ public partial class OverviewPage : Page
         _viewModel = App.Services.GetRequiredService<OverviewViewModel>();
         DataContext = _viewModel;
         Loaded += (_, _) => _viewModel.Refresh();
+        // six tiles in one row need about 1000 px; below that two even rows read better than one orphan tile
+        SizeChanged += (_, e) => KpiGrid.Rows = e.NewSize.Width >= 1000 ? 1 : 2;
     }
 
     // KPI tiles are plain borders (no button chrome); a click opens the matching page.

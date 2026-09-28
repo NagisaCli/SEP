@@ -6542,5 +6542,179 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("My_GroupEmptyHint", resourceCulture);
             }
         }
+
+        public static string My_Reordered {
+            get {
+                return ResourceManager.GetString("My_Reordered", resourceCulture);
+            }
+        }
+
+        public static string My_DragReorderTooltip {
+            get {
+                return ResourceManager.GetString("My_DragReorderTooltip", resourceCulture);
+            }
+        }
+
+        public static string Drop_ProjectLibrary {
+            get {
+                return ResourceManager.GetString("Drop_ProjectLibrary", resourceCulture);
+            }
+        }
+
+        public static string Drop_PluginArchive {
+            get {
+                return ResourceManager.GetString("Drop_PluginArchive", resourceCulture);
+            }
+        }
+
+        public static string Drop_AddToMine {
+            get {
+                return ResourceManager.GetString("Drop_AddToMine", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SEP Setup.
+        /// </summary>
+        public static string Setup_Title {
+            get {
+                return ResourceManager.GetString("Setup_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SEP {0} is installed in {1}.\nStart it from the Start menu or the desktop shortcut..
+        /// </summary>
+        public static string Setup_Installed {
+            get {
+                return ResourceManager.GetString("Setup_Installed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SEP {0} is installed in {1} and is starting now.\nFrom now on start it from the Start menu or the desktop shortcut..
+        /// </summary>
+        public static string Setup_InstalledStarting {
+            get {
+                return ResourceManager.GetString("Setup_InstalledStarting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SEP has been removed from this PC. Your libraries, projects and settings in %APPDATA%\SEP were kept..
+        /// </summary>
+        public static string Setup_Uninstalled {
+            get {
+                return ResourceManager.GetString("Setup_Uninstalled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove SEP from this PC?\n\nShortcuts and the program folder are removed; your libraries, projects and settings are kept..
+        /// </summary>
+        public static string Setup_UninstallConfirm {
+            get {
+                return ResourceManager.GetString("Setup_UninstallConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SEP is still running and could not be replaced. Close every SEP window and try again..
+        /// </summary>
+        public static string Setup_InUse {
+            get {
+                return ResourceManager.GetString("Setup_InUse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Setup failed: {0}.
+        /// </summary>
+        public static string Setup_Failed {
+            get {
+                return ResourceManager.GetString("Setup_Failed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is held open by a running E3D session and was not removed. Ask the user to leave the project first..
+        /// </summary>
+        public static string Unlock_InUse {
+            get {
+                return ResourceManager.GetString("Unlock_InUse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The folder {0} is a library or also contains other projects, so it was not deleted. Remove the project files by hand if that is really intended..
+        /// </summary>
+        public static string Decommission_DeleteRefused {
+            get {
+                return ResourceManager.GetString("Decommission_DeleteRefused", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Installed for this user in {0}. Update by running a newer Install-SEP.cmd; remove it under Windows Settings &gt; Apps..
+        /// </summary>
+        public static string Settings_InstalledAt {
+            get {
+                return ResourceManager.GetString("Settings_InstalledAt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This copy runs from {0}. SEP is also installed in {1}; install this version over it to update..
+        /// </summary>
+        public static string Settings_RunningOtherCopy {
+            get {
+                return ResourceManager.GetString("Settings_RunningOtherCopy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This copy runs from {0} and is not installed. Install it to get a Start menu and desktop shortcut and a fixed location for the E3D ribbon button..
+        /// </summary>
+        public static string Settings_NotInstalled {
+            get {
+                return ResourceManager.GetString("Settings_NotInstalled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Install on this PC.
+        /// </summary>
+        public static string Settings_Install {
+            get {
+                return ResourceManager.GetString("Settings_Install", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Update installation.
+        /// </summary>
+        public static string Settings_UpdateInstall {
+            get {
+                return ResourceManager.GetString("Settings_UpdateInstall", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copies SEP to your user profile (no administrator rights needed), adds shortcuts and restarts SEP from there. Your data is kept..
+        /// </summary>
+        public static string Settings_InstallTooltip {
+            get {
+                return ResourceManager.GetString("Settings_InstallTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This is a development build (SEP.exe next to SEP.dll). Install from the published single-file SEP.exe built by build.ps1..
+        /// </summary>
+        public static string Setup_NotSingleFile {
+            get {
+                return ResourceManager.GetString("Setup_NotSingleFile", resourceCulture);
+            }
+        }
     }
 }
