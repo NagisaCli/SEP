@@ -6844,29 +6844,56 @@ namespace SEP.App.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Open on this PC: {0} @ {1}.
-        /// </summary>
-        public static string Usage_ThisPc {
-            get {
-                return ResourceManager.GetString("Usage_ThisPc", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to In use. Sessions started in the last 7 days (newest first; each computer's own clock; people who already left may still be listed):.
-        /// </summary>
-        public static string Usage_RecentHeader {
-            get {
-                return ResourceManager.GetString("Usage_RecentHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to … and {0} earlier.
         /// </summary>
         public static string Usage_More {
             get {
                 return ResourceManager.GetString("Usage_More", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to In use: {0} session(s).
+        /// </summary>
+        public static string Usage_ActiveHeader {
+            get {
+                return ResourceManager.GetString("Usage_ActiveHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to (this PC).
+        /// </summary>
+        public static string Usage_ThisPcTag {
+            get {
+                return ResourceManager.GetString("Usage_ThisPcTag", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to since {0}.
+        /// </summary>
+        public static string Usage_Since {
+            get {
+                return ResourceManager.GetString("Usage_Since", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Still marked as in, but started days ago; E3D probably crashed there (Admin &gt; Expunge clears these):.
+        /// </summary>
+        public static string Usage_StaleHeader {
+            get {
+                return ResourceManager.GetString("Usage_StaleHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Start times are in each computer's own clock..
+        /// </summary>
+        public static string Usage_ClockNote {
+            get {
+                return ResourceManager.GetString("Usage_ClockNote", resourceCulture);
             }
         }
     }

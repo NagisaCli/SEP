@@ -2323,7 +2323,7 @@ Save them anyway?</value>
   <data name="Setup_NotSingleFile" xml:space="preserve"><value>This is a development build (SEP.exe next to SEP.dll). Install from the published single-file SEP.exe built by build.ps1.</value></data>
   <data name="Usage_CheckOne" xml:space="preserve"><value>Check who is in this project</value></data>
   <data name="Usage_CheckAll" xml:space="preserve"><value>Who is in</value></data>
-  <data name="Usage_CheckAllTooltip" xml:space="preserve"><value>Check every project now: in use or free, and the recent E3D logins of the ones in use. Runs only when you click; nothing is written on the server.</value></data>
+  <data name="Usage_CheckAllTooltip" xml:space="preserve"><value>Check every project now: in use or free, and who is in the ones in use (read from E3D's own session register). Runs only when you click; nothing is written on the server.</value></data>
   <data name="Usage_CheckLibraryTooltip" xml:space="preserve"><value>Check who is in the projects of this library (runs only when you click)</value></data>
   <data name="Usage_CheckGroupTooltip" xml:space="preserve"><value>Check who is in the projects of this group (runs only when you click)</value></data>
   <data name="Usage_Checking" xml:space="preserve"><value>Checking {0} project(s)…</value></data>
@@ -2331,11 +2331,14 @@ Save them anyway?</value>
   <data name="Usage_OneInUse" xml:space="preserve"><value>{0} is in use: {1}</value></data>
   <data name="Usage_OneFree" xml:space="preserve"><value>{0} is free — nobody has it open.</value></data>
   <data name="Usage_OneUnknown" xml:space="preserve"><value>{0} could not be checked (server unreachable or database folder not found).</value></data>
-  <data name="Usage_InUseUnknown" xml:space="preserve"><value>In use (the session register could not be read)</value></data>
+  <data name="Usage_InUseUnknown" xml:space="preserve"><value>In use, but E3D's session register names nobody (it could not be read)</value></data>
   <data name="Usage_CheckedAt" xml:space="preserve"><value>Checked at {0}</value></data>
   <data name="Usage_FreeBadge" xml:space="preserve"><value>Free</value></data>
   <data name="Usage_InUseBadge" xml:space="preserve"><value>In use</value></data>
-  <data name="Usage_ThisPc" xml:space="preserve"><value>Open on this PC: {0} @ {1}</value></data>
-  <data name="Usage_RecentHeader" xml:space="preserve"><value>In use. Sessions started in the last 7 days (newest first; each computer's own clock; people who already left may still be listed):</value></data>
-  <data name="Usage_More" xml:space="preserve"><value>… and {0} earlier</value></data>
+  <data name="Usage_More" xml:space="preserve"><value>… and {0} more</value></data>
+  <data name="Usage_ActiveHeader" xml:space="preserve"><value>In use: {0} session(s)</value></data>
+  <data name="Usage_ThisPcTag" xml:space="preserve"><value>(this PC)</value></data>
+  <data name="Usage_Since" xml:space="preserve"><value>since {0}</value></data>
+  <data name="Usage_StaleHeader" xml:space="preserve"><value>Still marked as in, but started days ago; E3D probably crashed there (Admin &gt; Expunge clears these):</value></data>
+  <data name="Usage_ClockNote" xml:space="preserve"><value>Start times are in each computer's own clock.</value></data>
 </root>

@@ -69,9 +69,12 @@ Guest, so SEP keeps its footprint small:
   *Who is in* on the Project Workbench (all projects) and *Who is online* on My Projects check other people too —
   only when clicked, never on a timer. Per project SEP opens `<code>000\<code>sys` read-only without sharing: the
   file server refuses that while any E3D session holds the project, so the project is reported *in use* without a
-  handle being created (when free, the file is held for a few milliseconds). For projects in use, the recent logins
-  E3D recorded in `<code>com` (Windows user, computer, start time; last 14 days) are listed in the badge tooltip.
-  Nothing is written on the server.
+  handle being created (when free, the file is held for a few milliseconds). For projects in use, the sessions still
+  running are read from E3D's own session register in `<code>com`: each record carries the Windows user, computer
+  and start time (in that computer's clock) and, while the session runs, the list of databases it has open, which
+  E3D clears when the session ends. The badge shows how many sessions are running and its tooltip who they are.
+  Records of this PC are checked against its live E3D processes; records of other PCs still marked as running after
+  3 days are listed apart as probably crashed (*Admin > Expunge* clears them). Nothing is written on the server.
 
 ## Optional Live launch
 

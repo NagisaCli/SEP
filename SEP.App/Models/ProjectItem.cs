@@ -9,10 +9,11 @@ namespace SEP.App.Models;
 public sealed record CategoryInfo(string Id, string Name, string Color);
 
 /// <summary>
-/// Someone in a project: Source "local" = open in E3D on this PC (from the local handle table), "e3d" = a login
-/// recorded in the project's E3D session register (read by a manual usage check).
+/// Someone in a project: Source "local" = open in E3D on this PC (from the local handle table), "e3d" = a running
+/// session in the project's E3D session register (read by a manual usage check). Stale = still marked as running but
+/// started so long ago that its E3D probably crashed.
 /// </summary>
-public sealed record ProjectSession(string User, string Computer, string Source, bool IsThisDevice, DateTime? Since);
+public sealed record ProjectSession(string User, string Computer, string Source, bool IsThisDevice, DateTime? Since, bool Stale = false);
 
 /// <summary>Outcome of the last manual "who is in this project" check.</summary>
 public enum UsageState { Unknown, Free, InUse, Unreachable }
@@ -112,6 +113,7 @@ public partial class ProjectItem : ObservableObject
 
     /// <summary>People connected right now (SEP heartbeats and lock owners); empty until probed.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(People))]
     [NotifyPropertyChangedFor(nameof(OnlineCount))]
     [NotifyPropertyChangedFor(nameof(OnlineBadgeText))]
     [NotifyPropertyChangedFor(nameof(IsOnline))]
@@ -123,6 +125,7 @@ public partial class ProjectItem : ObservableObject
 
     /// <summary>Result of the last manual usage check (never set automatically).</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(People))]
     [NotifyPropertyChangedFor(nameof(OnlineCount))]
     [NotifyPropertyChangedFor(nameof(OnlineBadgeText))]
     [NotifyPropertyChangedFor(nameof(IsOnline))]
@@ -134,9 +137,11 @@ public partial class ProjectItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(OnlineSummary))]
     private DateTime? _usageCheckedAt;
 
-    /// <summary>Logins E3D recorded for the project, newest first; only filled while the project is in use.</summary>
+    /// <summary>Sessions E3D marks as running in the project, newest first; only filled while the project is in use.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(People))]
     [NotifyPropertyChangedFor(nameof(OnlineCount))]
+    [NotifyPropertyChangedFor(nameof(OnlineBadgeText))]
     [NotifyPropertyChangedFor(nameof(OnlineSummary))]
     private IReadOnlyList<ProjectSession> _usageLogins = Array.Empty<ProjectSession>();
 
@@ -157,43 +162,66 @@ public partial class ProjectItem : ObservableObject
     public bool HasStatus => Status.Length > 0;
     public bool HasCategory => Category != null;
     /// <summary>
-    /// Sessions known for certain: this PC's own. A manual check that finds the project in use proves at least one
-    /// session but not how many — E3D's register also keeps sessions that already ended.
+    /// Sessions in the project: the running ones a manual check read from E3D's register while the project was in
+    /// use, plus this PC's own when the register did not list them (or no check ran).
     /// </summary>
-    public int OnlineCount => Usage == UsageState.InUse ? Math.Max(1, Sessions.Count) : Sessions.Count;
+    public IReadOnlyList<ProjectSession> People
+    {
+        get
+        {
+            var running = Usage == UsageState.InUse ? UsageLogins.Where(l => !l.Stale).ToList() : new List<ProjectSession>();
+            if (!running.Any(r => r.IsThisDevice)) running.InsertRange(0, Sessions);
+            return running;
+        }
+    }
 
-    /// <summary>Badge text: the number of this PC's sessions, or "In use" when a check found other sessions too.</summary>
-    public string OnlineBadgeText => Usage == UsageState.InUse && Sessions.Count == 0 ? Resources.Strings.Usage_InUseBadge : OnlineCount.ToString();
+    public int OnlineCount => Usage == UsageState.InUse ? Math.Max(1, People.Count) : Sessions.Count;
+
+    /// <summary>Badge text: the number of sessions, or "In use" when a check found the project in use but nobody named.</summary>
+    public string OnlineBadgeText => Usage == UsageState.InUse && People.Count == 0 ? Resources.Strings.Usage_InUseBadge : OnlineCount.ToString();
 
     public bool IsOnline => Sessions.Count > 0 || Usage == UsageState.InUse;
     public bool IsUsageFree => Usage == UsageState.Free;
 
     /// <summary>
-    /// Tooltip: this PC's sessions (certain), then — when a check found the project in use — the sessions E3D
-    /// recorded as started recently, newest first (who may be in; start times in each computer's own clock).
+    /// Tooltip: who is in (user @ computer, since when), then sessions still marked as running but so old that
+    /// their E3D probably crashed, then when the check ran.
     /// </summary>
     public string OnlineSummary
     {
         get
         {
             var lines = new List<string>();
-            foreach (var s in Sessions)
-                lines.Add(string.Format(Resources.Strings.Usage_ThisPc, s.User, s.Computer));
+            var people = People;
+            if (people.Count > 0)
+            {
+                lines.Add(string.Format(Resources.Strings.Usage_ActiveHeader, people.Count));
+                foreach (var s in people.Take(12)) lines.Add(PersonLine(s));
+                if (people.Count > 12) lines.Add("  " + string.Format(Resources.Strings.Usage_More, people.Count - 12));
+            }
+            else if (Usage == UsageState.InUse) lines.Add(Resources.Strings.Usage_InUseUnknown);
             if (Usage == UsageState.InUse)
             {
-                var recent = UsageLogins.Where(l => !Sessions.Any(s => s.IsThisDevice && l.IsThisDevice)).ToList();
-                if (recent.Count == 0 && Sessions.Count == 0) lines.Add(Resources.Strings.Usage_InUseUnknown);
-                if (recent.Count > 0)
+                var stale = UsageLogins.Where(l => l.Stale).ToList();
+                if (stale.Count > 0)
                 {
-                    lines.Add(Resources.Strings.Usage_RecentHeader);
-                    foreach (var l in recent.Take(6))
-                        lines.Add($"  {l.User} @ {l.Computer}  {l.Since:dd MMM HH:mm}");
-                    if (recent.Count > 6) lines.Add("  " + string.Format(Resources.Strings.Usage_More, recent.Count - 6));
+                    lines.Add(Resources.Strings.Usage_StaleHeader);
+                    foreach (var s in stale.Take(6)) lines.Add(PersonLine(s));
+                    if (stale.Count > 6) lines.Add("  " + string.Format(Resources.Strings.Usage_More, stale.Count - 6));
                 }
+                if (UsageLogins.Any(l => !l.IsThisDevice)) lines.Add(Resources.Strings.Usage_ClockNote);
             }
             if (UsageCheckedAt is { } at) lines.Add(string.Format(Resources.Strings.Usage_CheckedAt, at.ToString("HH:mm")));
             return string.Join("\n", lines);
         }
+    }
+
+    private static string PersonLine(ProjectSession s)
+    {
+        string line = $"  {s.User} @ {s.Computer}";
+        if (s.IsThisDevice) line += " " + Resources.Strings.Usage_ThisPcTag;
+        if (s.Since is { } since) line += "  " + string.Format(Resources.Strings.Usage_Since, since.ToString("dd MMM HH:mm"));
+        return line;
     }
 
     /// <summary>Badge text: the project code when known, otherwise the first letters of the name.</summary>

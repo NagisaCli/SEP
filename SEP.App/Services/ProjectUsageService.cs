@@ -22,16 +22,18 @@ public sealed record UsageSummary(int Checked, int InUse, int Free, int Unreacha
 ///     session in the project holds that file open, so the file server refuses the open while anybody is in —
 ///     without a handle being created, so nobody is disturbed. When the project is free the file is held for a few
 ///     milliseconds only.
-///  2. Who: every AVEVA program that enters the project (Design, Draw, Admin, batch adm.exe, …) leaves a record
-///     in the project's communications database (&lt;code&gt;com): process tag "X&lt;hex pid&gt;-&lt;computer&gt;",
-///     Windows user (lower and upper case), computer, and start time "HH:mm dd MMM" in that computer's own clock.
-///     Records stay after the session ends and carry no module name, so they are shown as "sessions started
-///     recently" — who may be in — and only while step 1 says the project is in use.
+///  2. Who: every AVEVA program that enters the project leaves a record in the project's communications database
+///     (&lt;code&gt;com): process tag "X&lt;hex pid&gt;-&lt;computer&gt;", Windows user, computer and start time
+///     "HH:mm dd MMM" in that computer's own clock. While the session runs, the record also lists the databases it
+///     has open; E3D clears that list when the session ends, so records with a list are the sessions still running.
+///     A session whose E3D crashed keeps its list until an administrator expunges it: records of this PC are
+///     checked against the live processes, records of other PCs older than <see cref="StaleAfter"/> are shown apart
+///     as "probably left without closing E3D".
 /// </summary>
 public sealed class ProjectUsageService
 {
     private static readonly TimeSpan PerProjectDeadline = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan LoginWindow = TimeSpan.FromDays(7);   // older register records are ended sessions
+    private static readonly TimeSpan StaleAfter = TimeSpan.FromDays(3);   // still-marked sessions older than this probably crashed
     private const int MaxRegisterBytes = 32 * 1024 * 1024;
     private const int SharingViolation = 32, LockViolation = 33;
     private static readonly Regex TagRe = new(@"^X[0-9A-Fa-f]{2,8}-[A-Za-z0-9_.\-]+$", RegexOptions.Compiled);
@@ -191,15 +193,17 @@ public sealed class ProjectUsageService
     }
 
     /// <summary>
-    /// Records are runs of 36-byte slots, each a big-endian length and up to 32 ASCII bytes (bytes after the length
-    /// are left-overs of older, longer values): process tag "X&lt;hex pid&gt;-&lt;computer&gt;", Windows user,
-    /// Windows user in upper case, computer, start time "HH:mm dd MMM".
+    /// A session record starts with runs of 36-byte slots, each a big-endian length and up to 32 bytes of text in the
+    /// writing computer's ANSI code page (bytes after the length are left-overs of older, longer values): process tag
+    /// "X&lt;hex pid&gt;-&lt;computer&gt;" at T, Windows user at T+32, the same in upper case at T+68, computer at
+    /// T+104, start time "HH:mm dd MMM" at T+140. The session's open databases are listed from T+196 (pairs of
+    /// big-endian integers) with their number at T+256; both are zero once the session has ended.
     /// </summary>
     internal static IReadOnlyList<ProjectSession> ParseRegister(byte[] data, DateTime now)
     {
-        var found = new List<ProjectSession>();
+        var found = new Dictionary<string, ProjectSession>(StringComparer.OrdinalIgnoreCase);
         string me = Environment.MachineName;
-        for (int i = 4; i + 180 < data.Length; i++)
+        for (int i = 4; i + 260 < data.Length; i++)
         {
             if (data[i] != (byte)'X') continue;
             string? tag = Slot(data, i - 4);
@@ -209,16 +213,44 @@ public sealed class ProjectUsageService
             if (string.IsNullOrEmpty(computer)) computer = tag[(tag.IndexOf('-') + 1)..];
             string? time = Slot(data, i + 140);
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(computer) || time == null) continue;
+            bool running = IsRunning(data, i);
+            i += 255;
+            if (!running) continue;
+
             DateTime? since = ParseTime(time, now);
-            if (since == null || now - since.Value > LoginWindow) continue;
-            found.Add(new ProjectSession(user, computer, "e3d", string.Equals(computer, me, StringComparison.OrdinalIgnoreCase), since));
-            i += 175;
+            bool thisPc = string.Equals(computer, me, StringComparison.OrdinalIgnoreCase);
+            bool stale = false;
+            if (thisPc)
+            {
+                if (!IsLocalProcessAlive(tag)) continue;   // exact for this PC: a crashed session of ours is not counted
+            }
+            else stale = since == null || now - since.Value > StaleAfter;
+            found[tag] = new ProjectSession(user, computer, "e3d", thisPc, since, stale);
         }
-        return found
-            .OrderByDescending(s => s.Since)
-            .GroupBy(s => $"{s.User}@{s.Computer}".ToLowerInvariant())
-            .Select(g => g.First())
-            .ToList();
+        return found.Values.OrderBy(s => s.Stale).ThenByDescending(s => s.Since).ToList();
+    }
+
+    /// <summary>True while the record still lists open databases (E3D clears the list when the session ends).</summary>
+    private static bool IsRunning(byte[] data, int tag)
+    {
+        for (int k = tag + 196; k < tag + 212; k++) if (data[k] != 0) return true;
+        return (data[tag + 256] | data[tag + 257] | data[tag + 258] | data[tag + 259]) != 0;
+    }
+
+    /// <summary>The tag's pid (E3D's console process) still runs on this PC.</summary>
+    private static bool IsLocalProcessAlive(string tag)
+    {
+        int dash = tag.IndexOf('-');
+        if (dash < 2 || !int.TryParse(tag[1..dash], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int pid)) return false;
+        try
+        {
+            using var p = System.Diagnostics.Process.GetProcessById(pid);
+            return !p.HasExited;
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return false;
+        }
     }
 
     private static string? Slot(byte[] data, int at)
@@ -226,12 +258,16 @@ public sealed class ProjectUsageService
         if (at < 0 || at + 36 > data.Length) return null;
         int len = (data[at] << 24) | (data[at + 1] << 16) | (data[at + 2] << 8) | data[at + 3];
         if (len < 0 || len > 32) return null;
+        bool ascii = true;
         for (int k = 0; k < len; k++)
         {
             byte c = data[at + 4 + k];
-            if (c < 0x20 || c > 0x7E) return null;
+            if (c < 0x20 || c == 0x7F) return null;
+            if (c > 0x7F) ascii = false;
         }
-        return Encoding.ASCII.GetString(data, at + 4, len).Trim();
+        if (ascii) return Encoding.ASCII.GetString(data, at + 4, len).Trim();
+        try { return SepPaths.Gbk.GetString(data, at + 4, len).Trim(); }   // Chinese Windows account names
+        catch (ArgumentException) { return Encoding.Latin1.GetString(data, at + 4, len).Trim(); }
     }
 
     /// <summary>"01:46 28 Sep" (no year): this year, or last year when that would lie in the future.</summary>
