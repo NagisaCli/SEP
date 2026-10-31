@@ -46,4 +46,22 @@
     <ProjectReference Include="..\ADMIN\E3dAdmin\E3dAdmin.csproj" />
   </ItemGroup>
 
+  <!--
+    The E3D plug-in panel add-in (..\SEP.PluginPanel, net48/x86) travels inside SEP.exe; SEP deploys it into the E3D
+    folder. It is built here in its own process (other target framework and platform). Where E3D is not installed
+    it builds without its CAF entry point and SEP falls back to the classic ribbon.
+  -->
+  <PropertyGroup>
+    <PluginPanelProject>$(MSBuildThisFileDirectory)..\SEP.PluginPanel\SEP.PluginPanel.csproj</PluginPanelProject>
+    <PluginPanelDll>$(MSBuildThisFileDirectory)..\SEP.PluginPanel\bin\Release\net48\SEP.PluginPanel.dll</PluginPanelDll>
+  </PropertyGroup>
+  <Target Name="BuildPluginPanel" BeforeTargets="BeforeBuild" Condition="'$(DesignTimeBuild)' != 'true' And Exists('$(PluginPanelProject)')">
+    <Exec Command="dotnet build &quot;$(PluginPanelProject)&quot; -c Release -nologo -v q" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(PluginPanelDll)" LogicalName="SEP.PluginPanel.dll" Condition="Exists('$(PluginPanelDll)')" />
+      <!-- the ribbon's own icons (scripts\Build-RibbonIcons.ps1), deployed next to the add-in -->
+      <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\SEP.PluginPanel\Assets\SEPIcons.resources" LogicalName="SEPIcons.resources" Condition="Exists('$(MSBuildThisFileDirectory)..\SEP.PluginPanel\Assets\SEPIcons.resources')" />
+    </ItemGroup>
+  </Target>
+
 </Project>

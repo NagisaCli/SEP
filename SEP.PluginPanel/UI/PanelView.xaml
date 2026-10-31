@@ -1,0 +1,1119 @@
+<UserControl x:Class="SEP.PluginPanel.UI.PanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="clr-namespace:SEP.PluginPanel.Model"
+             xmlns:ui="clr-namespace:SEP.PluginPanel.UI"
+             FontFamily="Segoe UI" FontSize="12"
+             Background="{DynamicResource PanelBg}" Foreground="{DynamicResource Text}"
+             UseLayoutRounding="True" SnapsToDevicePixels="True"
+             TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <ui:InverseBoolToVisibility x:Key="NotBoolToVis" />
+        <ui:HexToBrush x:Key="HexToBrush" />
+        <ui:CountToVisibility x:Key="CountToVis" />
+        <FontFamily x:Key="Icons">Segoe MDL2 Assets</FontFamily>
+
+        <!-- ── basic text ──────────────────────────────────────────────────────── -->
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource Text3}" />
+            <Setter Property="Margin" Value="2,0,0,6" />
+        </Style>
+        <Style x:Key="Muted" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="{DynamicResource Surface}" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="MaxWidth" Value="320" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter>
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap" /></Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── icon buttons (header, card chrome) ─────────────────────────────────── -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform><ScaleTransform x:Name="Scale" /></Grid.RenderTransform>
+                            <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Hover}" Opacity="0" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="0.9" Duration="0:0:0.07" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="0.9" Duration="0:0:0.07" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.35" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="IconToggle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid Background="Transparent">
+                            <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Hover}" Opacity="0" />
+                            <Border x:Name="On" CornerRadius="6" Background="{DynamicResource AccentSoft}" Opacity="0" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="On" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="On" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── text buttons ────────────────────────────────────────────────────── -->
+        <Style x:Key="TextButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Background" Value="{DynamicResource Surface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border}" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" />
+                            <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Hover}" Opacity="0" />
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0.7" Duration="0:0:0.12" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource TextButton}">
+            <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+        </Style>
+        <Style x:Key="LinkButton" TargetType="ButtonBase">
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ButtonBase">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="5" Padding="4,3">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── command tile (a plug-in's button) ───────────────────────────────── -->
+        <Style x:Key="ActionTile" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform><ScaleTransform x:Name="Scale" /></Grid.RenderTransform>
+                            <Border CornerRadius="8" Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Border}" BorderThickness="1" />
+                            <Border x:Name="Hover" CornerRadius="8" Background="{DynamicResource AccentSoft}" BorderBrush="{DynamicResource Accent}" BorderThickness="1" Opacity="0" />
+                            <ContentPresenter Margin="7,6,8,6" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.13" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="0.96" Duration="0:0:0.07" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="0.96" Duration="0:0:0.07" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- a row in "More", in search results -->
+        <Style x:Key="ActionRow" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Hover}" Opacity="0" />
+                            <Border x:Name="Sel" CornerRadius="6" Background="{DynamicResource AccentSoft}" BorderBrush="{DynamicResource Accent}" BorderThickness="1" Opacity="0" />
+                            <ContentPresenter Margin="6,5" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="selected">
+                                <Setter TargetName="Sel" Property="Opacity" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- quick-access chip -->
+        <Style x:Key="Chip" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform><ScaleTransform x:Name="Scale" /></Grid.RenderTransform>
+                            <Border CornerRadius="14" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Border}" BorderThickness="1" />
+                            <Border x:Name="Hover" CornerRadius="14" Background="{DynamicResource AccentSoft}" BorderBrush="{DynamicResource Accent}" BorderThickness="1" Opacity="0" />
+                            <ContentPresenter Margin="5,4,10,4" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="0.95" Duration="0:0:0.07" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="0.95" Duration="0:0:0.07" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- keyboard shortcut label -->
+        <Style x:Key="KeyLabel" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource NeutralSoft}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="4,0,4,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="KeyText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+        </Style>
+
+        <!-- command icon in a soft square -->
+        <Style x:Key="ActionIcon" TargetType="Border">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- ── search box ──────────────────────────────────────────────────────── -->
+        <Style x:Key="SearchBox" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" CornerRadius="8" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Border}" BorderThickness="1" Height="34">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="32" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="Icon" Text="&#xE721;" Style="{StaticResource Glyph}" Foreground="{DynamicResource Text3}" />
+                                <TextBlock x:Name="Placeholder" Grid.Column="1" Text="Search plug-ins and commands" Foreground="{DynamicResource Text3}" VerticalAlignment="Center" Margin="2,0,0,0" IsHitTestVisible="False" Visibility="Collapsed" />
+                                <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" Focusable="False" />
+                                <Button x:Name="Clear" Grid.Column="2" Style="{StaticResource IconButton}" Width="26" Height="26" Margin="0,0,4,0" FontSize="10" Content="&#xE711;" ToolTip="Clear (Esc)" Click="OnClearSearch" Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Icon" Property="Foreground" Value="{DynamicResource Accent}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsSearching}" Value="True">
+                                <Setter TargetName="Clear" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- inline text field (customize mode) -->
+        <Style x:Key="FieldBox" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" CornerRadius="6" Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Border}" BorderThickness="1" Padding="5,3" MinHeight="26">
+                            <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Focusable="False" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Surface}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- check box: a small rounded square -->
+        <Style x:Key="Check" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Width="18" Height="18" Background="Transparent">
+                            <Border x:Name="Box" CornerRadius="5" BorderThickness="1.5" BorderBrush="{DynamicResource BorderStrong}" Background="{DynamicResource Surface}" />
+                            <Border x:Name="Fill" CornerRadius="5" Background="{DynamicResource Accent}" Opacity="0" />
+                            <TextBlock x:Name="Mark" Text="&#xE73E;" Style="{StaticResource Glyph}" FontSize="10" Foreground="{DynamicResource OnAccent}" Opacity="0" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Fill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="Mark" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Fill" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="Mark" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.35" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- segmented choice: Buttons | Status only | Hidden -->
+        <Style x:Key="Segment" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="On" CornerRadius="6" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Border}" BorderThickness="1" Opacity="0" />
+                            <ContentPresenter Margin="10,4" HorizontalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="On" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="On" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- shortcut recorder button: "Add shortcut" / "Ctrl+K" / "Press keys…" -->
+        <Style x:Key="ShortcutButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="MinWidth" Value="74" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Bd" CornerRadius="6" Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Border}" BorderThickness="1" />
+                            <Border x:Name="Rec" CornerRadius="6" Background="{DynamicResource AccentSoft}" BorderBrush="{DynamicResource Accent}" BorderThickness="1.5" Opacity="0" />
+                            <ContentPresenter Margin="7,4" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="recording">
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="Pulse"><Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetName="Rec" Storyboard.TargetProperty="Opacity" From="0.45" To="1" Duration="0:0:0.6" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="Pulse" />
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── status pill ─────────────────────────────────────────────────────── -->
+        <Style x:Key="StatePill" TargetType="Border">
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Padding" Value="6,1,8,1" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Background" Value="{DynamicResource NeutralSoft}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource Neutral}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding State}" Value="{x:Static m:PluginState.Ready}">
+                    <Setter Property="Background" Value="{DynamicResource SuccessSoft}" />
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource Success}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding State}" Value="{x:Static m:PluginState.NotLoaded}">
+                    <Setter Property="Background" Value="{DynamicResource WarningSoft}" />
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource Warning}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding State}" Value="{x:Static m:PluginState.Missing}">
+                    <Setter Property="Background" Value="{DynamicResource DangerSoft}" />
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource Danger}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StateDot" TargetType="Ellipse">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Margin" Value="0,1,5,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Fill" Value="{Binding (TextElement.Foreground), RelativeSource={RelativeSource AncestorType=Border}}" />
+        </Style>
+
+        <!-- ── card ────────────────────────────────────────────────────────────── -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="12,10,10,10" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- chevron that turns when its card collapses -->
+        <Style x:Key="Chevron" TargetType="TextBlock" BasedOn="{StaticResource Glyph}">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="-90" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation></Storyboard></BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation></Storyboard></BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- chevron of "More": points up while the list is open -->
+        <Style x:Key="ChevronFlip" TargetType="TextBlock" BasedOn="{StaticResource Glyph}">
+            <Setter Property="FontSize" Value="8" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation></Storyboard></BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation></Storyboard></BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ── menus (built in code, see PanelView.NewMenu) ────────────────────── -->
+        <Style x:Key="PanelMenu" TargetType="ContextMenu">
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="HasDropShadow" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Margin="2,2,12,12" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource BorderStrong}" BorderThickness="1" CornerRadius="8" Padding="0,4" MinWidth="210">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.22" Color="Black" />
+                            </Border.Effect>
+                            <ItemsPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PanelMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Grid Background="Transparent" MinHeight="30">
+                            <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Hover}" Opacity="0" Margin="4,1" />
+                            <Grid Margin="10,0,14,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter ContentSource="Icon" TextElement.FontFamily="Segoe MDL2 Assets" TextElement.FontSize="12"
+                                                  TextElement.Foreground="{DynamicResource Text2}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="False" Margin="8,0,12,0" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource Text3}" FontSize="10.5" VerticalAlignment="Center" />
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PanelMenuSeparator" TargetType="Separator">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Margin="10,4" Background="{DynamicResource Border}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── templates ───────────────────────────────────────────────────────── -->
+
+        <!-- a plug-in's button -->
+        <DataTemplate x:Key="TileTemplate" DataType="{x:Type m:PanelAction}">
+            <Button Style="{StaticResource ActionTile}" Click="OnRunAction" MouseRightButtonUp="OnActionMenu" ToolTip="{Binding ToolTipText}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource ActionIcon}">
+                        <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" Foreground="{DynamicResource Accent}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Caption}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Shortcut}" FontSize="10" Foreground="{DynamicResource Text3}" Margin="0,1,0,0"
+                                   Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="&#xE718;" Style="{StaticResource Glyph}" FontSize="9" Foreground="{DynamicResource Text3}"
+                               HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-3,0" Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <!-- a row under "More" -->
+        <DataTemplate x:Key="RowTemplate" DataType="{x:Type m:PanelAction}">
+            <Button Style="{StaticResource ActionRow}" Click="OnRunAction" MouseRightButtonUp="OnActionMenu" ToolTip="{Binding ToolTipText}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="22" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" Foreground="{DynamicResource Text2}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Caption}" Margin="6,0,6,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Style="{StaticResource KeyLabel}" Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding Shortcut}" Style="{StaticResource KeyText}" />
+                    </Border>
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <!-- quick access chip -->
+        <DataTemplate x:Key="ChipTemplate" DataType="{x:Type m:PanelAction}">
+            <Button Style="{StaticResource Chip}" Click="OnRunAction" MouseRightButtonUp="OnActionMenu" ToolTip="{Binding ToolTipText}">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource AccentSoft}">
+                        <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" FontSize="10" Foreground="{DynamicResource Accent}" />
+                    </Border>
+                    <TextBlock Text="{Binding Caption}" Margin="6,0,0,0" VerticalAlignment="Center" MaxWidth="150" TextTrimming="CharacterEllipsis" />
+                    <Border Style="{StaticResource KeyLabel}" Margin="6,0,0,0" Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding Shortcut}" Style="{StaticResource KeyText}" />
+                    </Border>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- search result -->
+        <DataTemplate x:Key="ResultTemplate" DataType="{x:Type m:PanelAction}">
+            <Button Style="{StaticResource ActionRow}" Click="OnRunAction" MouseRightButtonUp="OnActionMenu" ToolTip="{Binding ToolTipText}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource ActionIcon}" Width="28" Height="28" CornerRadius="7">
+                        <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" FontSize="13" Foreground="{DynamicResource Accent}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="9,0,6,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Caption}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Plugin.DisplayName}" FontSize="10.5" Foreground="{DynamicResource Text3}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Border Grid.Column="2" Style="{StaticResource KeyLabel}" Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding Shortcut}" Style="{StaticResource KeyText}" />
+                    </Border>
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <!-- one plug-in, normal use -->
+        <DataTemplate x:Key="CardTemplate" DataType="{x:Type m:PluginCard}">
+            <Border Style="{StaticResource Card}" ui:Motion.Enter="True" MouseRightButtonUp="OnCardMenu">
+                <Border.RenderTransform><TranslateTransform /></Border.RenderTransform>
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="32" Height="32" CornerRadius="8" Background="{Binding AvatarColor, Converter={StaticResource HexToBrush}}" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Initials}" Foreground="White" FontWeight="Bold" FontSize="11.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,6,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding Description}" />
+                            <Border Style="{StaticResource StatePill}" Margin="0,3,0,0" ToolTip="{Binding StateDetail}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Style="{StaticResource StateDot}" />
+                                    <TextBlock Text="{Binding StateText}" FontSize="10.5" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
+                            <Button Style="{StaticResource IconButton}" Content="&#xE712;" ToolTip="Commands and options" Click="OnCardMenuButton" />
+                            <ToggleButton Style="{StaticResource IconToggle}" IsChecked="{Binding IsCollapsed}" ToolTip="Collapse or expand">
+                                <TextBlock Text="&#xE70D;" Style="{StaticResource Chevron}">
+                                    <TextBlock.RenderTransform><RotateTransform /></TextBlock.RenderTransform>
+                                </TextBlock>
+                            </ToggleButton>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Visibility="{Binding IsCollapsed, Converter={StaticResource NotBoolToVis}}" ui:Motion.Reveal="True">
+                        <StackPanel.RenderTransform><TranslateTransform /></StackPanel.RenderTransform>
+
+                        <!-- status only: what it does, no buttons -->
+                        <StackPanel Visibility="{Binding IsStatusOnly, Converter={StaticResource BoolToVis}}" Margin="0,8,0,0">
+                            <TextBlock Text="{Binding Description}" Style="{StaticResource Muted}" Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                            <Button Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="-4,3,0,0" Click="OnCardMenuButton"
+                                    Visibility="{Binding HasActions, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Commands" FontSize="11.5" />
+                                    <TextBlock Text="&#xE70D;" Style="{StaticResource Glyph}" FontSize="8" Margin="5,1,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- buttons -->
+                        <ItemsControl ItemsSource="{Binding ButtonActions}" ItemTemplate="{StaticResource TileTemplate}" Margin="0,10,-6,-6"
+                                      Visibility="{Binding ButtonActions.Count, Converter={StaticResource CountToVis}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><UniformGrid Columns="{Binding ButtonColumns}" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+                        <ToggleButton Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="-4,6,0,0" IsChecked="{Binding ShowMore}"
+                                      Visibility="{Binding MoreCount, Converter={StaticResource CountToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontSize="11.5">
+                                    <Run Text="More" /><Run Text=" (" /><Run Text="{Binding MoreCount, Mode=OneWay}" /><Run Text=")" />
+                                </TextBlock>
+                                <TextBlock Text="&#xE70D;" Style="{StaticResource ChevronFlip}" Margin="5,1,0,0">
+                                    <TextBlock.RenderTransform><RotateTransform /></TextBlock.RenderTransform>
+                                </TextBlock>
+                            </StackPanel>
+                        </ToggleButton>
+                        <ItemsControl ItemsSource="{Binding MoreActions}" ItemTemplate="{StaticResource RowTemplate}" Margin="-6,2,0,0"
+                                      Visibility="{Binding ShowMore, Converter={StaticResource BoolToVis}}" ui:Motion.Reveal="True">
+                            <ItemsControl.RenderTransform><TranslateTransform /></ItemsControl.RenderTransform>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- one command, customize mode -->
+        <DataTemplate x:Key="EditRowTemplate" DataType="{x:Type m:PanelAction}">
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Style="{StaticResource Check}" IsChecked="{Binding IsVisible}" VerticalAlignment="Center" Margin="0,0,8,0"
+                          IsEnabled="{Binding Plugin.IsButtons}" ToolTip="Show as a button (otherwise under More)" />
+                <TextBox Grid.Column="1" Style="{StaticResource FieldBox}" Text="{Binding Caption}" ToolTip="{Binding ToolTipText}" />
+                <Button Grid.Column="2" Margin="6,0,0,0" Click="OnRecordShortcut" MouseRightButtonUp="OnClearShortcut"
+                        ToolTip="Click, then press the keys (Ctrl or Alt with a key, or F1–F12; not keys E3D or Windows already use). Backspace removes it, Esc cancels. Right-click removes it.">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ShortcutButton}">
+                            <Setter Property="Content" Value="{Binding Shortcut}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasShortcut}" Value="False">
+                                    <Setter Property="Content" Value="+ Shortcut" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                                    <Setter Property="Content" Value="Press keys…" />
+                                    <Setter Property="Tag" Value="recording" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <ToggleButton Grid.Column="3" Style="{StaticResource IconToggle}" Width="24" Margin="3,0,0,0" IsChecked="{Binding IsPinned}"
+                              ToolTip="Pin to Quick access" Content="&#xE718;" />
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="2,0,0,0">
+                    <Button Style="{StaticResource IconButton}" Width="18" FontSize="9" Content="&#xE70E;" ToolTip="Move up" Click="OnMoveActionUp" />
+                    <Button Style="{StaticResource IconButton}" Width="18" FontSize="9" Content="&#xE70D;" ToolTip="Move down" Click="OnMoveActionDown" />
+                    <Button Style="{StaticResource IconButton}" Width="24" FontSize="11" Content="&#xE74D;" ToolTip="Delete this command" Click="OnDeleteCustom"
+                            Visibility="{Binding IsCustom, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
+                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource FieldBox}" Margin="0,4,0,0" FontFamily="Consolas" FontSize="11"
+                         Text="{Binding Command}" ToolTip="PML command line"
+                         Visibility="{Binding IsCustom, Converter={StaticResource BoolToVis}}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- one plug-in, customize mode -->
+        <DataTemplate x:Key="EditCardTemplate" DataType="{x:Type m:PluginCard}">
+            <Border Style="{StaticResource Card}" ui:Motion.Enter="True">
+                <Border.RenderTransform><TranslateTransform /></Border.RenderTransform>
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28" CornerRadius="7" Background="{Binding AvatarColor, Converter={StaticResource HexToBrush}}">
+                            <TextBlock Text="{Binding Initials}" Foreground="White" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13" Margin="10,0,6,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Style="{StaticResource IconButton}" FontSize="10" Content="&#xE70E;" ToolTip="Move plug-in up" Click="OnMovePluginUp" />
+                            <Button Style="{StaticResource IconButton}" FontSize="10" Content="&#xE70D;" ToolTip="Move plug-in down" Click="OnMovePluginDown" />
+                            <Button Style="{StaticResource IconButton}" FontSize="12" Content="&#xE777;" ToolTip="Back to SEP's defaults for this plug-in" Click="OnResetPlugin" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="8" Padding="2" Margin="0,10,0,0" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource Segment}" GroupName="{Binding Name}" IsChecked="{Binding IsButtons}" Content="Buttons" ToolTip="Its commands as buttons on the card" />
+                            <RadioButton Style="{StaticResource Segment}" GroupName="{Binding Name}" IsChecked="{Binding IsStatusOnly}" Content="Status only" ToolTip="No buttons: just whether it is running (commands stay in the menu and search)" />
+                            <RadioButton Style="{StaticResource Segment}" GroupName="{Binding Name}" IsChecked="{Binding IsHidden}" Content="Hidden" ToolTip="Not on the panel (still found by search and shortcuts)" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="COMMANDS" Style="{StaticResource SectionTitle}" Margin="2,12,0,6" Visibility="{Binding HasActions, Converter={StaticResource BoolToVis}}" />
+                    <ItemsControl ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource EditRowTemplate}" />
+
+                    <Button Style="{StaticResource LinkButton}" HorizontalAlignment="Left" Margin="-4,2,0,0" Click="OnStartAdd"
+                            Visibility="{Binding IsAdding, Converter={StaticResource NotBoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" Style="{StaticResource Glyph}" FontSize="10" Margin="0,1,6,0" />
+                            <TextBlock Text="Add your own command" FontSize="11.5" />
+                        </StackPanel>
+                    </Button>
+                    <Border Visibility="{Binding IsAdding, Converter={StaticResource BoolToVis}}" ui:Motion.Reveal="True" Margin="0,6,0,0"
+                            Background="{DynamicResource Surface2}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="8" Padding="10">
+                        <Border.RenderTransform><TranslateTransform /></Border.RenderTransform>
+                        <StackPanel>
+                            <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource Text2}" Margin="0,0,0,3" />
+                            <TextBox Tag="caption" Style="{StaticResource FieldBox}" />
+                            <TextBlock Text="PML command" FontSize="11" Foreground="{DynamicResource Text2}" Margin="0,8,0,3" />
+                            <TextBox Tag="command" Style="{StaticResource FieldBox}" FontFamily="Consolas" FontSize="11" ToolTip="For example: show !!myForm   or   $m /D:/macros/run.mac" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                <Button Style="{StaticResource TextButton}" Content="Cancel" Click="OnCancelAdd" Margin="0,0,6,0" />
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add" Click="OnConfirmAdd" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- header -->
+        <Grid Margin="12,12,8,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Width="30" Height="30" CornerRadius="8" VerticalAlignment="Center">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#22C3E6" Offset="0" />
+                        <GradientStop Color="#0E7490" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="&#xEA86;" Style="{StaticResource Glyph}" FontSize="15" Foreground="White" />
+            </Border>
+            <StackPanel Grid.Column="1" Margin="10,0,6,0" VerticalAlignment="Center">
+                <TextBlock Text="Plug-ins" FontSize="15" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Summary}" FontSize="11" Foreground="{DynamicResource Text3}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource IconButton}" Content="&#xE72C;" ToolTip="Reload the list and check status" Click="OnReload" />
+                <ToggleButton Style="{StaticResource IconToggle}" Content="&#xE70F;" ToolTip="Customize: buttons, names, shortcuts, order" IsChecked="{Binding IsCustomizing}" />
+                <Button Style="{StaticResource IconButton}" Content="&#xE712;" ToolTip="More" Click="OnPanelMenu" />
+            </StackPanel>
+        </Grid>
+
+        <!-- search -->
+        <TextBox x:Name="Search" Grid.Row="1" Style="{StaticResource SearchBox}" Margin="12,10,12,4"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="OnSearchKey"
+                 Visibility="{Binding IsNormal, Converter={StaticResource BoolToVis}}" />
+
+        <ScrollViewer x:Name="Scroller" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" Focusable="False">
+            <ScrollViewer.Resources>
+                <!-- slim scroll bar: a thin rounded thumb that thickens under the pointer -->
+                <Style TargetType="ScrollBar">
+                    <Setter Property="Width" Value="10" />
+                    <Setter Property="MinWidth" Value="10" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Grid Background="Transparent">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                        <Track.Thumb>
+                                            <Thumb>
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="Thumb">
+                                                        <Border x:Name="T" Width="4" CornerRadius="2" Background="{DynamicResource BorderStrong}" HorizontalAlignment="Center" Margin="0,2" />
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="T" Property="Width" Value="7" />
+                                                                <Setter TargetName="T" Property="CornerRadius" Value="3.5" />
+                                                                <Setter TargetName="T" Property="Background" Value="{DynamicResource Text3}" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsDragging" Value="True">
+                                                                <Setter TargetName="T" Property="Width" Value="7" />
+                                                                <Setter TargetName="T" Property="Background" Value="{DynamicResource Accent}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ScrollViewer.Resources>
+            <StackPanel Margin="12,8,12,16">
+
+                <!-- empty state -->
+                <Border Style="{StaticResource Card}" ui:Motion.Enter="True" Padding="16" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}">
+                    <Border.RenderTransform><TranslateTransform /></Border.RenderTransform>
+                    <StackPanel>
+                        <TextBlock Text="{Binding EmptyTitle}" FontWeight="SemiBold" FontSize="13" />
+                        <TextBlock Text="{Binding EmptyText}" Style="{StaticResource Muted}" Margin="0,4,0,10" />
+                        <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Content="Open SEP" Click="OnOpenSep" />
+                    </StackPanel>
+                </Border>
+
+                <!-- customize banner -->
+                <Border Visibility="{Binding IsCustomizing, Converter={StaticResource BoolToVis}}" ui:Motion.Reveal="True" Margin="0,0,0,10"
+                        Background="{DynamicResource AccentSoft}" CornerRadius="10" Padding="12,10">
+                    <Border.RenderTransform><TranslateTransform /></Border.RenderTransform>
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Customize the panel" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock Text="Pick what each plug-in shows, rename its buttons, give them shortcuts. Saved as you go." Style="{StaticResource Muted}" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Done" VerticalAlignment="Top" Margin="8,0,0,0" Click="OnDone" />
+                        </Grid>
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Shortcut to open this panel and search" VerticalAlignment="Center" FontSize="11.5" />
+                            <Button Grid.Column="1" Click="OnRecordPanelShortcut" MouseRightButtonUp="OnClearPanelShortcut"
+                                    ToolTip="Click, then press the keys. Backspace removes it, Esc cancels.">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ShortcutButton}">
+                                        <Setter Property="Content" Value="{Binding PanelShortcut}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasPanelShortcut}" Value="False">
+                                                <Setter Property="Content" Value="+ Shortcut" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsRecordingPanel}" Value="True">
+                                                <Setter Property="Content" Value="Press keys…" />
+                                                <Setter Property="Tag" Value="recording" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- quick access -->
+                <StackPanel Visibility="{Binding ShowQuickAccess, Converter={StaticResource BoolToVis}}" Margin="0,0,0,6">
+                    <StackPanel Visibility="{Binding HasPinned, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="PINNED" Style="{StaticResource SectionTitle}" />
+                        <ItemsControl ItemsSource="{Binding Pinned}" ItemTemplate="{StaticResource ChipTemplate}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding HasRecent, Converter={StaticResource BoolToVis}}" Margin="0,2,0,0">
+                        <TextBlock Text="RECENT" Style="{StaticResource SectionTitle}" />
+                        <ItemsControl ItemsSource="{Binding Recent}" ItemTemplate="{StaticResource ChipTemplate}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                    <TextBlock Text="PLUG-INS" Style="{StaticResource SectionTitle}" Margin="2,6,0,6" />
+                </StackPanel>
+
+                <!-- search results -->
+                <StackPanel Visibility="{Binding IsSearching, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl x:Name="Results" ItemsSource="{Binding SearchResults}" ItemTemplate="{StaticResource ResultTemplate}" />
+                    <StackPanel Visibility="{Binding HasNoResults, Converter={StaticResource BoolToVis}}" Margin="0,24,0,0" HorizontalAlignment="Center">
+                        <TextBlock Text="&#xE721;" Style="{StaticResource Glyph}" FontSize="22" Foreground="{DynamicResource Text3}" />
+                        <TextBlock Text="No command matches" Foreground="{DynamicResource Text2}" Margin="0,8,0,0" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- plug-ins -->
+                <ItemsControl ItemsSource="{Binding ShownCards}" ItemTemplate="{StaticResource CardTemplate}">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSearching}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                <DataTrigger Binding="{Binding IsCustomizing}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding ShownCards}" ItemTemplate="{StaticResource EditCardTemplate}"
+                              Visibility="{Binding IsCustomizing, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- toast -->
+        <Border x:Name="ToastHost" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="14,0,14,14"
+                Background="{DynamicResource ToastBg}" CornerRadius="10" Padding="12,8" Opacity="0" IsHitTestVisible="False" MaxWidth="360">
+            <Border.RenderTransform><TranslateTransform x:Name="ToastSlide" Y="12" /></Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="3" Opacity="0.25" Color="Black" />
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="ToastIcon" Text="&#xE73E;" Style="{StaticResource Glyph}" Margin="0,0,8,0" Foreground="{DynamicResource Success}" />
+                <TextBlock x:Name="ToastText" Foreground="{DynamicResource ToastText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

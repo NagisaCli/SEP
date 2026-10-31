@@ -40,6 +40,8 @@ public sealed class SepSettings
     /// <summary>"auto" (follow Windows), "dark" or "light".</summary>
     [JsonPropertyName("theme")] public string Theme { get; set; } = "auto";
     [JsonPropertyName("auto_start")] public bool AutoStart { get; set; }
+    /// <summary>E3D's SEP ribbon tab: "panel" (a Plug-ins button opening the plug-in panel) or "classic" (every plug-in's buttons).</summary>
+    [JsonPropertyName("e3d_ribbon")] public string E3dRibbon { get; set; } = "panel";
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 

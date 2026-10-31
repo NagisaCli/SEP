@@ -32,7 +32,7 @@ public sealed record AdoptionReport(
 /// plug-ins are wired into E3D through a managed block in the local custom_evars.bat (PMLLIB/PMLUI/PMLNET/DFLTS
 /// appends), separate from the projects block and shared with the Python tool.
 /// </summary>
-public sealed class PluginService
+public sealed partial class PluginService
 {
     public const string BlockStart = ":: >>> SEP MANAGED PLUGINS (do not edit) >>>";
     public const string BlockEnd = ":: <<< SEP MANAGED PLUGINS <<<";
@@ -246,7 +246,7 @@ public sealed class PluginService
         {
             string name = Path.GetFileName(sub);
             string low = name.ToLowerInvariant();
-            if (low is "pmllib" or "pdmsui" or "pmlui" or "ui" or "dflts" or "defaults" or ".git" or "doc" or "docs")
+            if (low is "pmllib" or "pml" or "pdmsui" or "pmlui" or "ui" or "dflts" or "defaults" or ".git" or "doc" or "docs")
                 continue;
             if (low.StartsWith('.') || low.Contains("bak") || low.Contains("backup") || low.EndsWith(".old"))
                 continue;
@@ -286,6 +286,78 @@ public sealed class PluginService
         }
 
         return (null, null);
+    }
+
+    private static readonly string[] TestDirNames = { "test", "tests", "testresults", "unittests", "integrationtests" };
+    private static readonly string[] TestAssemblyPrefixes = { "xunit", "testhost", "nunit", "mstest", "moq", "fluentassertions", "coverlet" };
+
+    /// <summary>
+    /// Why E3D must never be given this DLL (null = it may be): it belongs to a test project, is a test framework,
+    /// or targets .NET Core / .NET 5+ / .NET Standard 2.1, which E3D's .NET Framework 4.x runtime cannot load.
+    /// Importing such a DLL from the start hook makes E3D Design exit at start (System.Runtime 10.0 not found).
+    /// </summary>
+    public static string? E3dUnloadableReason(string dllPath, string pluginRoot)
+    {
+        string name = Path.GetFileNameWithoutExtension(dllPath);
+        if (TestAssemblyPrefixes.Any(p => name.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+            return "test framework";
+        foreach (string dir in RelativeDirs(dllPath, pluginRoot))
+        {
+            if (TestDirNames.Contains(dir, StringComparer.OrdinalIgnoreCase) ||
+                dir.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase) || dir.EndsWith(".UnitTests", StringComparison.OrdinalIgnoreCase))
+                return "test project";
+        }
+        string? tfm = TargetFramework(dllPath);
+        if (tfm != null && (tfm.StartsWith(".NETCoreApp", StringComparison.OrdinalIgnoreCase) ||
+                            tfm.StartsWith(".NETStandard,Version=v2.1", StringComparison.OrdinalIgnoreCase)))
+            return "targets " + tfm;
+        return null;
+    }
+
+    /// <summary>
+    /// A DLL inside a plug-in's source tree (obj\ intermediates, or anything under src\ / source\): an older or
+    /// half-built copy that must not be imported into E3D. Add-ins are not filtered here, so the add-in SEP
+    /// already deploys keeps coming from the same place.
+    /// </summary>
+    public static bool IsSourceBuildOutput(string dllPath, string pluginRoot) =>
+        RelativeDirs(dllPath, pluginRoot).Any(d => d.Equals("obj", StringComparison.OrdinalIgnoreCase) ||
+                                                   d.Equals("src", StringComparison.OrdinalIgnoreCase) ||
+                                                   d.Equals("source", StringComparison.OrdinalIgnoreCase));
+
+    private static IEnumerable<string> RelativeDirs(string path, string root)
+    {
+        string rel;
+        try { rel = Path.GetRelativePath(root, Path.GetDirectoryName(path) ?? root); }
+        catch { yield break; }
+        if (rel == "." || rel.StartsWith("..", StringComparison.Ordinal)) yield break;
+        foreach (string part in rel.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries))
+            yield return part;
+    }
+
+    /// <summary>The assembly's TargetFrameworkAttribute (e.g. ".NETFramework,Version=v4.7.2"), or null.</summary>
+    public static string? TargetFramework(string dllPath)
+    {
+        try
+        {
+            using var stream = File.OpenRead(dllPath);
+            using var peReader = new PEReader(stream);
+            if (!peReader.HasMetadata) return null;
+            var md = peReader.GetMetadataReader();
+            if (!md.IsAssembly) return null;
+            foreach (var h in md.GetAssemblyDefinition().GetCustomAttributes())
+            {
+                var attr = md.GetCustomAttribute(h);
+                if (attr.Constructor.Kind != HandleKind.MemberReference) continue;
+                var ctor = md.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (ctor.Parent.Kind != HandleKind.TypeReference) continue;
+                if (md.GetString(md.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name) != "TargetFrameworkAttribute") continue;
+                var blob = md.GetBlobReader(attr.Value);
+                if (blob.ReadUInt16() != 1) return null; // custom attribute prolog
+                return blob.ReadSerializedString();
+            }
+        }
+        catch { }
+        return null;
     }
 
     /// <summary>
@@ -430,7 +502,7 @@ public sealed class PluginService
                 {
                     switch (Path.GetFileName(sub).ToLowerInvariant())
                     {
-                        case "pmllib": pmllib = sub; break;
+                        case "pmllib": case "pml": pmllib = sub; break;
                         case "pdmsui": case "pmlui": case "ui": pmlui = sub; break;
                         case "bin": case "pmlnet": case "lib": pmlnet = sub; break;
                         case "dflts": case "defaults": dflts = sub; break;
@@ -450,7 +522,7 @@ public sealed class PluginService
             {
                 switch (Path.GetFileName(sub).ToLowerInvariant())
                 {
-                    case "pmllib": pmllib ??= sub; break;
+                    case "pmllib": case "pml": pmllib ??= sub; break;
                     case "pdmsui": case "pmlui": case "ui": pmlui ??= sub; break;
                     case "bin": case "pmlnet": case "lib": pmlnet ??= sub; break;
                     case "dflts": case "defaults": dflts ??= sub; break;
@@ -483,6 +555,7 @@ public sealed class PluginService
         var forms = new List<PluginSymbol>(); var objects = new List<PluginSymbol>(); var functions = new List<PluginSymbol>();
         var macros = new List<PluginSymbol>(); var assemblies = new List<PluginSymbol>(); var uics = new List<PluginSymbol>();
         var addins = new List<PluginAssembly>();
+        int unloadableDlls = 0;
 
         foreach (var file in EnumerateFiles(folderToInspect, excludedDirs))
         {
@@ -527,7 +600,11 @@ public sealed class PluginService
                                          asm.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) ||
                                          asm.StartsWith("mscorlib", StringComparison.OrdinalIgnoreCase) ||
                                          asm.StartsWith("WindowsBase", StringComparison.OrdinalIgnoreCase);
-                        if (!framework)
+                        if (!framework && E3dUnloadableReason(file, folderToInspect) != null)
+                        {
+                            unloadableDlls++;
+                        }
+                        else if (!framework)
                         {
                             if (!assemblies.Any(a => a.Name.Equals(asm, StringComparison.OrdinalIgnoreCase)))
                             {
@@ -536,6 +613,11 @@ public sealed class PluginService
                                 {
                                     addins.Add(pa);
                                     assemblies.Add(new PluginSymbol("addin", asm, fname, file, $"-- Addin: {asm}"));
+                                }
+                                else if (IsSourceBuildOutput(file, folderToInspect))
+                                {
+                                    // never imported from a source tree; a copy in bin\ or the plug-in root still is
+                                    unloadableDlls++;
                                 }
                                 else
                                 {
@@ -555,6 +637,8 @@ public sealed class PluginService
             }
             catch { }
         }
+        if (unloadableDlls > 0)
+            diagnostics.Add($"{unloadableDlls} DLL(s) not imported: test projects, source build output (obj, src) or builds for .NET Core/.NET 5+, which E3D (.NET Framework) cannot load.");
 
         string status = "none";
         int indexCount = 0;
@@ -707,7 +791,7 @@ public sealed class PluginService
             if (!string.IsNullOrEmpty(pluginName)) return pluginName;
         }
         string leaf = Path.GetFileName(norm).ToLowerInvariant();
-        if (leaf is "pmllib" or "pdmsui" or "pmlui" or "bin" or "dflts" or "defaults")
+        if (leaf is "pmllib" or "pml" or "pdmsui" or "pmlui" or "bin" or "dflts" or "defaults")
         {
             string? parent = Path.GetDirectoryName(norm);
             return parent != null ? Path.GetFileName(parent) : string.Empty;
@@ -760,7 +844,7 @@ public sealed class PluginService
                 }
 
                 string leaf = Path.GetFileName(norm).ToLowerInvariant();
-                string rootCandidate = (leaf is "pmllib" or "pdmsui" or "pmlui" or "bin" or "dflts" or "defaults")
+                string rootCandidate = (leaf is "pmllib" or "pml" or "pdmsui" or "pmlui" or "bin" or "dflts" or "defaults")
                     ? Path.GetDirectoryName(norm) ?? norm
                     : norm;
                 if (Directory.Exists(rootCandidate) && seen.Add(rootCandidate))
@@ -875,6 +959,7 @@ public sealed class PluginService
                 }
             }
             SyncE3dRibbon(sorted);
+            try { GenerateHotloadMacro(Scan(autoHeal: false)); } catch { }
             return ToolResult.Success(string.Format(Strings.Plugins_AllEnabled, sorted.Count));
         }
         catch (Exception ex)
@@ -894,6 +979,7 @@ public sealed class PluginService
         if (installDir.Length == 0 || !Directory.Exists(installDir)) return false;
         string uic = Path.Combine(installDir, "SEP.uic");
         if (File.Exists(uic)) File.Delete(uic);
+        RemovePanelAddin(installDir);
         string xmlPath = Path.Combine(installDir, "DesignCustomization.xml");
         if (File.Exists(xmlPath))
         {
@@ -1306,6 +1392,16 @@ public sealed class PluginService
             }
         }
         lines.Add("");
+        lines.Add("-- 3. Register Plugin Commands & Synonyms");
+        foreach (var p in enabled)
+        {
+            string loadMac = Path.Combine(p.Path, "load.pmlmac");
+            if (File.Exists(loadMac))
+            {
+                lines.Add($"$m {loadMac.Replace('\\', '/')}");
+            }
+        }
+        lines.Add("");
         lines.Add("$P ========================================================");
         lines.Add($"$P [SEP] {enabled.Count} E3D plugins successfully hot-loaded!");
         lines.Add("$P Available Entry Commands:");
@@ -1317,12 +1413,56 @@ public sealed class PluginService
         {
             Directory.CreateDirectory(PluginsDir);
             File.WriteAllText(path, content, new UTF8Encoding(false));
+            SyncDesInitMac(path);
         }
         catch (Exception ex)
         {
             App.Log($"hotload macro: {ex.Message}");
         }
         return (path, content);
+    }
+
+    public void SyncDesInitMac(string hotloadMacroPath)
+    {
+        try
+        {
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string install = SepPaths.Normalize(_catalog.Paths.InstallDir);
+            if (!string.IsNullOrEmpty(install))
+            {
+                string drive = Path.GetPathRoot(install) ?? "D:\\";
+                string stdDflts = Path.Combine(drive, "AVEVA", "Everything3D", "Data", "DFLTS3.1", "des-init-mac");
+                if (File.Exists(stdDflts)) candidates.Add(stdDflts);
+                string dataRoot = Path.Combine(drive, "AVEVA", "Everything3D", "Data");
+                if (Directory.Exists(dataRoot))
+                {
+                    foreach (var d in Directory.EnumerateDirectories(dataRoot, "DFLTS*"))
+                    {
+                        string f = Path.Combine(d, "des-init-mac");
+                        if (File.Exists(f)) candidates.Add(f);
+                    }
+                }
+            }
+
+            foreach (var file in candidates)
+            {
+                string text = File.ReadAllText(file, Encoding.ASCII);
+                const string startMarker = "-- >>> SEP MANAGED HOTLOAD (do not edit) >>>";
+                const string endMarker = "-- <<< SEP MANAGED HOTLOAD <<<";
+                string block = $"{startMarker}\r\n!sepHotloadMac = '{hotloadMacroPath.Replace('\\', '/')}'\r\n!sepHotloadFile = object FILE(!sepHotloadMac)\r\nif (!sepHotloadFile.exists()) then\r\n  $M \"$!<sepHotloadMac>\"\r\n  handle ANY\r\n  endhandle\r\nendif\r\n{endMarker}";
+
+                var blockRe = new System.Text.RegularExpressions.Regex(@"(?ms)^[ \t]*" + System.Text.RegularExpressions.Regex.Escape(startMarker) + @".*?" + System.Text.RegularExpressions.Regex.Escape(endMarker) + @"[ \t]*\r?\n?");
+                text = blockRe.Replace(text, string.Empty).TrimEnd();
+                text = string.IsNullOrWhiteSpace(text)
+                    ? block + "\r\n"
+                    : text + "\r\n\r\n" + block + "\r\n";
+                File.WriteAllText(file, text, Encoding.ASCII);
+            }
+        }
+        catch (Exception ex)
+        {
+            App.Log($"SyncDesInitMac: {ex.Message}");
+        }
     }
 
     public static List<PluginConflict> DetectConflicts(IEnumerable<PluginInfo> plugins)
@@ -1991,399 +2131,4 @@ public sealed class PluginService
             App.Log($"SyncDesignAddins error: {ex.Message}");
         }
     }
-
-    private void GenerateSepUic(string installDir, HashSet<string> enabled, IReadOnlyList<PluginInfo>? allPlugins = null)
-    {
-        // the ribbon button must start a copy that stays put: the installed one when there is one
-        string sepExePath = SepInstaller.StableExePath;
-        string sepExeEscaped = sepExePath.Replace("\\", "/");
-
-        var formsMetaList = new List<string>();
-        var toolsMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var groupsList = new List<string>();
-
-        // Find all plugin directories
-        var allPluginDirs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        string root = PluginsDir;
-        if (Directory.Exists(root))
-        {
-            foreach (var d in Directory.EnumerateDirectories(root))
-            {
-                string fn = Path.GetFileName(d);
-                if (!fn.StartsWith('.')) allPluginDirs[fn] = d;
-            }
-        }
-        foreach (var d in DiscoverPluginDirsFromCustomEvars())
-        {
-            string fn = Path.GetFileName(d);
-            if (!allPluginDirs.ContainsKey(fn)) allPluginDirs[fn] = d;
-        }
-
-        foreach (var name in enabled)
-        {
-            if (!allPluginDirs.TryGetValue(name, out var folder) || !Directory.Exists(folder)) continue;
-            var info = allPlugins?.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                ?? Inspect(folder, installDir, _catalog.Paths.E3dVersion);
-            string safeName = Regex.Replace(name, @"[^a-zA-Z0-9_]", "_");
-            string normFolder = folder.Replace('\\', '/').TrimEnd('/');
-
-            // Look for .uic file in resolved version folder or plugin root
-            string? uicPath = null;
-            if (info.ResolvedVersionDir != null && Directory.Exists(info.ResolvedVersionDir))
-            {
-                uicPath = Directory.EnumerateFiles(info.ResolvedVersionDir, "*.uic", SearchOption.AllDirectories).FirstOrDefault();
-            }
-            uicPath ??= Directory.EnumerateFiles(folder, "*.uic", SearchOption.AllDirectories)
-                .OrderBy(f => Path.GetDirectoryName(f) == folder ? 0 : 1)
-                .FirstOrDefault();
-
-            if (uicPath != null && File.Exists(uicPath))
-            {
-                try
-                {
-                    var doc = System.Xml.Linq.XDocument.Load(uicPath);
-                    var ns = doc.Root?.Name.Namespace ?? System.Xml.Linq.XNamespace.None;
-
-                    // 1. Extract FormsMetaData
-                    var formsMetaElem = doc.Descendants(ns + "FormsMetaData").FirstOrDefault();
-                    if (formsMetaElem != null)
-                    {
-                        foreach (var fm in formsMetaElem.Elements(ns + "FormMetaData"))
-                        {
-                            string fmXml = fm.ToString();
-                            fmXml = Regex.Replace(fmXml, @"\s*xmlns=""[^""]*""", "");
-                            if (!formsMetaList.Contains(fmXml))
-                            {
-                                formsMetaList.Add("    " + fmXml.Trim());
-                            }
-                        }
-                    }
-
-                    // 2. Extract Tools (preserving full original titles, tooltips, and attributes)
-                    var toolsElem = doc.Descendants(ns + "Tools").FirstOrDefault();
-                    if (toolsElem != null)
-                    {
-                        foreach (var tool in toolsElem.Elements())
-                        {
-                            string toolName = tool.Attribute("Name")?.Value ?? string.Empty;
-                            if (string.IsNullOrEmpty(toolName)) continue;
-
-                            // Safely redirect outdated macro paths ONLY if the original target does not exist
-                            foreach (var macroElem in tool.Descendants(ns + "Macro"))
-                            {
-                                string macroText = macroElem.Value.Trim();
-                                var match = Regex.Match(macroText, @"(?i)^\$m\s+([A-Za-z]:[\\/][^ \r\n\t]+)");
-                                if (match.Success)
-                                {
-                                    string full = match.Groups[1].Value.Replace('\\', '/');
-                                    if (!File.Exists(full))
-                                    {
-                                        int pmlIdx = full.IndexOf("/pmllib/", StringComparison.OrdinalIgnoreCase);
-                                        int pdmsuiIdx = full.IndexOf("/pdmsui/", StringComparison.OrdinalIgnoreCase);
-                                        if (pmlIdx >= 0)
-                                        {
-                                            string candidate = Path.Combine(folder, full[(pmlIdx + 1)..].Replace('/', '\\'));
-                                            if (File.Exists(candidate)) macroElem.Value = $"$m {normFolder}{full[pmlIdx..]}";
-                                        }
-                                        else if (pdmsuiIdx >= 0)
-                                        {
-                                            string candidate = Path.Combine(folder, full[(pdmsuiIdx + 1)..].Replace('/', '\\'));
-                                            if (File.Exists(candidate)) macroElem.Value = $"$m {normFolder}{full[pdmsuiIdx..]}";
-                                        }
-                                    }
-                                }
-                            }
-
-                            string toolXml = tool.ToString();
-                            toolXml = Regex.Replace(toolXml, @"\s*xmlns=""[^""]*""", "");
-                            toolsMap[toolName] = "    " + toolXml.Trim();
-                        }
-                    }
-
-                    // 3. Extract Groups from source UIC (preserving multi-group workflow structure)
-                    var tabsElem = doc.Descendants(ns + "Tabs").FirstOrDefault();
-                    bool hadGroups = false;
-                    if (tabsElem != null)
-                    {
-                        var groups = tabsElem.Descendants(ns + "Group").ToList();
-                        if (groups.Count > 0)
-                        {
-                            hadGroups = true;
-                            foreach (var g in groups)
-                            {
-                                string gName = g.Attribute("Name")?.Value ?? $"SEP.Group.{safeName}";
-                                string gCaption = g.Element(ns + "Caption")?.Value?.Trim() ?? PluginInfo.FormatDefaultDisplayName(name);
-                                var toolsInGroup = g.Descendants(ns + "Tool").ToList();
-                                if (toolsInGroup.Count == 0) continue;
-
-                                var groupSb = new StringBuilder();
-                                groupSb.AppendLine($"        <Group Name=\"{gName}\">");
-                                groupSb.AppendLine("          <Tools>");
-                                foreach (var tg in toolsInGroup)
-                                {
-                                    string tn = tg.Attribute("Name")?.Value ?? string.Empty;
-                                    string isLarge = tg.Attribute("LargeImage")?.Value ?? "False";
-                                    string imgOnly = tg.Attribute("ImageOnly")?.Value ?? "False";
-                                    if (!string.IsNullOrEmpty(tn) && toolsMap.ContainsKey(tn))
-                                    {
-                                        groupSb.AppendLine($"            <Tool Name=\"{tn}\" LargeImage=\"{isLarge}\" ImageOnly=\"{imgOnly}\" />");
-                                    }
-                                }
-                                groupSb.AppendLine("          </Tools>");
-                                groupSb.AppendLine($"          <Caption>{gCaption}</Caption>");
-                                groupSb.AppendLine("        </Group>");
-                                groupsList.Add(groupSb.ToString());
-                            }
-                        }
-                    }
-
-                    if (hadGroups) continue;
-                }
-                catch (Exception ex)
-                {
-                    App.Log($"Parsing plugin UIC failed for {name}: {ex.Message}");
-                }
-            }
-
-            // Fallback: auto-generate tools from Forms, Macros, and Functions
-            var autoTools = new List<string>();
-            var pluginGroupSb = new StringBuilder();
-
-            // 1. If plugin has a dedicated launcher macro (e.g. launch_pipe_aligner.mac), prioritize it as primary button
-            var launcherMacro = info.Macros.FirstOrDefault(m => Regex.IsMatch(m.Name, @"(?i)^(?:launch|start|run)_"));
-            if (launcherMacro != null)
-            {
-                string toolKey = $"SEP.{safeName}.Launcher_{launcherMacro.Name}";
-                string macroPath = launcherMacro.Path.Replace('\\', '/');
-                string caption = info.EffectiveDisplayName;
-                string toolXml = $@"    <ButtonTool Name=""{toolKey}"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>$m {macroPath}</Macro>
-        <Key>{toolKey}</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>{caption}</Caption>
-      <HelpContext />
-      <Tooltip>Launch {info.EffectiveDisplayName} ($m {macroPath})</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-                toolsMap[toolKey] = toolXml;
-                autoTools.Add(toolKey);
-            }
-
-            foreach (var f in info.Forms)
-            {
-                string toolKey = $"SEP.{safeName}.Form_{f.Name}";
-                if (toolsMap.ContainsKey(toolKey)) continue;
-                string toolXml = $@"    <ButtonTool Name=""{toolKey}"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>show !!{f.Name}</Macro>
-        <Key>{toolKey}</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>{f.Name}</Caption>
-      <HelpContext />
-      <Tooltip>Open {f.Name} form</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-                toolsMap[toolKey] = toolXml;
-                autoTools.Add(toolKey);
-            }
-
-            foreach (var m in info.Macros.Where(m => launcherMacro == null || !m.Path.Equals(launcherMacro.Path, StringComparison.OrdinalIgnoreCase)).Take(6))
-            {
-                string toolKey = $"SEP.{safeName}.Macro_{m.Name}";
-                if (toolsMap.ContainsKey(toolKey)) continue;
-                string macroPath = m.Path.Replace('\\', '/');
-                string caption = m.Name;
-                if (m.Name.Equals("ExportPml", StringComparison.OrdinalIgnoreCase)) caption = "导出 PML";
-                string toolXml = $@"    <ButtonTool Name=""{toolKey}"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>$m {macroPath}</Macro>
-        <Key>{toolKey}</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>{caption}</Caption>
-      <HelpContext />
-      <Tooltip>Execute macro {m.Name}</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-                toolsMap[toolKey] = toolXml;
-                autoTools.Add(toolKey);
-            }
-
-            // If no forms or macros, fallback to public PML functions
-            if (autoTools.Count == 0 && info.Functions.Count > 0)
-            {
-                foreach (var fn in info.Functions.Take(4))
-                {
-                    string toolKey = $"SEP.{safeName}.Func_{fn.Name}";
-                    if (toolsMap.ContainsKey(toolKey)) continue;
-                    string toolXml = $@"    <ButtonTool Name=""{toolKey}"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>{fn.CallCommand}</Macro>
-        <Key>{toolKey}</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>{fn.Name}</Caption>
-      <HelpContext />
-      <Tooltip>Execute function {fn.Name}</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-                    toolsMap[toolKey] = toolXml;
-                    autoTools.Add(toolKey);
-                }
-            }
-
-            if (autoTools.Count == 0 && info.HasAddin)
-            {
-                foreach (var asm in info.AddinAssemblies)
-                {
-                    string toolKey = $"SEP.{safeName}.Addin_{asm.Name}";
-                    string toolXml = $@"    <ButtonTool Name=""{toolKey}"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>$P [SEP] {asm.Name} add-in is active</Macro>
-        <Key>{toolKey}</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>{info.EffectiveDisplayName}</Caption>
-      <HelpContext />
-      <Tooltip>AVEVA Add-in: {asm.Name}</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-                    toolsMap[toolKey] = toolXml;
-                    autoTools.Add(toolKey);
-                }
-            }
-
-            if (autoTools.Count > 0)
-            {
-                string? customName = _catalog.GetPluginDisplayName(name);
-                string groupCaption = !string.IsNullOrWhiteSpace(customName) ? customName : PluginInfo.FormatDefaultDisplayName(name);
-                pluginGroupSb.AppendLine($"        <Group Name=\"SEP.Group.{safeName}\">");
-                pluginGroupSb.AppendLine("          <Tools>");
-                int idx = 0;
-                foreach (var at in autoTools)
-                {
-                    string isLarge = idx < 2 ? "True" : "False";
-                    pluginGroupSb.AppendLine($"            <Tool Name=\"{at}\" LargeImage=\"{isLarge}\" ImageOnly=\"False\" />");
-                    idx++;
-                }
-                pluginGroupSb.AppendLine("          </Tools>");
-                pluginGroupSb.AppendLine($"          <Caption>{groupCaption}</Caption>");
-                pluginGroupSb.AppendLine("        </Group>");
-                groupsList.Add(pluginGroupSb.ToString());
-            }
-        }
-
-        // Always add standard Maintenance group
-        string rehashKey = "SEP.Tools.PmlRehash";
-        string openSepKey = "SEP.Tools.OpenSep";
-
-        toolsMap[rehashKey] = @"    <ButtonTool Name=""SEP.Tools.PmlRehash"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>PML REHASH ALL</Macro>
-        <Key>SEP.Tools.PmlRehash</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_REFRESH</ImageResourceId>
-      <Caption>刷新PML</Caption>
-      <HelpContext />
-      <Tooltip>重新加载PML库到内存 (PML REHASH ALL)</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-
-        toolsMap[openSepKey] = $@"    <ButtonTool Name=""SEP.Tools.OpenSep"">
-      <Command>
-        <Type>Macro</Type>
-        <Macro>syscom 'start """" ""{sepExeEscaped}""'</Macro>
-        <Key>SEP.Tools.OpenSep</Key>
-        <Arguments />
-      </Command>
-      <ImageResourceId>AvevaSharedIcons:ID_APPLICATION_RUN</ImageResourceId>
-      <Caption>SEP 平台</Caption>
-      <HelpContext />
-      <Tooltip>启动 Smart E3D Platform 管理控制台</Tooltip>
-      <DisplayStyle>Default</DisplayStyle>
-      <Category>SEP</Category>
-    </ButtonTool>";
-
-        groupsList.Add(@"        <Group Name=""SEP.Group.Maintenance"">
-          <Tools>
-            <Tool Name=""SEP.Tools.PmlRehash"" LargeImage=""True"" ImageOnly=""False"" />
-            <Tool Name=""SEP.Tools.OpenSep"" LargeImage=""True"" ImageOnly=""False"" />
-          </Tools>
-          <Caption>SEP 运维</Caption>
-        </Group>");
-
-        var formsMetaXml = new StringBuilder();
-        foreach (var fm in formsMetaList)
-        {
-            formsMetaXml.AppendLine(fm);
-        }
-
-        var toolsXml = new StringBuilder();
-        foreach (var t in toolsMap.Values)
-        {
-            toolsXml.AppendLine(t);
-        }
-
-        var groupsXml = new StringBuilder();
-        foreach (var g in groupsList)
-        {
-            groupsXml.Append(g);
-        }
-
-        string fullUicXml = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<UserInterfaceCustomization xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""www.aveva.com"">
-  <Version>1.0</Version>
-  <FormsMetaData>
-{formsMetaXml}  </FormsMetaData>
-  <Tools>
-{toolsXml}  </Tools>
-  <InstanceTools />
-  <MenuBar />
-  <CommandBars />
-  <TaskPanes />
-  <ContextMenus />
-  <AreaLeftTools />
-  <AreaRightTools />
-  <FooterTools />
-  <NavigationMenuTools />
-  <QATTools />
-  <ContextualTabGroups />
-  <TabToolbarTools />
-  <Tabs>
-    <Tab Name=""SEP.Tab"">
-      <Caption>【SEP】</Caption>
-      <Groups>
-{groupsXml}      </Groups>
-    </Tab>
-  </Tabs>
-  <MiniToolbarTools />
-  <Namespace>SEP</Namespace>
-</UserInterfaceCustomization>
-";
-
-        string finalUicPath = Path.Combine(installDir, "SEP.uic");
-        File.WriteAllText(finalUicPath, fullUicXml, new UTF8Encoding(false));
-    }
 }
-

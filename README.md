@@ -9,9 +9,9 @@ SEP — AVEVA E3D 工程管理系统：扫描项目库、维护工程信息、�
 | Path | What it is |
 |---|---|
 | `SEP.App/` | The WPF client (`SEP.exe`). Pages: Overview, Project Workbench, My Projects, Plug-ins, Users & Permissions, Diagnostics & Tools, Settings. |
+| `SEP.PluginPanel/` | The E3D plug-in panel: a CAF add-in (net48 / x86) that SEP embeds in `SEP.exe` and deploys into the E3D folder. |
 | `ADMIN/E3dAdmin/` | Library + CLI (`e3d-admin`) that drives AVEVA `adm.exe` for user / team administration; referenced by the app. |
 | `build.ps1` | Self-contained single-file release `dist\SEP.exe`, plus `dist\Install-SEP.cmd` and `dist\SEP-<version>-setup.zip`; copies the exe to the repo root. |
-| `SEP.App/Services/LiveEntryAdapter.cs` | Optional, isolated adapter to the separate `e3d_live` entry API. |
 
 ## Build
 
@@ -25,6 +25,10 @@ The default build is **self-contained**: the .NET runtime travels inside `SEP.ex
 any 64-bit Windows 10 or 11 PC without installing anything first. `.\build.ps1 -FrameworkDependent` makes a small
 exe (about 8 MB) that needs the .NET 10 Desktop Runtime on every PC. `dotnet build SEP.App\SEP.App.csproj -c Release`
 is the quick developer build.
+
+Both build `SEP.PluginPanel` first and embed it. It compiles against the AVEVA assemblies of
+`D:\AVEVA\Everything3D3.1` (or `-p:E3D_HOME=...`); on a machine without E3D it builds without its CAF entry point,
+and that SEP keeps the classic ribbon.
 
 ## Install on a PC
 
@@ -76,39 +80,61 @@ Guest, so SEP keeps its footprint small:
   Records of this PC are checked against its live E3D processes; records of other PCs still marked as running after
   3 days are listed apart as probably crashed (*Admin > Expunge* clears them). Nothing is written on the server.
 
-## Optional Live launch
+## E3D plug-in panel
 
-The **Live launch** page is separate from every existing SEP launch action. It
-reads target choices from `python -m integrations.e3d_live.live_entry options`
-in the selected `e3d_live` checkout. The Live repository remains responsible
-for its module profiles, runtimes, E3D process selection, gateway,
-session, permissions, and verification. SEP stores only the checkout path,
-Python executable, and per-primary support-project selections in
-`live_entry.json` under its normal data directory. It
-does not copy or compile Live source into SEP.
+E3D's **SEP** ribbon tab no longer carries every plug-in's buttons. It has one **Plug-ins** button (plus *Find
+command*, *Refresh PML* and *SEP*) that opens a docked panel listing every plug-in SEP enabled:
 
-SEP lists any discovered project with a valid AVEVA code. The page sends the
-chosen primary evars path plus the optional support project selected for
-cross-project MDB dependencies. Live creates private launch/evars copies for
-the new E3D process and masks support projects in the normal login list. It
-does not edit SEP's ordinary E3D launch files or change the remembered launch
-mode. AVEVA's Show Masked Projects option can still reveal support projects;
-native MDB lists and later module switching are not blocked by this UI mask.
-SEP reads the selected project's MDB names through a read-only E3D Admin query
-and offers them in the MDB dropdown. If Admin cannot return a list, the field
-remains editable so a known MDB can still be entered. SEP passes the chosen
-evars path, code, selected MDB, module and access mode to
-the Live CLI. Live verifies the evars code before launch;
-its module profile decides whether the selected runtime/mode is supported.
-The ordinary
-project-card, title-bar, library and batch launch buttons are unchanged.
+- **Status** per plug-in: *Running* / *Ready* (its commands are registered, its add-in is loaded, its PML is on this
+  session's PMLLIB), *Not loaded* (the tooltip lists missing add-ins, commands or PML folders), *Folder missing*.
+  A missing component does not establish when the plug-in was enabled. A newly enabled plug-in needs a new E3D
+  session; a persistent *Not loaded* state requires checking its deployment and startup log.
+- **Buttons** for the commands the plug-in supplies in its `.uic` (its large ribbon buttons by default, at most six);
+  the rest are under *More*. Plug-ins without a ribbon get buttons from their launcher macro, forms or macros.
+- **Status only** plug-ins have no buttons (VVIEW by default: it is used from the keyboard); their commands stay in
+  the card's ⋯ menu and in search. A plug-in can also be hidden.
+- **Search** across every command of every plug-in (Enter runs the first, ↑/↓ choose), **Pinned** and **Recent**
+  chips at the top.
+- **Customize** (pencil): per plug-in Buttons / Status only / Hidden, which commands are buttons, their names, order,
+  keyboard shortcuts (Ctrl or Alt with a key, or F1–F12; they work anywhere in E3D, and keys E3D's own commands or
+  Windows' text editing already use, such as Ctrl+S, F8 or Ctrl+C, are refused), pins, your own PML commands,
+  and a shortcut that opens the panel on its search box. Right-click a button for the same options.
 
-SEP does not present an unverified free-text project as launchable. An MDB may
-also be entered manually but must actually exist in E3D; login remains interactive. A `ready`
-message confirms exact Live session and
-gateway binding, not an in-panel write grant or saved E3D work. See the
-separate `e3d_live/integrations/e3d_live/docs/live-entry-api.md` for the CLI
-contract and runtime registry.
+SEP writes the list (`SEP.PluginPanel.json`, next to `SEP.PluginPanel.dll` in the E3D folder) on every plug-in change;
+an open panel picks it up by itself. Your layout is per user in `%APPDATA%\SEP\plugin_panel.user.json` and is shared
+by all E3D sessions. Log: `%LOCALAPPDATA%\SEP\plugin_panel.log`. A plug-in can set its default with an optional
+`sep-plugin.json`: `{ "panel": { "mode": "status", "description": "…" } }`.
+
+The floating bar runs CAF commands with checked-state feedback suppressed for that invocation, then restores the
+original command setting. Otherwise a state button can interpret a plug-in's window visibility update as another
+click and repeatedly toggle the window until E3D overflows its stack. Repeated clicks are ignored while a command
+is queued or running. The log records the start and completion time of each invocation.
+
+Regression checks (requires the installed E3D assemblies):
+
+```powershell
+dotnet build tests/SEP.PluginPanel.Checks -c Release
+& ./tests/SEP.PluginPanel.Checks/bin/Release/net48/SEP.PluginPanel.Checks.exe
+```
+
+These checks exercise the CAF command API with simulated checked-state feedback. Opening EEXP and other plug-ins
+in a fresh native E3D session remains a separate acceptance check.
+
+*Plug-ins ▸ Plug-in panel in E3D* switches back to the classic tab (every plug-in's buttons); either change applies at
+the next E3D start. Removing the last plug-in (or SEP) also removes the add-in and its `DesignAddins.xml` entry.
+
+## E3D Live bridge
+
+SEP has no Live page any more (removed 2026-10-12). The E3D Live bridge add-in is an ordinary plug-in,
+`D:\AVEVA\Plugins\E3DLiveBridge`, enabled on the Plug-ins page like any other, so every normal E3D start loads it.
+The add-in advertises each running E3D in `%LOCALAPPDATA%\E3DLiveBridge\discovery`; an agent connects through
+the `e3d_live` MCP server (`python -m integrations.e3d_live.mcp_server`), which starts its own hidden gateway when
+none is running. Nothing has to be opened in SEP first. Contract and runtime: the `e3d_live` repository.
+
+Plug-in scanning never turns test projects, source build output (`obj`, `src`) or .NET Core / .NET 5+ builds into
+PML.NET imports: E3D 3.1 runs .NET Framework 4.x, and one such import made every Design start exit
+(`System.Runtime 10.0` not found). Add-in selection is unchanged.
+
 
 ## Data
 
@@ -127,9 +153,7 @@ Settings → *Export bundle* packs these into one file to move to another PC.
 - `--install [--quiet]` / `--uninstall [--quiet]` – per-user install, update and removal (see *Install on a PC*)
 
 - `--page=overview|projects|mine|plugins|users|tools|settings` – open a page directly
-- `--page=live` – open the optional Live launch page
 - `--apply-plugins=<request.json>` – headless plug-in setup for installers (used by the E3DHUB "Install E3D tools" download and its uninstaller); no window opens, also not on an error. The request lists `plugins` to enable and `disable` to switch off, optionally `removeRibbonIfUnused` (drop `SEP.uic` when nothing is left), `pluginsDir`, `e3dHome`, `projectsDir` (saved to SEP's settings) and `result` (where the outcome JSON goes). Every other plug-in keeps its state; enabling is exactly the Plug-ins page: `pml.index`, the `custom_evars.bat` managed block, `SEP.uic`, add-in DLLs and `DesignAddins.xml`. Exit code 0 = done, 1 = something missing, not deployed or not withdrawn, 2 = unreadable request, 3 = SEP failed. See `SEP.App/Services/PluginCli.cs`.
 
 Uninstalling a plug-in withdraws only the add-ins SEP deployed from it (or the plug-in's own add-in assemblies of the same size in the E3D folder), never framework or AVEVA libraries: it used to delete every same-named DLL from the E3D folder, and plug-ins such as Cad2E3DAids carry `System.Memory.dll`, `System.Text.Json.dll` … that E3D ships itself.
-- The Live page lists health-verified E3D Live sessions and can gracefully stop an exact gateway binding. Stop Live leaves E3D open so its normal Save Work and close flow remains available. Separate project/MDB/module scopes can run concurrently on distinct gateway ports; a pending native login is serialized.
 - `--shot-dir=<folder>` – UI-check aid: drop `main.req` into the folder to get `main.png` rendered from the visual tree

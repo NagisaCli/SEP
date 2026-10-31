@@ -45,11 +45,16 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,12">
+        <!-- the toolbar sits beside the title, or under it when the window is too narrow (OnLayoutSizeChanged) -->
+        <Grid x:Name="HeaderGrid" Grid.Row="0" Margin="0,0,0,12" SizeChanged="OnLayoutSizeChanged">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{loc:Tr Plugins_Title}" Style="{StaticResource SepPageTitle}" />
@@ -57,7 +62,7 @@
                 </StackPanel>
                 <TextBlock Text="{loc:Tr Plugins_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,2,0,0" />
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <StackPanel x:Name="HeaderTools" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <ui:TextBox x:Name="FilterBox" Width="200" Icon="{ui:SymbolIcon Symbol=Search24}" PlaceholderText="{loc:Tr Plugins_FilterPlaceholder}" ClearButtonEnabled="True" Margin="0,0,10,0"
                             Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" />
                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add24}" Content="{loc:Tr Plugins_New}" Command="{Binding CreateCommand}" Margin="0,0,8,0" />
@@ -76,12 +81,16 @@
 
         <!-- Directory + bulk actions -->
         <Border Grid.Row="1" Style="{StaticResource SepCard}" Padding="14,10" Margin="0,0,0,10">
-            <Grid>
+            <Grid x:Name="DirGrid" SizeChanged="OnLayoutSizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Border Width="34" Height="34" CornerRadius="9" Background="{DynamicResource SepPurpleSoftBrush}" VerticalAlignment="Center">
                     <ui:SymbolIcon Symbol="PuzzlePiece24" Foreground="{DynamicResource SepPurpleBrush}" FontSize="18" />
                 </Border>
@@ -99,8 +108,10 @@
                         </controls:Badge>
                     </StackPanel>
                     <TextBlock Text="{Binding PluginsDir}" Style="{StaticResource SepMono}" FontSize="12" Margin="0,2,0,0" ToolTip="{Binding PluginsDir}" />
+                    <ui:ToggleSwitch Margin="0,8,0,0" Content="{loc:Tr Plugins_PanelToggle}" IsChecked="{Binding UsePluginPanel}"
+                                     IsEnabled="{Binding CanUsePluginPanel}" ToolTip="{Binding PluginPanelTooltip}" ToolTipService.ShowOnDisabled="True" />
                 </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel x:Name="DirTools" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <ui:Button Appearance="Secondary" Content="{loc:Tr Plugins_EnableAll}" Margin="0,0,6,0" Command="{Binding SetAllCommand}">
                         <ui:Button.CommandParameter><sys:Boolean xmlns:sys="clr-namespace:System;assembly=System.Runtime">True</sys:Boolean></ui:Button.CommandParameter>
                     </ui:Button>

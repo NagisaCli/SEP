@@ -1,0 +1,333 @@
+<UserControl x:Class="SEP.PluginPanel.UI.BarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="clr-namespace:SEP.PluginPanel.Model"
+             xmlns:ui="clr-namespace:SEP.PluginPanel.UI"
+             FontFamily="Segoe UI" FontSize="12" Foreground="{DynamicResource Text}"
+             UseLayoutRounding="True" SnapsToDevicePixels="True"
+             TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
+
+    <!--
+        The floating bar: one light strip over E3D. Pinned commands are one click away; each plug-in is a tile that
+        opens its commands (a plug-in with a single command runs it). Search finds any command of any plug-in.
+        Popups live in their own windows, so their content gets the palette from code (BarView.xaml.cs).
+    -->
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <ui:HexToBrush x:Key="HexToBrush" />
+        <ui:HexToSoftBrush x:Key="HexToSoftBrush" />
+        <FontFamily x:Key="Icons">Segoe MDL2 Assets</FontFamily>
+
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <!-- a dark, compact tooltip: caption, shortcut, where it comes from -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="{DynamicResource ToastBg}" />
+            <Setter Property="Foreground" Value="{DynamicResource ToastText}" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="MaxWidth" Value="300" />
+            <Setter Property="HasDropShadow" Value="False" />
+            <Setter Property="Placement" Value="Bottom" />
+            <Setter Property="VerticalOffset" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}" Margin="0,0,0,4">
+                            <ContentPresenter>
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap" /></Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- the bar's square buttons: soft hover, a small lift, a press dip -->
+        <Style x:Key="BarButton" TargetType="Button">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Margin" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource Text2}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="ToolTipService.InitialShowDelay" Value="350" />
+            <Setter Property="ToolTipService.BetweenShowDelay" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="Scale" />
+                                    <TranslateTransform x:Name="Lift" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="Hover" CornerRadius="10" Background="{DynamicResource Hover}" Opacity="0" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="-1" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="0.9" Duration="0:0:0.07" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="0.9" Duration="0:0:0.07" />
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="open">
+                                <Setter TargetName="Hover" Property="Background" Value="{DynamicResource AccentSoft}" />
+                                <Setter TargetName="Hover" Property="Opacity" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- hairline between the bar's sections; turns with the bar -->
+        <Style x:Key="Divider" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Border}" />
+            <Setter Property="Width" Value="1" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Margin" Value="5,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsBarVertical}" Value="True">
+                    <Setter Property="Width" Value="22" />
+                    <Setter Property="Height" Value="1" />
+                    <Setter Property="Margin" Value="0,5" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- a row of the flyout: a command, a menu entry, a search result -->
+        <Style x:Key="RowButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <Border x:Name="Hover" CornerRadius="8" Background="{DynamicResource Hover}" Opacity="0" />
+                            <ContentPresenter Margin="6,4,8,4" VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" /></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" /></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="selected">
+                                <Setter TargetName="Hover" Property="Background" Value="{DynamicResource AccentSoft}" />
+                                <Setter TargetName="Hover" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ItemsPanelTemplate x:Key="StripPanel">
+            <StackPanel Orientation="{Binding DataContext.IsBarVertical, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={x:Static ui:BarConverters.Orientation}}" />
+        </ItemsPanelTemplate>
+
+        <!-- a pinned command -->
+        <DataTemplate x:Key="PinnedButton" DataType="{x:Type m:PanelAction}">
+            <Button Style="{StaticResource BarButton}" Click="OnRunAction" MouseRightButtonUp="OnActionMenu">
+                <Button.ToolTip>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Caption}" FontWeight="SemiBold" />
+                            <Border Margin="8,0,0,0" Padding="5,0" CornerRadius="4" Background="#26FFFFFF" VerticalAlignment="Center" Visibility="{Binding HasShortcut, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding Shortcut}" FontSize="10.5" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Plugin.DisplayName}" Opacity="0.7" FontSize="11" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Button.ToolTip>
+                <TextBlock Text="{Binding Glyph}" Style="{StaticResource Glyph}" FontSize="15" />
+            </Button>
+        </DataTemplate>
+
+        <!-- a plug-in tile: its initials on its own soft colour, a dot when a component is unavailable -->
+        <DataTemplate x:Key="PluginTile" DataType="{x:Type m:PluginCard}">
+            <Button Style="{StaticResource BarButton}" Click="OnPluginTile" MouseRightButtonUp="OnPluginMenu">
+                <Button.ToolTip>
+                    <StackPanel>
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding StateText}" Opacity="0.7" FontSize="11" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Button.ToolTip>
+                <Grid Width="26" Height="26">
+                    <Border CornerRadius="8" Background="{Binding AvatarColor, Converter={StaticResource HexToSoftBrush}}" />
+                    <TextBlock Text="{Binding Initials}" FontSize="10.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{Binding AvatarColor, Converter={StaticResource HexToBrush}}" />
+                    <Ellipse x:Name="Dot" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-2,0"
+                             Fill="{DynamicResource Warning}" Stroke="{DynamicResource Surface}" StrokeThickness="1.5" Visibility="Collapsed" />
+                </Grid>
+            </Button>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding State}" Value="{x:Static m:PluginState.NotLoaded}">
+                    <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding State}" Value="{x:Static m:PluginState.Missing}">
+                    <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource Danger}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <!-- the margin leaves room for the shadow inside the transparent window -->
+    <Grid Margin="16,10,16,22">
+        <Border x:Name="Shell" CornerRadius="14" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource BarBorder}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="22" ShadowDepth="5" Direction="270" Opacity="0.16" Color="#1C2733" />
+            </Border.Effect>
+            <StackPanel x:Name="Strip" Margin="5" Orientation="{Binding IsBarVertical, Converter={x:Static ui:BarConverters.Orientation}}">
+                <!-- grip: drag the bar anywhere -->
+                <Border x:Name="Grip" Background="Transparent" Cursor="SizeAll" MouseLeftButtonDown="OnGrip" ToolTip="Drag to move" ToolTipService.InitialShowDelay="900">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Width" Value="14" />
+                            <Setter Property="Height" Value="36" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBarVertical}" Value="True">
+                                    <Setter Property="Width" Value="36" />
+                                    <Setter Property="Height" Value="14" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Path Data="M0,0 a1.3,1.3 0 1 0 0.01,0 M5,0 a1.3,1.3 0 1 0 0.01,0 M0,5 a1.3,1.3 0 1 0 0.01,0 M5,5 a1.3,1.3 0 1 0 0.01,0 M0,10 a1.3,1.3 0 1 0 0.01,0 M5,10 a1.3,1.3 0 1 0 0.01,0"
+                          Fill="{DynamicResource Text3}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.75">
+                        <Path.Style>
+                            <Style TargetType="Path">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBarVertical}" Value="True">
+                                        <Setter Property="LayoutTransform"><Setter.Value><RotateTransform Angle="90" /></Setter.Value></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Path.Style>
+                    </Path>
+                </Border>
+
+                <!-- SEP: the bar's menu -->
+                <Button x:Name="BrandButton" Style="{StaticResource BarButton}" Click="OnBrandMenu" ToolTip="SEP plug-ins">
+                    <Grid Width="28" Height="28">
+                        <Border CornerRadius="9">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#22C3E6" Offset="0" />
+                                    <GradientStop Color="#0891B2" Offset="0.55" />
+                                    <GradientStop Color="#4F46E5" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <Border CornerRadius="9" Margin="0,0,0,14" Opacity="0.22">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFFFFFFF" Offset="0" />
+                                    <GradientStop Color="#00FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="&#xEA86;" Style="{StaticResource Glyph}" Foreground="White" FontSize="14" />
+                        <Ellipse Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-2,0"
+                                 Fill="{DynamicResource Warning}" Stroke="{DynamicResource Surface}" StrokeThickness="1.5"
+                                 Visibility="{Binding NeedsAttention, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
+                </Button>
+
+                <Border Style="{StaticResource Divider}" Visibility="{Binding HasPinned, Converter={StaticResource BoolToVis}}" />
+                <ItemsControl ItemsSource="{Binding Pinned}" ItemTemplate="{StaticResource PinnedButton}" ItemsPanel="{StaticResource StripPanel}" Focusable="False" />
+
+                <Border Style="{StaticResource Divider}" />
+                <ItemsControl x:Name="Tiles" ItemsSource="{Binding BarPlugins}" ItemTemplate="{StaticResource PluginTile}" ItemsPanel="{StaticResource StripPanel}" Focusable="False" />
+
+                <Border Style="{StaticResource Divider}" />
+                <!-- search: the field slides open in the bar, results drop below it -->
+                <Grid>
+                    <Button x:Name="SearchButton" Style="{StaticResource BarButton}" Click="OnSearchButton" ToolTip="Find a command (any plug-in)">
+                        <TextBlock Text="&#xE721;" Style="{StaticResource Glyph}" />
+                    </Button>
+                </Grid>
+                <Border x:Name="SearchField" Width="0" Height="30" Margin="2,0,4,0" CornerRadius="9" Background="{DynamicResource Surface2}"
+                        BorderBrush="{DynamicResource Border}" BorderThickness="1" VerticalAlignment="Center" Visibility="Collapsed" ClipToBounds="True">
+                    <Grid>
+                        <TextBlock x:Name="SearchHint" Text="Find a command…" Foreground="{DynamicResource Text3}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" />
+                        <TextBox x:Name="Search" Background="Transparent" BorderThickness="0" Margin="6,0" VerticalAlignment="Center" Foreground="{DynamicResource Text}"
+                                 CaretBrush="{DynamicResource Accent}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 PreviewKeyDown="OnSearchKey" TextChanged="OnSearchChanged" />
+                    </Grid>
+                </Border>
+
+                <Button x:Name="CloseButton" Style="{StaticResource BarButton}" Width="24" Click="OnClose" ToolTip="Hide the bar (the ribbon's Plug-ins button brings it back)" Opacity="0">
+                    <TextBlock Text="&#xE711;" Style="{StaticResource Glyph}" FontSize="10" />
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- a plug-in's commands (also the SEP menu and the search results) -->
+        <Popup x:Name="Flyout" AllowsTransparency="True" StaysOpen="False" PopupAnimation="None" Placement="Bottom" VerticalOffset="-14" HorizontalOffset="-14" Closed="OnFlyoutClosed">
+            <Border x:Name="FlyoutRoot" Margin="14" Padding="6" MinWidth="230" MaxWidth="340" CornerRadius="12"
+                    Background="{DynamicResource Surface}" BorderBrush="{DynamicResource BarBorder}" BorderThickness="1"
+                    TextElement.Foreground="{DynamicResource Text}" TextElement.FontFamily="Segoe UI" TextElement.FontSize="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Opacity="0.16" Color="#1C2733" />
+                </Border.Effect>
+                <StackPanel x:Name="FlyoutContent" />
+            </Border>
+        </Popup>
+
+        <!-- what happened: a small pill under the bar -->
+        <Popup x:Name="ToastPopup" AllowsTransparency="True" StaysOpen="True" PopupAnimation="None" Placement="Bottom" PlacementTarget="{Binding ElementName=Shell}" IsHitTestVisible="False" VerticalOffset="-4">
+            <Border x:Name="ToastBorder" Margin="10" CornerRadius="10" Padding="11,6" Background="{DynamicResource ToastBg}" MaxWidth="420">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="3" Direction="270" Opacity="0.2" Color="#1C2733" />
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="ToastIcon" FontFamily="{StaticResource Icons}" FontSize="11" VerticalAlignment="Center" Margin="0,0,7,0" />
+                    <TextBlock x:Name="ToastText" Foreground="{DynamicResource ToastText}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="380" />
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

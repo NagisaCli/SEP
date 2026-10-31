@@ -220,8 +220,8 @@ public sealed class PluginDiscoveryService
         if (!string.IsNullOrEmpty(installDir) && dir.StartsWith(installDir, StringComparison.OrdinalIgnoreCase))
             return null;
 
-        bool hasIndex = File.Exists(Path.Combine(dir, "pml.index")) || File.Exists(Path.Combine(dir, "pmllib", "pml.index"));
-        bool hasPmlSubdir = Directory.Exists(Path.Combine(dir, "pmllib")) || Directory.Exists(Path.Combine(dir, "pdmsui")) || Directory.Exists(Path.Combine(dir, "pmlui"));
+        bool hasIndex = File.Exists(Path.Combine(dir, "pml.index")) || File.Exists(Path.Combine(dir, "pmllib", "pml.index")) || File.Exists(Path.Combine(dir, "pml", "pml.index"));
+        bool hasPmlSubdir = Directory.Exists(Path.Combine(dir, "pmllib")) || Directory.Exists(Path.Combine(dir, "pml")) || Directory.Exists(Path.Combine(dir, "pdmsui")) || Directory.Exists(Path.Combine(dir, "pmlui"));
         bool hasUic = false;
         bool hasPmlFiles = false;
         bool hasAvevaDll = false;
@@ -284,7 +284,7 @@ public sealed class PluginDiscoveryService
                 }
 
                 // Count sub files
-                if (sLow is "pmllib" or "bin" or "pdmsui" or "pmlui")
+                if (sLow is "pmllib" or "pml" or "bin" or "pdmsui" or "pmlui")
                 {
                     try
                     {
@@ -429,7 +429,7 @@ public sealed class PluginDiscoveryService
                 // Auto-generate or repair pml.index if missing
                 string pmlLibPath = Directory.Exists(Path.Combine(targetDir, "pmllib"))
                     ? Path.Combine(targetDir, "pmllib")
-                    : targetDir;
+                    : (Directory.Exists(Path.Combine(targetDir, "pml")) ? Path.Combine(targetDir, "pml") : targetDir);
 
                 bool hasPml = Directory.EnumerateFiles(pmlLibPath, "*.*", SearchOption.AllDirectories)
                     .Any(f => PmlExts.Contains(Path.GetExtension(f)));
@@ -466,6 +466,7 @@ public sealed class PluginDiscoveryService
 
         // Check if current dir is already valid
         if (Directory.Exists(Path.Combine(dir, "pmllib")) ||
+            Directory.Exists(Path.Combine(dir, "pml")) ||
             Directory.Exists(Path.Combine(dir, "pdmsui")) ||
             Directory.EnumerateFiles(dir).Any(f => PmlExts.Contains(Path.GetExtension(f)) || f.EndsWith(".uic", StringComparison.OrdinalIgnoreCase)))
         {
@@ -481,6 +482,7 @@ public sealed class PluginDiscoveryService
                 if (sName.StartsWith('.') || SkipDirNames.Contains(sName)) continue;
 
                 if (Directory.Exists(Path.Combine(sub, "pmllib")) ||
+                    Directory.Exists(Path.Combine(sub, "pml")) ||
                     Directory.Exists(Path.Combine(sub, "pdmsui")) ||
                     Directory.EnumerateFiles(sub).Any(f => PmlExts.Contains(Path.GetExtension(f)) || f.EndsWith(".uic", StringComparison.OrdinalIgnoreCase)))
                 {

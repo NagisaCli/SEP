@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <E3D_HOME Condition="'$(E3D_HOME)'==''">D:\AVEVA\Everything3D3.1</E3D_HOME>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <ProjectReference Include="..\..\SEP.PluginPanel\SEP.PluginPanel.csproj" />
+    <Reference Include="Aveva.ApplicationFramework"><HintPath>$(E3D_HOME)\Aveva.ApplicationFramework.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Aveva.ApplicationFramework.Presentation"><HintPath>$(E3D_HOME)\Aveva.ApplicationFramework.Presentation.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    SEP plug-in panel: the CAF add-in behind the "Plug-ins" button on E3D's SEP ribbon tab. A docked window lists
+    every plug-in SEP enabled, with its status, the commands it supplies (the ones you chose to show), pinned
+    commands, search and keyboard shortcuts. SEP writes what to show (SEP.PluginPanel.json next to this DLL);
+    your layout is kept in %APPDATA%\SEP\plugin_panel.user.json.
+
+    E3D Design 3.1 is a 32-bit .NET Framework process, so this is net48 / x86, compiled against the installed
+    AVEVA assemblies (never copied). SEP.App embeds the built DLL and deploys it into the E3D folder itself.
+
+        dotnet build SEP.PluginPanel -c Release                          # E3D at D:\AVEVA\Everything3D3.1
+        dotnet build SEP.PluginPanel -c Release -p:E3D_HOME="C:\...\Everything3D3.1"
+
+    Without an E3D installation only the UI part is built (no CAF entry point), so SEP still builds anywhere; SEP
+    then keeps the classic ribbon because it has no add-in to deploy.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <RootNamespace>SEP.PluginPanel</RootNamespace>
+    <AssemblyName>SEP.PluginPanel</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <Version>1.0.0</Version>
+    <Product>SEP plug-in panel for AVEVA E3D</Product>
+    <Company>SEP</Company>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <E3D_HOME Condition="'$(E3D_HOME)'=='' And Exists('D:\AVEVA\Everything3D3.1\Aveva.ApplicationFramework.dll')">D:\AVEVA\Everything3D3.1</E3D_HOME>
+    <HasE3D Condition="'$(E3D_HOME)'!='' And Exists('$(E3D_HOME)\Aveva.ApplicationFramework.dll')">true</HasE3D>
+    <DefineConstants Condition="'$(HasE3D)'=='true'">$(DefineConstants);E3D</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HasE3D)'=='true'">
+    <Reference Include="Aveva.ApplicationFramework"><HintPath>$(E3D_HOME)\Aveva.ApplicationFramework.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Aveva.ApplicationFramework.Presentation"><HintPath>$(E3D_HOME)\Aveva.ApplicationFramework.Presentation.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Aveva.Core.Utilities"><HintPath>$(E3D_HOME)\Aveva.Core.Utilities.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- the CAF entry point needs the AVEVA assemblies -->
+  <ItemGroup Condition="'$(HasE3D)'!='true'">
+    <Compile Remove="Caf\**\*.cs" />
+  </ItemGroup>
+</Project>

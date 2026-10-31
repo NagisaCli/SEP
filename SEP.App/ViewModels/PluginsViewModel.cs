@@ -49,6 +49,25 @@ public partial class PluginsViewModel : ObservableObject
     [ObservableProperty] private string _macroPath = string.Empty;
     [ObservableProperty] private int _conflictCount;
 
+    /// <summary>This SEP carries the E3D plug-in panel add-in (built where E3D is installed).</summary>
+    public bool CanUsePluginPanel => PluginService.HasPanelAddin;
+
+    public string PluginPanelTooltip => CanUsePluginPanel ? Strings.Plugins_PanelToggleTooltip : Strings.Plugins_PanelUnavailable;
+
+    /// <summary>E3D's SEP tab: one Plug-ins button opening the panel (on) or every plug-in's buttons (off).</summary>
+    public bool UsePluginPanel
+    {
+        get => CanUsePluginPanel && _plugins.RibbonMode == "panel";
+        set
+        {
+            if (!CanUsePluginPanel || value == UsePluginPanel) return;
+            _plugins.RibbonMode = value ? "panel" : "classic";
+            OnPropertyChanged();
+            _ = Task.Run(() => _plugins.SyncE3dRibbon());
+            _toasts.Info(value ? Strings.Plugins_PanelOn : Strings.Plugins_PanelOff);
+        }
+    }
+
     public bool ShowList => Panel == "list";
     public bool ShowConflicts => Panel == "conflicts";
     public bool ShowChain => Panel == "chain";

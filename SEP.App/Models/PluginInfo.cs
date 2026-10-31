@@ -73,7 +73,9 @@ public sealed partial class PluginInfo : ObservableObject
 
         // Generic formatting for any plugin: split underscores/dashes and camelCase
         string cleaned = name.Replace('_', ' ').Replace('-', ' ').Trim();
-        string spaced = System.Text.RegularExpressions.Regex.Replace(cleaned, @"([a-z0-9])([A-Z])", "$1 $2");
+        // "PipeAlignment" -> "Pipe Alignment", "E3DLiveBridge" -> "E3D Live Bridge"; an acronym such as "E3DHUB" stays whole
+        string spaced = System.Text.RegularExpressions.Regex.Replace(cleaned, @"([a-z])([A-Z])", "$1 $2");
+        spaced = System.Text.RegularExpressions.Regex.Replace(spaced, @"([A-Z0-9])([A-Z][a-z])", "$1 $2");
         return System.Text.RegularExpressions.Regex.Replace(spaced, @"\s+", " ").Trim();
     }
 

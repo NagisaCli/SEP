@@ -2236,50 +2236,6 @@
   <data name="Plugins_AddinTooltip" xml:space="preserve">
     <value>已注册到 E3D 原生 .NET 加载项 (DesignAddins.xml)</value>
   </data>
-  <data name="Nav_Live" xml:space="preserve"><value>Live 启动</value></data>
-  <data name="Live_Title" xml:space="preserve"><value>启动 E3D Live</value></data>
-  <data name="Live_Subtitle" xml:space="preserve"><value>选择项目、MDB 和模块。Live 使用独立的项目启动环境，SEP 普通启动配置保持不变。依赖项目在 E3D 中仅被隐藏，并非权限限制。</value></data>
-  <data name="Live_Connection" xml:space="preserve"><value>Live 入口连接</value></data>
-  <data name="Live_Root" xml:space="preserve"><value>e3d_live 项目文件夹</value></data>
-  <data name="Live_Python" xml:space="preserve"><value>Python 可执行程序</value></data>
-  <data name="Live_Refresh" xml:space="preserve"><value>保存连接并读取选项</value></data>
-  <data name="Live_Scope" xml:space="preserve"><value>目标范围</value></data>
-  <data name="Live_Project" xml:space="preserve"><value>项目</value></data>
-  <data name="Live_PrimaryProject" xml:space="preserve"><value>主项目</value></data>
-  <data name="Live_SupportProjects" xml:space="preserve"><value>附加数据库项目（可选）</value></data>
-  <data name="Live_SupportNone" xml:space="preserve"><value>（无）</value></data>
-  <data name="Live_SupportMore" xml:space="preserve"><value>{0}（另有 {1} 个）</value></data>
-  <data name="Live_SupportHint" xml:space="preserve"><value>选择当前 MDB 依赖的附加数据库项目（可选）。启动时与主项目一起挂载，但默认登录列表隐藏。</value></data>
-  <data name="Live_Mdb" xml:space="preserve"><value>MDB</value></data>
-  <data name="Live_RefreshMdbs" xml:space="preserve"><value>刷新列表</value></data>
-  <data name="Live_MdbLoading" xml:space="preserve"><value>正在从 E3D Admin 读取此项目的 MDB 列表…</value></data>
-  <data name="Live_MdbLoaded" xml:space="preserve"><value>可选 {0} 个 MDB；展开 MDB 下拉框选择。</value></data>
-  <data name="Live_MdbEmpty" xml:space="preserve"><value>Admin 未返回 MDB 名称；仍可手动输入。</value></data>
-  <data name="Live_MdbUnavailable" xml:space="preserve"><value>MDB 列表不可用：{0}。仍可手动输入 MDB。</value></data>
-  <data name="Live_Module" xml:space="preserve"><value>模块</value></data>
-  <data name="Live_AccessMode" xml:space="preserve"><value>访问模式</value></data>
-  <data name="Live_Start" xml:space="preserve"><value>启动 Live</value></data>
-  <data name="Live_SelectScope" xml:space="preserve"><value>请先读取 Live 选项，再选择目标范围。</value></data>
-  <data name="Live_LoadingOptions" xml:space="preserve"><value>正在读取已配置的 Live 目标…</value></data>
-  <data name="Live_NoTargets" xml:space="preserve"><value>尚未配置 Live 目标。</value></data>
-  <data name="Live_OptionsLoaded" xml:space="preserve"><value>已读取 {0} 个 Live 目标。</value></data>
-  <data name="Live_ProfilesLoaded" xml:space="preserve"><value>已读取 {0} 个 Live 模块配置，可用于 SEP 的 {1} 个项目。MDB 必须在 E3D 中存在。</value></data>
-  <data name="Live_ProjectsWithoutCode" xml:space="preserve"><value>另有 {0} 个项目缺少有效的 AVEVA 工程代码，未列入。</value></data>
-  <data name="Live_RuntimeReady" xml:space="preserve"><value>运行时已准备</value></data>
-  <data name="Live_RuntimeMissing" xml:space="preserve"><value>运行时缺失</value></data>
-  <data name="Live_WaitForLogin" xml:space="preserve"><value>正在启动 Live。如 E3D 弹出登录窗口，请登录并进入所选模块；SEP 会等待精确的网关绑定。</value></data>
-  <data name="Live_Ready" xml:space="preserve"><value>Live 已就绪：{0}/{1}/{2}（{3}），E3D PID {4}。</value></data>
-  <data name="Live_Sessions" xml:space="preserve"><value>正在运行的 Live 会话</value></data>
-  <data name="Live_RefreshSessions" xml:space="preserve"><value>刷新会话</value></data>
-  <data name="Live_SessionsCount" xml:space="preserve"><value>当前有 {0} 个健康的 Live 会话。</value></data>
-  <data name="Live_StopTitle" xml:space="preserve"><value>停止 Live 连接？</value></data>
-  <data name="Live_StopBody" xml:space="preserve"><value>停止 {0}/{1}/{2}、E3D PID {3} 的 Live 网关？E3D 将保持打开，未保存工作不会被丢弃。</value></data>
-  <data name="Live_StopConfirm" xml:space="preserve"><value>停止 Live</value></data>
-  <data name="Live_Stopped" xml:space="preserve"><value>Live 网关已停止，E3D 进程仍保持打开。</value></data>
-  <data name="Live_BrowseTitle" xml:space="preserve"><value>选择 e3d_live 项目文件夹</value></data>
-  <data name="Live_WriteTitle" xml:space="preserve"><value>启动可写入的 Live 网关？</value></data>
-  <data name="Live_WriteBody" xml:space="preserve"><value>将以受控写入网关模式启动 {0}/{1}/{2}。E3D 面板内的写入授权和完整命令权限仍需另外授予。</value></data>
-  <data name="Live_WriteConfirm" xml:space="preserve"><value>启动受控写入</value></data>
   <data name="My_NewGroup" xml:space="preserve"><value>新建分组</value></data>
   <data name="My_NewGroupTitle" xml:space="preserve"><value>新建项目分组</value></data>
   <data name="My_NewGroupPrompt" xml:space="preserve"><value>请输入分组名称：</value></data>
@@ -2305,4 +2261,19 @@
   <data name="Drop_ProjectLibrary" xml:space="preserve"><value>拖入工程或库文件夹以添加</value></data>
   <data name="Drop_PluginArchive" xml:space="preserve"><value>拖入插件压缩包 (.zip) 或文件夹以安装</value></data>
   <data name="Drop_AddToMine" xml:space="preserve"><value>释放以添加到“我的项目”</value></data>
+  <data name="Plugins_PanelToggle" xml:space="preserve">
+    <value>E3D 插件浮动栏</value>
+  </data>
+  <data name="Plugins_PanelToggleTooltip" xml:space="preserve">
+    <value>开启：E3D 的 SEP 选项卡保持精简，“插件”按钮显示浮动栏，包含已固定的命令和所有已启用插件；“管理插件”打开侧面板，可选择按钮、固定和设置快捷键。关闭：每个插件的按钮都放在 SEP 选项卡上。下次启动 E3D 时生效。</value>
+  </data>
+  <data name="Plugins_PanelUnavailable" xml:space="preserve">
+    <value>此 SEP 版本不含插件浮动栏（构建时未安装 E3D）；E3D 将显示每个插件的按钮。</value>
+  </data>
+  <data name="Plugins_PanelOn" xml:space="preserve">
+    <value>下次启动 E3D 起将显示插件浮动栏（SEP 选项卡 &gt; 插件）。</value>
+  </data>
+  <data name="Plugins_PanelOff" xml:space="preserve">
+    <value>下次启动 E3D 起，每个插件的按钮都显示在 SEP 选项卡上。</value>
+  </data>
 </root>

@@ -6896,5 +6896,49 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Usage_ClockNote", resourceCulture);
             }
         }
+            /// <summary>
+        ///   Looks up a localized string similar to Plug-in bar in E3D.
+        /// </summary>
+        public static string Plugins_PanelToggle {
+            get {
+                return ResourceManager.GetString("Plugins_PanelToggle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to On: the SEP tab in E3D stays small. Its Plug-ins button shows a floating bar with your pinned commands and every enabled plug-in; Manage plug-ins opens a side pan.
+        /// </summary>
+        public static string Plugins_PanelToggleTooltip {
+            get {
+                return ResourceManager.GetString("Plugins_PanelToggleTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This SEP build has no plug-in bar (it was built without E3D); E3D shows every plug-in's buttons..
+        /// </summary>
+        public static string Plugins_PanelUnavailable {
+            get {
+                return ResourceManager.GetString("Plugins_PanelUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to From its next start E3D shows the plug-in bar (SEP tab &gt; Plug-ins)..
+        /// </summary>
+        public static string Plugins_PanelOn {
+            get {
+                return ResourceManager.GetString("Plugins_PanelOn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to From its next start E3D shows every plug-in's buttons on the SEP tab..
+        /// </summary>
+        public static string Plugins_PanelOff {
+            get {
+                return ResourceManager.GetString("Plugins_PanelOff", resourceCulture);
+            }
+        }
     }
 }
