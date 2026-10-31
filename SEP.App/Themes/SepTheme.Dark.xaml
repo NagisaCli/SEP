@@ -1,17 +1,34 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Semantic colours of the SEP dark theme. Pages reference the *Brush keys with DynamicResource so the
-         light theme (SepTheme.Light.xaml) can be swapped in at run time. -->
-    <Color x:Key="SepPageColor">#0F1218</Color>
-    <Color x:Key="SepSurfaceColor">#171B23</Color>
-    <Color x:Key="SepSurface2Color">#1E232D</Color>
-    <Color x:Key="SepSurfaceHoverColor">#242A36</Color>
-    <Color x:Key="SepInputColor">#11151C</Color>
-    <Color x:Key="SepBorderColor">#2A313D</Color>
-    <Color x:Key="SepBorderStrongColor">#3B4453</Color>
-    <Color x:Key="SepTextColor">#F3F5F7</Color>
-    <Color x:Key="SepText2Color">#A3ACBA</Color>
-    <Color x:Key="SepText3Color">#6E7887</Color>
+         light theme (SepTheme.Light.xaml) can be swapped in at run time; every key here exists there too.
+         Dark rule: borders carry the structure, surfaces step up in lightness (page < card < inner < hover). -->
+
+    <!-- surfaces -->
+    <Color x:Key="SepPageColor">#0E1117</Color>
+    <Color x:Key="SepSurfaceColor">#161A22</Color>
+    <Color x:Key="SepSurface2Color">#1C212B</Color>
+    <Color x:Key="SepSurfaceHoverColor">#222835</Color>
+    <Color x:Key="SepSurfacePressedColor">#1A1F29</Color>
+    <!-- segmented controls: the track and the raised selected segment -->
+    <Color x:Key="SepTrackColor">#10141B</Color>
+    <Color x:Key="SepSegmentColor">#262D3B</Color>
+    <!-- tray: the recessed area a card list sits in inside a group card -->
+    <Color x:Key="SepTrayColor">#12161D</Color>
+    <Color x:Key="SepInputColor">#10141B</Color>
+
+    <!-- strokes: the card edge is nearly the border colour in dark, where light-on-dark borders already read -->
+    <Color x:Key="SepBorderColor">#283040</Color>
+    <Color x:Key="SepBorderStrongColor">#3A4558</Color>
+    <Color x:Key="SepDividerColor">#222936</Color>
+    <Color x:Key="SepCardEdgeColor">#1F2531</Color>
+
+    <!-- text: Text3 keeps 4.4:1 on Surface2 -->
+    <Color x:Key="SepTextColor">#F2F4F8</Color>
+    <Color x:Key="SepText2Color">#A7B0BE</Color>
+    <Color x:Key="SepText3Color">#7D8797</Color>
+
+    <!-- accent + tones (strong / soft pairs) -->
     <Color x:Key="SepAccentColor">#2DD4FF</Color>
     <Color x:Key="SepAccentStrongColor">#0EA5C9</Color>
     <Color x:Key="SepAccentSoftColor">#0F2C36</Color>
@@ -31,9 +48,15 @@
     <SolidColorBrush x:Key="SepSurfaceBrush" Color="{StaticResource SepSurfaceColor}" />
     <SolidColorBrush x:Key="SepSurface2Brush" Color="{StaticResource SepSurface2Color}" />
     <SolidColorBrush x:Key="SepSurfaceHoverBrush" Color="{StaticResource SepSurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SepSurfacePressedBrush" Color="{StaticResource SepSurfacePressedColor}" />
+    <SolidColorBrush x:Key="SepTrackBrush" Color="{StaticResource SepTrackColor}" />
+    <SolidColorBrush x:Key="SepSegmentBrush" Color="{StaticResource SepSegmentColor}" />
+    <SolidColorBrush x:Key="SepTrayBrush" Color="{StaticResource SepTrayColor}" />
     <SolidColorBrush x:Key="SepInputBrush" Color="{StaticResource SepInputColor}" />
     <SolidColorBrush x:Key="SepBorderBrush" Color="{StaticResource SepBorderColor}" />
     <SolidColorBrush x:Key="SepBorderStrongBrush" Color="{StaticResource SepBorderStrongColor}" />
+    <SolidColorBrush x:Key="SepDividerBrush" Color="{StaticResource SepDividerColor}" />
+    <SolidColorBrush x:Key="SepCardEdgeBrush" Color="{StaticResource SepCardEdgeColor}" />
     <SolidColorBrush x:Key="SepTextBrush" Color="{StaticResource SepTextColor}" />
     <SolidColorBrush x:Key="SepText2Brush" Color="{StaticResource SepText2Color}" />
     <SolidColorBrush x:Key="SepText3Brush" Color="{StaticResource SepText3Color}" />
@@ -52,9 +75,25 @@
     <SolidColorBrush x:Key="SepPurpleBrush" Color="{StaticResource SepPurpleColor}" />
     <SolidColorBrush x:Key="SepPurpleSoftBrush" Color="{StaticResource SepPurpleSoftColor}" />
 
-    <!-- Accent gradient for hero elements (launch button, active project). -->
+    <!-- Card stroke: the border colour that turns into the edge colour along the bottom, so a card sits on the page
+         without any effect (cheap enough for every card and row). -->
+    <LinearGradientBrush x:Key="SepCardBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource SepBorderColor}" Offset="0" />
+        <GradientStop Color="{StaticResource SepBorderColor}" Offset="0.9" />
+        <GradientStop Color="{StaticResource SepCardEdgeColor}" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Accent gradient for hero elements (launch buttons, the app monogram). Text on it: SepOnAccentBrush. -->
     <LinearGradientBrush x:Key="SepAccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#2DD4FF" Offset="0" />
         <GradientStop Color="#3B82F6" Offset="1" />
     </LinearGradientBrush>
+
+    <!-- Hero surface (the overview's "E3D will load" card): the card colour with an accent wash from the top left. -->
+    <LinearGradientBrush x:Key="SepHeroBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#13283A" Offset="0" />
+        <GradientStop Color="#161C27" Offset="0.55" />
+        <GradientStop Color="#161A22" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="SepHeroBorderBrush" Color="#1E3F52" />
 </ResourceDictionary>

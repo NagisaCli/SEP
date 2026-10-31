@@ -46,14 +46,17 @@
                   CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
     </ContextMenu>
 
-    <!-- Tag chip -->
+
+    <!-- Tag chip (data: square-ish chip; states are pills) -->
     <DataTemplate x:Key="TagChip">
-        <Border Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="1" CornerRadius="999" Padding="7,1" Margin="0,2,4,2">
-            <TextBlock Text="{Binding}" FontSize="10.5" Foreground="{DynamicResource SepText2Brush}" />
+        <Border Style="{StaticResource SepChip}">
+            <TextBlock Text="{Binding}" Style="{StaticResource SepChipText}" />
         </Border>
     </DataTemplate>
 
-    <!-- The project card: category stripe, badge, title, meta pills, actions. Expects DataContext.Actions on the hosting Page. -->
+    <!-- The project card, SEP's signature element: category stripe, monogram, title, status pills, a few tags, actions.
+         Expects DataContext.Actions on the hosting Page. Per card: no effects, no per-card brushes beyond the
+         category colour; the selection ring is a collapsed overlay until batch mode selects the card. -->
     <DataTemplate x:Key="ProjectCardTemplate" DataType="{x:Type models:ProjectItem}">
         <!-- The host never moves: it is the hit target, drag source and context-menu owner. Only the inner card
              lifts on hover; when the whole card lifted, its hit area moved with it and a pointer near the bottom
@@ -62,8 +65,8 @@
         <Border x:Name="CardHost" Width="312" Margin="0,0,12,12" Background="Transparent" ContextMenu="{StaticResource ProjectCardMenu}"
                 Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
                 beh:ProjectDragDrop.IsDraggable="True" beh:CardEntrance.IsEnabled="True">
-        <Border x:Name="Card" BorderThickness="1" CornerRadius="12" Padding="0" SnapsToDevicePixels="True"
-                BorderBrush="{DynamicResource SepBorderBrush}" Background="{DynamicResource SepSurfaceBrush}">
+        <Border x:Name="Card" BorderThickness="1" CornerRadius="{StaticResource SepRadiusL}" Padding="0" SnapsToDevicePixels="True"
+                BorderBrush="{DynamicResource SepCardBorderBrush}" Background="{DynamicResource SepSurfaceBrush}">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="CardSlide" Y="0" />
             </Border.RenderTransform>
@@ -73,8 +76,8 @@
                     <ColumnDefinition Width="4" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <!-- category colour stripe -->
-                <Border CornerRadius="12,0,0,12" Margin="0,0,0,0">
+                <!-- category colour stripe, rounded with the card's inner corner (12 - 1 px border) -->
+                <Border CornerRadius="11,0,0,11">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Background" Value="Transparent" />
@@ -87,15 +90,16 @@
                     </Border.Style>
                 </Border>
 
-                <!-- the middle row takes the slack, so the action row sits at the same height in every card of a row -->
-                <Grid Grid.Column="1" Margin="12,12,14,12">
+                <!-- the tag row takes the slack, so the action row sits at the same height in every card of a row -->
+                <Grid Grid.Column="1" Margin="12,14,14,14">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- header -->
+                    <!-- header: [batch check] [monogram] title / context [star] -->
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -105,22 +109,26 @@
                         </Grid.ColumnDefinitions>
                         <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,6,0" VerticalAlignment="Center" MinWidth="0" Padding="0"
                                   Visibility="{Binding DataContext.BatchMode, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
-                        <Border Grid.Column="1" Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
-                            <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" Foreground="#FFFFFF" FontSize="12" />
+                        <Border Grid.Column="1" Style="{StaticResource SepAvatar}" Width="40" Height="40" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
+                            <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" FontSize="12" />
                         </Border>
-                        <StackPanel Grid.Column="2" Margin="10,0,6,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Title}" Style="{StaticResource SepBody}" FontWeight="SemiBold" FontSize="14" ToolTip="{Binding Title}" />
-                            <TextBlock Style="{StaticResource SepMono}" ToolTip="{Binding BatPath}">
-                                <TextBlock.Text>
-                                    <MultiBinding Converter="{StaticResource SwitchConverter}">
-                                        <Binding Path="HasDisplayName" />
-                                        <Binding Path="Name" />
-                                        <Binding Path="ProjectDir" />
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
+                        <StackPanel Grid.Column="2" Margin="12,0,6,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" FontSize="14" ToolTip="{Binding Title}" />
+                            <!-- context line: the evars name (when a display name hides it) · library; the library trims first -->
+                            <Grid Margin="0,2,0,0" ToolTip="{Binding BatPath}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Name}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepText2Brush}" MaxWidth="100" VerticalAlignment="Center"
+                                           Visibility="{Binding HasDisplayName, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <Ellipse Grid.Column="1" Width="3" Height="3" Fill="{DynamicResource SepText3Brush}" Margin="6,1,6,0" VerticalAlignment="Center"
+                                         Visibility="{Binding HasDisplayName, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <TextBlock Grid.Column="2" Text="{Binding LibraryName}" Style="{StaticResource SepCaption}" VerticalAlignment="Center" />
+                            </Grid>
                         </StackPanel>
-                        <ui:Button Grid.Column="3" Style="{StaticResource SepIconButton}" Padding="4" MinWidth="28" MinHeight="28"
+                        <ui:Button Grid.Column="3" Style="{StaticResource SepIconButton}" Padding="4" MinWidth="30" MinHeight="30" VerticalAlignment="Top" Margin="0,-4,-6,0"
                                    Command="{Binding Tag.ToggleFavoriteCommand, ElementName=CardHost}" CommandParameter="{Binding}">
                             <ui:Button.ToolTip>
                                 <MultiBinding Converter="{StaticResource SwitchConverter}">
@@ -129,15 +137,27 @@
                                     <Binding Path="[Project_AddToMine]" Source="{x:Static loc:Loc.Instance}" />
                                 </MultiBinding>
                             </ui:Button.ToolTip>
-                            <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}" FontSize="16" Foreground="{DynamicResource SepWarningBrush}" />
+                            <ui:SymbolIcon Symbol="Star20" FontSize="18" Filled="{Binding IsFavorite}">
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="ui:SymbolIcon">
+                                        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource SepWarningBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
                         </ui:Button>
                     </Grid>
 
-                    <!-- meta pills -->
-                    <WrapPanel Grid.Row="1" Margin="0,8,0,8" Orientation="Horizontal" VerticalAlignment="Top">
+                    <!-- state pills: dot + pill for status and presence -->
+                    <WrapPanel Grid.Row="1" Margin="0,12,0,0" Orientation="Horizontal">
                         <controls:Badge Content="{loc:Tr Projects_ActiveBadge}" Tone="Success" IsSolid="True" Margin="0,2,6,2"
                                         Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        <controls:Badge Tone="Info" Margin="0,2,6,2" Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <controls:Badge HasDot="True" Tone="{Binding Status, Converter={StaticResource StatusToToneConverter}}" Margin="0,2,6,2"
+                                        Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibilityConverter}}">
                             <controls:Badge.Content>
                                 <MultiBinding Converter="{StaticResource StatusLabelConverter}">
                                     <Binding Path="Status" />
@@ -145,47 +165,66 @@
                                 </MultiBinding>
                             </controls:Badge.Content>
                         </controls:Badge>
-                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding HasCategory, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        Content="{Binding Category.Name}" Foreground="{Binding Category.Color, Converter={StaticResource HexToBrushConverter}}" />
-                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding HasOwner, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Person12" Margin="0,0,3,0" FontSize="11" />
-                                <TextBlock Text="{Binding Owner}" />
-                            </StackPanel>
-                        </controls:Badge>
-                        <controls:Badge Tone="Warning" Margin="0,2,6,2" Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr Project_LockActive}" />
-                        <controls:Badge Tone="Purple" Margin="0,2,6,2" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
+                        <controls:Badge HasDot="True" Margin="0,2,6,2" Visibility="{Binding HasCategory, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Content="{Binding Category.Name}" DotBrush="{Binding Category.Color, Converter={StaticResource HexToBrushConverter}}" />
+                        <controls:Badge Tone="Purple" HasDot="True" Margin="0,2,6,2" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
                                 <TextBlock Text="{Binding OnlineBadgeText}" />
                             </StackPanel>
                         </controls:Badge>
-                        <controls:Badge Tone="Success" Margin="0,2,6,2" Visibility="{Binding IsUsageFree, Converter={StaticResource BoolToVisibilityConverter}}"
+                        <controls:Badge Tone="Success" HasDot="True" Margin="0,2,6,2" Visibility="{Binding IsUsageFree, Converter={StaticResource BoolToVisibilityConverter}}"
                                         Content="{loc:Tr Usage_FreeBadge}" ToolTip="{Binding OnlineSummary}" />
+                        <controls:Badge Tone="Warning" Margin="0,2,6,2" Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="LockClosed12" Margin="0,0,3,0" FontSize="11" />
+                                <TextBlock Text="{loc:Tr Project_LockActive}" />
+                            </StackPanel>
+                        </controls:Badge>
+                        <controls:Badge Margin="0,2,6,2" Visibility="{Binding HasOwner, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Person12" Margin="0,0,3,0" FontSize="11" />
+                                <TextBlock Text="{Binding Owner}" MaxWidth="120" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </controls:Badge>
                         <controls:Badge Margin="0,2,6,2" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}" Content="{loc:Tr Project_Cached}" />
-                        <ItemsControl ItemsSource="{Binding Tags}" ItemTemplate="{StaticResource TagChip}" Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibilityConverter}}">
+                    </WrapPanel>
+
+                    <!-- tags: at most three, then "+n" -->
+                    <WrapPanel Grid.Row="2" Margin="0,4,0,0" Orientation="Horizontal" VerticalAlignment="Top" ToolTip="{Binding Tags, Converter={StaticResource JoinConverter}}"
+                               Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding Tags, Converter={StaticResource TakeConverter}, ConverterParameter=3}" ItemTemplate="{StaticResource TagChip}" Focusable="False">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
+                        <Border Style="{StaticResource SepChip}" Background="Transparent"
+                                Visibility="{Binding Tags, Converter={StaticResource OverflowCountConverter}, ConverterParameter=3}">
+                            <TextBlock Text="{Binding Tags, Converter={StaticResource OverflowCountConverter}, ConverterParameter=3}" Style="{StaticResource SepChipText}" />
+                        </Border>
                     </WrapPanel>
 
                     <!-- actions -->
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="3" Margin="0,14,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch" Padding="10,5"
+                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch" Padding="10,6"
                                    Command="{Binding Tag.LaunchCommand, ElementName=CardHost}" CommandParameter="{Binding}" />
-                        <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_OpenFolderTooltip}"
+                        <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Margin="6,0,0,0" Padding="8,6" ToolTip="{loc:Tr Projects_OpenFolderTooltip}"
+                                   AutomationProperties.Name="{loc:Tr Projects_OpenFolderTooltip}"
                                    Command="{Binding Tag.OpenFolderCommand, ElementName=CardHost}" CommandParameter="{Binding}" />
-                        <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_MoreTooltip}"
+                        <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal20}" Margin="6,0,0,0" Padding="8,6" ToolTip="{loc:Tr Projects_MoreTooltip}"
                                    AutomationProperties.Name="{loc:Tr Projects_MoreTooltip}" beh:ClickMenu.IsEnabled="True" ContextMenu="{StaticResource ProjectCardMenu}"
                                    Tag="{Binding Tag, ElementName=CardHost}" />
                     </Grid>
                 </Grid>
+
+                <!-- batch selection: a second accent stroke inside the card's own, so the ring is 2 px without a layout shift -->
+                <Border x:Name="SelectionRing" Grid.ColumnSpan="2" CornerRadius="11" BorderThickness="1" BorderBrush="{DynamicResource SepAccentBrush}"
+                        Visibility="Collapsed" IsHitTestVisible="False" />
             </Grid>
         </Border>
         </Border>
@@ -210,7 +249,7 @@
                 <Trigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" To="-3" Duration="0:0:0.12">
+                            <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.12">
                                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
                         </Storyboard>
@@ -226,6 +265,12 @@
                     </BeginStoryboard>
                 </Trigger.ExitActions>
             </Trigger>
+            <!-- after the hover trigger, so a selected card keeps its tint and ring while the pointer is on it -->
+            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SepAccentBrush}" />
+                <Setter TargetName="Card" Property="Background" Value="{DynamicResource SepAccentSoftBrush}" />
+                <Setter TargetName="SelectionRing" Property="Visibility" Value="Visible" />
+            </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
 </ResourceDictionary>

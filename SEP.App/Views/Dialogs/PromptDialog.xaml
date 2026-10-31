@@ -4,53 +4,89 @@
         xmlns:sepsvc="clr-namespace:SEP.App.Services"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:loc="clr-namespace:SEP.App.Localization"
+        xmlns:controls="clr-namespace:SEP.App.Controls"
         Title="{Binding Request.Title}"
-        Width="460" SizeToContent="Height"
+        Width="480" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
+        FontFamily="{StaticResource SepTextFont}"
         Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{Binding Request.Title}" ShowMinimize="False" ShowMaximize="False" />
+        <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,8,24,20">
-            <TextBlock Text="{Binding Request.Message}" Style="{StaticResource SepPageSubtitle}" Margin="0,0,0,14"
-                       Visibility="{Binding HasMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
+        <StackPanel Grid.Row="1" Margin="24,0,24,20">
+            <!-- dialog header: tile + title + message -->
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <controls:IconTile VerticalAlignment="Top">
+                    <controls:IconTile.Style>
+                        <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                            <Setter Property="Symbol" Value="Edit20" />
+                            <Setter Property="Tone" Value="Accent" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Request.Danger}" Value="True">
+                                    <Setter Property="Symbol" Value="Warning20" />
+                                    <Setter Property="Tone" Value="Danger" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:IconTile.Style>
+                </controls:IconTile>
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Request.Title}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Request.Message}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0"
+                               Visibility="{Binding HasMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
+            </Grid>
 
             <!-- choice -->
-            <StackPanel Visibility="{Binding HasChoices, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,12">
+            <StackPanel Visibility="{Binding HasChoices, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,14">
                 <TextBlock Text="{Binding Request.ChoiceLabel}" Style="{StaticResource SepLabel}" />
                 <ComboBox x:Name="ChoiceBox" ItemsSource="{Binding Request.Choices}" SelectedItem="{Binding Choice, Mode=TwoWay}" HorizontalAlignment="Stretch" />
             </StackPanel>
 
             <!-- text -->
-            <StackPanel Visibility="{Binding HasText, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,12">
+            <StackPanel Visibility="{Binding HasText, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,14">
                 <TextBlock Text="{Binding Request.TextLabel}" Style="{StaticResource SepLabel}" />
                 <ui:TextBox x:Name="TextField" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Request.TextPlaceholder}"
                             MaxLength="{Binding Request.TextMaxLength}" CharacterCasing="{Binding Casing}" />
             </StackPanel>
 
             <!-- password + confirmation -->
-            <StackPanel Visibility="{Binding HasPassword, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,4">
+            <StackPanel Visibility="{Binding HasPassword, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,6">
                 <TextBlock Text="{Binding Request.PasswordLabel}" Style="{StaticResource SepLabel}" />
-                <ui:PasswordBox x:Name="PasswordField" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" Margin="0,0,0,8" />
+                <ui:PasswordBox x:Name="PasswordField" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" Margin="0,0,0,10" />
                 <TextBlock Text="{loc:Tr Users_PasswordRepeatLabel}" Style="{StaticResource SepLabel}" />
                 <ui:PasswordBox x:Name="PasswordRepeatField" Password="{Binding PasswordRepeat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" />
                 <TextBlock Text="{loc:Tr Users_PasswordRules}" Style="{StaticResource SepCaption}" Margin="0,6,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
-            <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
-                       Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}" />
+            <!-- error -->
+            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,4,0,0"
+                    Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="380" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="90" Margin="0,0,10,0" IsCancel="True" />
+        <!-- footer: actions right-aligned, the primary (or destructive) one last -->
+        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
                 <ui:Button x:Name="OkButton" Content="{Binding Request.OkLabel}" Appearance="{Binding OkAppearance}" Click="OnOk" MinWidth="110" IsDefault="True" />
             </StackPanel>
-        </StackPanel>
+        </Border>
     </Grid>
 </ui:FluentWindow>

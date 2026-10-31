@@ -2366,4 +2366,136 @@ Save them anyway?</value>
   <data name="Plugins_PanelOff" xml:space="preserve">
     <value>From its next start E3D shows every plug-in's buttons on the SEP tab.</value>
   </data>
+  <data name="Main_ProductName" xml:space="preserve">
+    <value>SEP</value>
+  </data>
+  <data name="Main_E3dVersionUnknown" xml:space="preserve">
+    <value>E3D version not set</value>
+  </data>
+  <data name="Main_E3dRunning" xml:space="preserve">
+    <value>E3D is running on this PC</value>
+  </data>
+  <data name="Main_E3dNotRunning" xml:space="preserve">
+    <value>E3D is not running</value>
+  </data>
+  <data name="Overview_HeroEyebrow" xml:space="preserve">
+    <value>E3D will load</value>
+  </data>
+  <data name="Overview_HeroLaunchAll" xml:space="preserve">
+    <value>All my projects</value>
+  </data>
+  <data name="Overview_HeroEmptyTitle" xml:space="preserve">
+    <value>Nothing is set up to load yet</value>
+  </data>
+  <data name="Overview_HeroEmptyBody" xml:space="preserve">
+    <value>Launch a project once from the Project Workbench; SEP keeps it here for one-click starts.</value>
+  </data>
+  <data name="Overview_HeroOpenWorkbench" xml:space="preserve">
+    <value>Open Project Workbench</value>
+  </data>
+  <data name="Overview_RecentEmptyTitle" xml:space="preserve">
+    <value>Nothing new yet</value>
+  </data>
+  <data name="Overview_RecentEmptyHint" xml:space="preserve">
+    <value>Projects found by the next library scan show up here.</value>
+  </data>
+  <data name="Overview_NobodyOnlineTitle" xml:space="preserve">
+    <value>Nobody online</value>
+  </data>
+  <data name="Overview_NoProjectsYet" xml:space="preserve">
+    <value>No projects yet</value>
+  </data>
+  <data name="Overview_DataFolder" xml:space="preserve">
+    <value>Data folder</value>
+  </data>
+  <data name="Projects_SearchHint" xml:space="preserve">
+    <value>Search code, name, tag or path  (Ctrl+F)</value>
+  </data>
+  <data name="Lib_Reachable" xml:space="preserve">
+    <value>reachable</value>
+  </data>
+  <data name="Lib_DropHint" xml:space="preserve">
+    <value>Drop a project folder or a library here, or add one by its path. Local folders, \\server\share paths and evarsXXX.bat files all work.</value>
+  </data>
+  <data name="Lib_ShownTooltip" xml:space="preserve">
+    <value>Projects shown in this library with the current filters</value>
+  </data>
+  <data name="Projects_ToolsLabel" xml:space="preserve">
+    <value>More project tools</value>
+  </data>
+  <data name="Plugins_DiscoveryTitle" xml:space="preserve">
+    <value>Find E3D plug-ins on this PC</value>
+  </data>
+  <data name="Plugins_DiscoveryBody" xml:space="preserve">
+    <value>Scans local disks, the desktop, downloads and the project libraries for PML forms, macros, .NET assemblies and UIC files, and hosts what it finds in SEP in one step.</value>
+  </data>
+  <data name="Plugins_DiscoveryNotStarted" xml:space="preserve">
+    <value>No system scan yet</value>
+  </data>
+  <data name="Plugins_AlreadyManaged" xml:space="preserve">
+    <value>Already in SEP</value>
+  </data>
+  <data name="Plugins_TotalTooltip" xml:space="preserve">
+    <value>Plug-ins in the plug-in folder</value>
+  </data>
+  <data name="Settings_StartupHeader" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="Settings_DataFolderHeader" xml:space="preserve">
+    <value>Data folder</value>
+  </data>
+  <data name="Settings_BundleHeader" xml:space="preserve">
+    <value>Move to another PC</value>
+  </data>
+  <data name="Settings_BundleHint" xml:space="preserve">
+    <value>Export libraries, projects, categories and paths as one file, or import such a file here.</value>
+  </data>
+  <data name="Settings_InstallHeader" xml:space="preserve">
+    <value>Installation</value>
+  </data>
+  <data name="Tools_SummaryPassed" xml:space="preserve">
+    <value>{0} passed</value>
+  </data>
+  <data name="Tools_SummaryWarnings" xml:space="preserve">
+    <value>{0} warnings</value>
+  </data>
+  <data name="Tools_SummaryFailed" xml:space="preserve">
+    <value>{0} failed</value>
+  </data>
+  <data name="Tools_SummarySkipped" xml:space="preserve">
+    <value>{0} skipped</value>
+  </data>
+  <data name="Tools_ToolsHeader" xml:space="preserve">
+    <value>Checks and repairs</value>
+  </data>
+  <data name="Tools_IdleTitle" xml:space="preserve">
+    <value>Run a check to see the health of this PC</value>
+  </data>
+  <data name="Tools_IdleHint" xml:space="preserve">
+    <value>The configuration check reads custom_evars.bat and the E3D setup; the library diagnosis tests the network path of a library.</value>
+  </data>
+  <data name="Users_ColUser" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Users_ColSecurity" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Users_ColTeams" xml:space="preserve">
+    <value>Teams</value>
+  </data>
+  <data name="Users_ColTeam" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="Users_ColMembers" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Users_NoProjectTitle" xml:space="preserve">
+    <value>Pick a project with a project code</value>
+  </data>
+  <data name="Edit_Subtitle" xml:space="preserve">
+    <value>Name, category, status, owner and tags as SEP shows them on the cards.</value>
+  </data>
+  <data name="Category_Subtitle" xml:space="preserve">
+    <value>Colour-code projects by business area. Click a swatch to change its colour.</value>
+  </data>
 </root>

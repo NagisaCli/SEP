@@ -1,5 +1,5 @@
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SEP.App.ViewModels;
 
@@ -15,26 +15,14 @@ public partial class OverviewPage : Page
         _viewModel = App.Services.GetRequiredService<OverviewViewModel>();
         DataContext = _viewModel;
         Loaded += (_, _) => _viewModel.Refresh();
-        // six tiles in one row need about 1000 px; below that two even rows read better than one orphan tile
+        // five tiles in one row need about 1000 px of page; below that two even rows read better than one squeezed row
         SizeChanged += (_, e) => KpiGrid.Rows = e.NewSize.Width >= 1000 ? 1 : 2;
     }
 
-    // KPI tiles are plain borders (no button chrome); a click (press and release on the same tile) opens the
-    // matching page. Release alone is not a click: a press on a card or the scroll bar released over a tile
-    // used to navigate away.
-    private object? _pressedTile;
-
-    private void OnTilePressed(object sender, MouseButtonEventArgs e) => _pressedTile = sender;
-
-    private bool IsClick(object sender)
-    {
-        bool click = ReferenceEquals(sender, _pressedTile);
-        _pressedTile = null;
-        return click;
-    }
-
-    private void OnProjectsTile(object sender, MouseButtonEventArgs e) { if (IsClick(sender)) _viewModel.GoProjectsCommand.Execute(null); }
-    private void OnMineTile(object sender, MouseButtonEventArgs e) { if (IsClick(sender)) _viewModel.GoMyProjectsCommand.Execute(null); }
-    private void OnSettingsTile(object sender, MouseButtonEventArgs e) { if (IsClick(sender)) _viewModel.GoSettingsCommand.Execute(null); }
-    private void OnToolsTile(object sender, MouseButtonEventArgs e) { if (IsClick(sender)) _viewModel.GoToolsCommand.Execute(null); }
+    // KPI tiles are buttons (SepTileButton): Click already means press and release on the same tile, so a press on
+    // a card or the scroll bar released over a tile does not navigate away, and the tiles work from the keyboard.
+    private void OnProjectsTile(object sender, RoutedEventArgs e) => _viewModel.GoProjectsCommand.Execute(null);
+    private void OnMineTile(object sender, RoutedEventArgs e) => _viewModel.GoMyProjectsCommand.Execute(null);
+    private void OnSettingsTile(object sender, RoutedEventArgs e) => _viewModel.GoSettingsCommand.Execute(null);
+    private void OnToolsTile(object sender, RoutedEventArgs e) => _viewModel.GoToolsCommand.Execute(null);
 }

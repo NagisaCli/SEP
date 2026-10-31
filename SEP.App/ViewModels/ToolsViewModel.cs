@@ -48,6 +48,11 @@ public partial class ToolsViewModel : ObservableObject
     [ObservableProperty] private string _reportSubtitle = string.Empty;
     [ObservableProperty] private bool _reportOk;
     public ObservableCollection<DiagCheck> Checks { get; } = new();
+    // health summary strip of the report: checks per outcome
+    [ObservableProperty] private int _checkOkCount;
+    [ObservableProperty] private int _checkWarnCount;
+    [ObservableProperty] private int _checkFailCount;
+    [ObservableProperty] private int _checkSkipCount;
     public ObservableCollection<DiagFix> Fixes { get; } = new();
     public ObservableCollection<string> Output { get; } = new();
     [ObservableProperty] private bool _hasOutput;
@@ -100,9 +105,18 @@ public partial class ToolsViewModel : ObservableObject
         ReportSubtitle = subtitle;
         ReportOk = report.Ok;
         Checks.Clear(); foreach (var c in report.Checks) Checks.Add(c);
+        CountChecks();
         Fixes.Clear(); foreach (var f in report.Fixes) Fixes.Add(f);
         Output.Clear(); HasOutput = false;
         HasReport = true;
+    }
+
+    private void CountChecks()
+    {
+        CheckOkCount = Checks.Count(c => c.Status == CheckStatus.Ok);
+        CheckWarnCount = Checks.Count(c => c.Status == CheckStatus.Warn);
+        CheckFailCount = Checks.Count(c => c.Status == CheckStatus.Fail);
+        CheckSkipCount = Checks.Count(c => c.Status == CheckStatus.Skip);
     }
 
     private void ShowResult(string title, ToolResult result)
@@ -111,6 +125,7 @@ public partial class ToolsViewModel : ObservableObject
         ReportSubtitle = result.Message;
         ReportOk = result.Ok;
         Checks.Clear(); Fixes.Clear();
+        CountChecks();
         Output.Clear(); foreach (var line in result.Output) Output.Add(line);
         HasOutput = Output.Count > 0;
         HasReport = true;

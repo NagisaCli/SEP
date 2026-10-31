@@ -197,31 +197,35 @@ public static class FolderDropHelper
     private sealed class DropOverlayAdorner : Adorner
     {
         private readonly string _message;
-        private static readonly Brush OverlayBg = Freeze(new SolidColorBrush(Color.FromArgb(0xDC, 0x0D, 0x11, 0x17)));
-        private static readonly Pen BorderPen = Freeze(new Pen(new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)), 2)
-        {
-            DashStyle = new DashStyle(new double[] { 5, 3 }, 0)
-        });
-        private static readonly Brush TextBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)));
+        // theme colours, read once per drag: a veil of the page colour with the accent's dashed outline
+        private readonly Brush _overlayBg;
+        private readonly Pen _borderPen;
+        private readonly Brush _textBrush;
 
         public DropOverlayAdorner(UIElement adornedElement, string message) : base(adornedElement)
         {
             _message = message;
             IsHitTestVisible = false;
+            var app = Application.Current;
+            var page = app?.TryFindResource("SepPageColor") is Color p ? p : Color.FromRgb(0x0E, 0x11, 0x17);
+            var accent = app?.TryFindResource("SepAccentColor") is Color a ? a : Color.FromRgb(0x2D, 0xD4, 0xFF);
+            _overlayBg = Freeze(new SolidColorBrush(Color.FromArgb(0xE0, page.R, page.G, page.B)));
+            _textBrush = Freeze(new SolidColorBrush(accent));
+            _borderPen = Freeze(new Pen(_textBrush, 2) { DashStyle = new DashStyle(new double[] { 5, 3 }, 0) });
         }
 
         protected override void OnRender(DrawingContext dc)
         {
             var rect = new Rect(new Point(6, 6), new Size(Math.Max(0, AdornedElement.RenderSize.Width - 12), Math.Max(0, AdornedElement.RenderSize.Height - 12)));
-            dc.DrawRoundedRectangle(OverlayBg, BorderPen, rect, 12, 12);
+            dc.DrawRoundedRectangle(_overlayBg, _borderPen, rect, 12, 12);
 
             var ft = new FormattedText(
                 _message,
                 System.Globalization.CultureInfo.CurrentUICulture,
                 FlowDirection.LeftToRight,
-                new Typeface(new FontFamily("Segoe UI, Microsoft YaHei"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
+                new Typeface(new FontFamily("Segoe UI Variable Display, Segoe UI, Microsoft YaHei"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
                 16,
-                TextBrush,
+                _textBrush,
                 VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
             double x = rect.X + (rect.Width - ft.Width) / 2.0;

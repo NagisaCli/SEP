@@ -2330,4 +2330,244 @@
   <data name="Plugins_PanelOff" xml:space="preserve">
     <value>下次启动 E3D 起，每个插件的按钮都显示在 SEP 选项卡上。</value>
   </data>
+  <data name="Setup_Title" xml:space="preserve">
+    <value>SEP 安装</value>
+  </data>
+  <data name="Setup_Installed" xml:space="preserve">
+    <value>SEP {0} 已安装到 {1}。\n请从开始菜单或桌面快捷方式启动。</value>
+  </data>
+  <data name="Setup_InstalledStarting" xml:space="preserve">
+    <value>SEP {0} 已安装到 {1}，正在启动。\n以后请从开始菜单或桌面快捷方式启动。</value>
+  </data>
+  <data name="Setup_Uninstalled" xml:space="preserve">
+    <value>SEP 已从此电脑移除。%APPDATA%\SEP 中的库、工程和设置均已保留。</value>
+  </data>
+  <data name="Setup_UninstallConfirm" xml:space="preserve">
+    <value>从此电脑移除 SEP？\n\n将删除快捷方式和程序文件夹；库、工程和设置会保留。</value>
+  </data>
+  <data name="Setup_InUse" xml:space="preserve">
+    <value>SEP 仍在运行，无法替换。请关闭所有 SEP 窗口后重试。</value>
+  </data>
+  <data name="Setup_Failed" xml:space="preserve">
+    <value>安装失败：{0}</value>
+  </data>
+  <data name="Unlock_InUse" xml:space="preserve">
+    <value>{0} 正被运行中的 E3D 会话占用，未删除。请先让该用户退出工程。</value>
+  </data>
+  <data name="Decommission_DeleteRefused" xml:space="preserve">
+    <value>文件夹 {0} 是一个库或还包含其他工程，因此未删除。如确需删除，请手动移除工程文件。</value>
+  </data>
+  <data name="Settings_InstalledAt" xml:space="preserve">
+    <value>已为当前用户安装到 {0}。运行更新版本的 Install-SEP.cmd 即可更新；可在 Windows 设置 &gt; 应用 中卸载。</value>
+  </data>
+  <data name="Settings_RunningOtherCopy" xml:space="preserve">
+    <value>当前副本运行于 {0}。SEP 也已安装在 {1}；将此版本安装覆盖即可更新。</value>
+  </data>
+  <data name="Settings_NotInstalled" xml:space="preserve">
+    <value>当前副本运行于 {0}，尚未安装。安装后可获得开始菜单和桌面快捷方式，并为 E3D 功能区按钮提供固定位置。</value>
+  </data>
+  <data name="Settings_Install" xml:space="preserve">
+    <value>安装到此电脑</value>
+  </data>
+  <data name="Settings_UpdateInstall" xml:space="preserve">
+    <value>更新安装</value>
+  </data>
+  <data name="Settings_InstallTooltip" xml:space="preserve">
+    <value>将 SEP 复制到你的用户目录（无需管理员权限），添加快捷方式并从该位置重新启动 SEP。你的数据会保留。</value>
+  </data>
+  <data name="Setup_NotSingleFile" xml:space="preserve">
+    <value>这是开发版本（SEP.exe 与 SEP.dll 并列）。请使用 build.ps1 发布的单文件 SEP.exe 进行安装。</value>
+  </data>
+  <data name="Usage_CheckOne" xml:space="preserve">
+    <value>查看谁在此工程中</value>
+  </data>
+  <data name="Usage_CheckAll" xml:space="preserve">
+    <value>谁在用</value>
+  </data>
+  <data name="Usage_CheckAllTooltip" xml:space="preserve">
+    <value>立即检查所有工程：是否在用，以及在用工程中有哪些人（读取 E3D 自身的会话登记）。仅在点击时运行，不会写入服务器。</value>
+  </data>
+  <data name="Usage_CheckLibraryTooltip" xml:space="preserve">
+    <value>检查此库中各工程的在用人员（仅在点击时运行）</value>
+  </data>
+  <data name="Usage_CheckGroupTooltip" xml:space="preserve">
+    <value>检查此分组中各工程的在用人员（仅在点击时运行）</value>
+  </data>
+  <data name="Usage_Checking" xml:space="preserve">
+    <value>正在检查 {0} 个工程…</value>
+  </data>
+  <data name="Usage_Summary" xml:space="preserve">
+    <value>已检查 {0} 个工程：{1} 个在用，{2} 个空闲，{3} 个无法检查。</value>
+  </data>
+  <data name="Usage_OneInUse" xml:space="preserve">
+    <value>{0} 正在使用中：{1}</value>
+  </data>
+  <data name="Usage_OneFree" xml:space="preserve">
+    <value>{0} 空闲 — 没有人打开。</value>
+  </data>
+  <data name="Usage_OneUnknown" xml:space="preserve">
+    <value>{0} 无法检查（服务器不可达或未找到数据库文件夹）。</value>
+  </data>
+  <data name="Usage_InUseUnknown" xml:space="preserve">
+    <value>在用，但 E3D 会话登记中没有人员信息（无法读取）</value>
+  </data>
+  <data name="Usage_CheckedAt" xml:space="preserve">
+    <value>检查于 {0}</value>
+  </data>
+  <data name="Usage_FreeBadge" xml:space="preserve">
+    <value>空闲</value>
+  </data>
+  <data name="Usage_InUseBadge" xml:space="preserve">
+    <value>在用</value>
+  </data>
+  <data name="Usage_More" xml:space="preserve">
+    <value>… 另有 {0} 个</value>
+  </data>
+  <data name="Usage_ActiveHeader" xml:space="preserve">
+    <value>在用：{0} 个会话</value>
+  </data>
+  <data name="Usage_ThisPcTag" xml:space="preserve">
+    <value>（本机）</value>
+  </data>
+  <data name="Usage_Since" xml:space="preserve">
+    <value>自 {0}</value>
+  </data>
+  <data name="Usage_StaleHeader" xml:space="preserve">
+    <value>仍标记为在线，但已启动多日；该处 E3D 可能已崩溃（Admin &gt; Expunge 可清除）：</value>
+  </data>
+  <data name="Usage_ClockNote" xml:space="preserve">
+    <value>启动时间以各台电脑自身的时钟为准。</value>
+  </data>
+  <data name="Main_ProductName" xml:space="preserve">
+    <value>SEP</value>
+  </data>
+  <data name="Main_E3dVersionUnknown" xml:space="preserve">
+    <value>未设置 E3D 版本</value>
+  </data>
+  <data name="Main_E3dRunning" xml:space="preserve">
+    <value>E3D 正在本机运行</value>
+  </data>
+  <data name="Main_E3dNotRunning" xml:space="preserve">
+    <value>E3D 未运行</value>
+  </data>
+  <data name="Overview_HeroEyebrow" xml:space="preserve">
+    <value>E3D 将加载</value>
+  </data>
+  <data name="Overview_HeroLaunchAll" xml:space="preserve">
+    <value>我的全部项目</value>
+  </data>
+  <data name="Overview_HeroEmptyTitle" xml:space="preserve">
+    <value>尚未设置要加载的工程</value>
+  </data>
+  <data name="Overview_HeroEmptyBody" xml:space="preserve">
+    <value>在工程工作台中唤起一次工程，SEP 会将其保留在这里，之后一键即可启动。</value>
+  </data>
+  <data name="Overview_HeroOpenWorkbench" xml:space="preserve">
+    <value>打开工程工作台</value>
+  </data>
+  <data name="Overview_RecentEmptyTitle" xml:space="preserve">
+    <value>暂无新发现的工程</value>
+  </data>
+  <data name="Overview_RecentEmptyHint" xml:space="preserve">
+    <value>下次扫描项目库时发现的工程会显示在这里。</value>
+  </data>
+  <data name="Overview_NobodyOnlineTitle" xml:space="preserve">
+    <value>当前无人在线</value>
+  </data>
+  <data name="Overview_NoProjectsYet" xml:space="preserve">
+    <value>暂无工程</value>
+  </data>
+  <data name="Overview_DataFolder" xml:space="preserve">
+    <value>数据文件夹</value>
+  </data>
+  <data name="Projects_SearchHint" xml:space="preserve">
+    <value>搜索代号、名称、标签或路径（Ctrl+F）</value>
+  </data>
+  <data name="Lib_Reachable" xml:space="preserve">
+    <value>可访问</value>
+  </data>
+  <data name="Lib_DropHint" xml:space="preserve">
+    <value>将项目文件夹或项目库拖放到此处，或按路径添加。支持本地文件夹、\\服务器\共享路径和 evarsXXX.bat 文件。</value>
+  </data>
+  <data name="Lib_ShownTooltip" xml:space="preserve">
+    <value>当前筛选条件下此项目库中显示的工程数</value>
+  </data>
+  <data name="Projects_ToolsLabel" xml:space="preserve">
+    <value>更多工程工具</value>
+  </data>
+  <data name="Plugins_DiscoveryTitle" xml:space="preserve">
+    <value>全盘 E3D 插件自动检测与统一托管</value>
+  </data>
+  <data name="Plugins_DiscoveryBody" xml:space="preserve">
+    <value>自动扫描系统磁盘、桌面、下载目录及工程库，智能识别 PML 表单、宏、.NET 程序集与 UIC 配置，支持一键规范化并托管至 SEP。</value>
+  </data>
+  <data name="Plugins_DiscoveryNotStarted" xml:space="preserve">
+    <value>尚未开始全盘检测</value>
+  </data>
+  <data name="Plugins_AlreadyManaged" xml:space="preserve">
+    <value>已在 SEP 托管</value>
+  </data>
+  <data name="Plugins_TotalTooltip" xml:space="preserve">
+    <value>插件目录中的插件数</value>
+  </data>
+  <data name="Settings_StartupHeader" xml:space="preserve">
+    <value>随系统启动</value>
+  </data>
+  <data name="Settings_DataFolderHeader" xml:space="preserve">
+    <value>数据文件夹</value>
+  </data>
+  <data name="Settings_BundleHeader" xml:space="preserve">
+    <value>迁移到另一台电脑</value>
+  </data>
+  <data name="Settings_BundleHint" xml:space="preserve">
+    <value>将项目库、工程、分类和路径导出为一个文件，或在此导入该文件。</value>
+  </data>
+  <data name="Settings_InstallHeader" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Tools_SummaryPassed" xml:space="preserve">
+    <value>{0} 项通过</value>
+  </data>
+  <data name="Tools_SummaryWarnings" xml:space="preserve">
+    <value>{0} 项警告</value>
+  </data>
+  <data name="Tools_SummaryFailed" xml:space="preserve">
+    <value>{0} 项失败</value>
+  </data>
+  <data name="Tools_SummarySkipped" xml:space="preserve">
+    <value>{0} 项跳过</value>
+  </data>
+  <data name="Tools_ToolsHeader" xml:space="preserve">
+    <value>检查与修复</value>
+  </data>
+  <data name="Tools_IdleTitle" xml:space="preserve">
+    <value>运行检查以查看本机的健康状况</value>
+  </data>
+  <data name="Tools_IdleHint" xml:space="preserve">
+    <value>配置检查会读取 custom_evars.bat 和 E3D 设置；项目库诊断会测试项目库的网络路径。</value>
+  </data>
+  <data name="Users_ColUser" xml:space="preserve">
+    <value>用户</value>
+  </data>
+  <data name="Users_ColSecurity" xml:space="preserve">
+    <value>安全级别</value>
+  </data>
+  <data name="Users_ColTeams" xml:space="preserve">
+    <value>所属团队</value>
+  </data>
+  <data name="Users_ColTeam" xml:space="preserve">
+    <value>团队</value>
+  </data>
+  <data name="Users_ColMembers" xml:space="preserve">
+    <value>成员</value>
+  </data>
+  <data name="Users_NoProjectTitle" xml:space="preserve">
+    <value>请选择带有工程代号的工程</value>
+  </data>
+  <data name="Edit_Subtitle" xml:space="preserve">
+    <value>SEP 工程卡片上显示的名称、分类、状态、负责人和标签。</value>
+  </data>
+  <data name="Category_Subtitle" xml:space="preserve">
+    <value>按业务领域为工程设置颜色分类。点击色块可更换颜色。</value>
+  </data>
 </root>

@@ -378,20 +378,27 @@ public static class ProjectDragDrop
         }
     }
 
+    // Theme brush for the drag visuals; the fallback only matters if a key were ever missing.
+    private static Brush ThemeBrush(string key, Color fallback) =>
+        Application.Current?.TryFindResource(key) as Brush ?? new SolidColorBrush(fallback);
+
+    /// <summary>The floating card under the pointer: the project's monogram and names in the current theme.</summary>
     private static FrameworkElement CreateGhostElement(ProjectItem project)
     {
         var border = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(0xF2, 0x1A, 0x1E, 0x27)),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)),
+            Background = ThemeBrush("SepSurfaceBrush", Color.FromRgb(0x16, 0x1A, 0x22)),
+            BorderBrush = ThemeBrush("SepAccentBrush", Color.FromRgb(0x2D, 0xD4, 0xFF)),
             BorderThickness = new Thickness(1.5),
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(10, 6, 14, 6),
+            CornerRadius = new CornerRadius(10),
+            Padding = new Thickness(8, 6, 14, 6),
+            Opacity = 0.96,
+            // one element, only while dragging: the single place a shadow is allowed outside dialogs
             Effect = new DropShadowEffect
             {
-                BlurRadius = 14,
-                ShadowDepth = 3,
-                Opacity = 0.5,
+                BlurRadius = 16,
+                ShadowDepth = 4,
+                Opacity = 0.35,
                 Color = Colors.Black
             }
         };
@@ -399,18 +406,19 @@ public static class ProjectDragDrop
         var sp = new StackPanel { Orientation = Orientation.Horizontal };
         var avatar = new Border
         {
-            Width = 26,
-            Height = 26,
-            CornerRadius = new CornerRadius(6),
-            Background = new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)),
-            Margin = new Thickness(0, 0, 8, 0)
+            Width = 30,
+            Height = 30,
+            CornerRadius = new CornerRadius(8),
+            Background = SEP.App.Converters.PaletteConverter.ForName(project.Badge),
+            Margin = new Thickness(0, 0, 10, 0)
         };
         var avatarText = new TextBlock
         {
             Text = project.Badge,
             FontSize = 10.5,
             FontWeight = FontWeights.Bold,
-            Foreground = Brushes.Black,
+            FontFamily = Application.Current?.TryFindResource("SepMonoFont") as FontFamily ?? new FontFamily("Consolas"),
+            Foreground = Brushes.White,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -422,16 +430,16 @@ public static class ProjectDragDrop
         {
             Text = project.Title,
             FontWeight = FontWeights.SemiBold,
-            FontSize = 12.5,
-            Foreground = Brushes.White
+            FontSize = 13,
+            Foreground = ThemeBrush("SepTextBrush", Colors.White)
         });
         if (!string.IsNullOrEmpty(project.LibraryName))
         {
             textSp.Children.Add(new TextBlock
             {
                 Text = project.LibraryName,
-                FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x9C, 0xA3, 0xAF)),
+                FontSize = 11,
+                Foreground = ThemeBrush("SepText3Brush", Color.FromRgb(0x9C, 0xA3, 0xAF)),
                 Margin = new Thickness(0, 1, 0, 0)
             });
         }
@@ -443,26 +451,28 @@ public static class ProjectDragDrop
 
     private sealed class DropInsertionAdorner : Adorner
     {
-        private static readonly Pen InsertionPen = Freeze(new Pen(new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)), 2.5));
-        private static readonly Brush CircleBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x00, 0xE5, 0xFF)));
+        // the theme's accent, picked when the adorner is created (a drag never outlives a theme switch)
+        private readonly Brush _brush;
+        private readonly Pen _pen;
 
         public bool InsertAfter { get; set; }
 
         public DropInsertionAdorner(UIElement adornedElement) : base(adornedElement)
         {
             IsHitTestVisible = false;
+            _brush = ThemeBrush("SepAccentBrush", Color.FromRgb(0x2D, 0xD4, 0xFF));
+            // not frozen: freezing the pen would freeze the shared theme brush with it
+            _pen = new Pen(_brush, 2.5) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         }
 
         protected override void OnRender(DrawingContext dc)
         {
             double y = InsertAfter ? AdornedElement.RenderSize.Height : 0;
             double w = AdornedElement.RenderSize.Width;
-            dc.DrawLine(InsertionPen, new Point(8, y), new Point(w - 8, y));
-            dc.DrawEllipse(CircleBrush, null, new Point(8, y), 3.5, 3.5);
-            dc.DrawEllipse(CircleBrush, null, new Point(w - 8, y), 3.5, 3.5);
+            dc.DrawLine(_pen, new Point(8, y), new Point(w - 8, y));
+            dc.DrawEllipse(_brush, null, new Point(8, y), 3.5, 3.5);
+            dc.DrawEllipse(_brush, null, new Point(w - 8, y), 3.5, 3.5);
         }
-
-        private static T Freeze<T>(T freezable) where T : Freezable { freezable.Freeze(); return freezable; }
     }
 
     private sealed class DragGhostAdorner : Adorner

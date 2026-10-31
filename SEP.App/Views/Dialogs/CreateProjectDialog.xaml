@@ -4,38 +4,47 @@
         xmlns:sepsvc="clr-namespace:SEP.App.Services"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:loc="clr-namespace:SEP.App.Localization"
+        xmlns:controls="clr-namespace:SEP.App.Controls"
         Title="{loc:Tr Create_Title}"
         Width="560" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
+        FontFamily="{StaticResource SepTextFont}"
         Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{loc:Tr Create_Title}" ShowMinimize="False" ShowMaximize="False" />
+        <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,8,24,20">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <Border Width="36" Height="36" CornerRadius="9" Background="{DynamicResource SepAccentSoftBrush}" Margin="0,0,12,0">
-                    <ui:SymbolIcon Symbol="FolderAdd24" Foreground="{DynamicResource SepAccentBrush}" FontSize="18" />
-                </Border>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{loc:Tr Create_Header}" Style="{StaticResource SepSectionTitle}" />
-                    <TextBlock Text="{loc:Tr Create_Hint}" Style="{StaticResource SepCaption}" TextWrapping="Wrap" MaxWidth="440" />
+        <StackPanel Grid.Row="1" Margin="24,0,24,20">
+            <!-- dialog header -->
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <controls:IconTile Symbol="FolderAdd20" Tone="Accent" VerticalAlignment="Top" />
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:Tr Create_Header}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
+                    <TextBlock Text="{loc:Tr Create_Hint}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
                 </StackPanel>
-            </StackPanel>
+            </Grid>
 
             <!-- error -->
-            <Border Background="{DynamicResource SepDangerSoftBrush}" BorderBrush="{DynamicResource SepDangerBrush}" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,12,0,0"
+            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,0,0,14"
                     Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="460" />
+                </StackPanel>
             </Border>
 
-            <Grid Margin="0,14,0,0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="12" />
@@ -52,17 +61,25 @@
                 </StackPanel>
             </Grid>
 
-            <TextBlock Text="{loc:Tr Create_RootDirLabel}" Style="{StaticResource SepLabel}" Margin="0,12,0,6" />
-            <ui:TextBox x:Name="RootDirField" Text="{Binding RootDir, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource SepMonoFont}" Icon="{ui:SymbolIcon Symbol=Folder24}" />
+            <TextBlock Text="{loc:Tr Create_RootDirLabel}" Style="{StaticResource SepLabel}" Margin="0,14,0,6" />
+            <ui:TextBox x:Name="RootDirField" Text="{Binding RootDir, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource SepMonoFont}" Icon="{ui:SymbolIcon Symbol=Folder20}" />
 
-            <CheckBox x:Name="CloneBox" Content="{loc:Tr Create_CloneCheckbox}" IsChecked="{Binding IsCloneMode}" Margin="0,12,0,0" />
-            <ComboBox x:Name="TemplateBox" ItemsSource="{Binding AvailableTemplates}" SelectedItem="{Binding SelectedTemplate}" Margin="0,6,0,0" HorizontalAlignment="Stretch"
-                      Visibility="{Binding IsCloneMode, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <ui:Button Appearance="Secondary" Content="{loc:Tr Common_Cancel}" Click="OnCancelClick" Margin="0,0,10,0" MinWidth="90" />
-                <ui:Button x:Name="CreateButton" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add24}" Content="{loc:Tr Create_Button}" Click="OnCreateClick" MinWidth="120" />
-            </StackPanel>
+            <!-- template -->
+            <Border Style="{StaticResource SepCardInner}" Margin="0,14,0,0">
+                <StackPanel>
+                    <CheckBox x:Name="CloneBox" Content="{loc:Tr Create_CloneCheckbox}" IsChecked="{Binding IsCloneMode}" />
+                    <ComboBox x:Name="TemplateBox" ItemsSource="{Binding AvailableTemplates}" SelectedItem="{Binding SelectedTemplate}" Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                              Visibility="{Binding IsCloneMode, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
+            </Border>
         </StackPanel>
+
+        <!-- footer -->
+        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Appearance="Secondary" Content="{loc:Tr Common_Cancel}" Click="OnCancelClick" Margin="0,0,8,0" MinWidth="96" IsCancel="True" />
+                <ui:Button x:Name="CreateButton" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add20}" Content="{loc:Tr Create_Button}" Click="OnCreateClick" MinWidth="120" />
+            </StackPanel>
+        </Border>
     </Grid>
 </ui:FluentWindow>

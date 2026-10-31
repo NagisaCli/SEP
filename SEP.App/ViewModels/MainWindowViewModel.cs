@@ -30,6 +30,10 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isE3dRunning;
 
+    /// <summary>Caption under the product name in the navigation pane: the configured E3D version.</summary>
+    [ObservableProperty]
+    private string _e3dVersionLabel = string.Empty;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchActiveProjectCommand))]
     [NotifyCanExecuteChangedFor(nameof(LaunchAllMineCommand))]
@@ -71,6 +75,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     public void RefreshActiveProject()
     {
+        string? version = _catalog.Paths.E3dVersion;
+        E3dVersionLabel = string.IsNullOrWhiteSpace(version) ? Strings.Main_E3dVersionUnknown : version.Trim();
+
         string last = _catalog.Data.Settings.LastLaunched;
         string mode = _catalog.Data.Settings.LastMode ?? string.Empty;
         ActiveMode = mode;

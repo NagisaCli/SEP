@@ -152,13 +152,14 @@ public class InverseBoolConverter : IValueConverter
 }
 
 /// <summary>
-/// A stable accent colour for a name (project, user, team): the same ten-colour palette the web UI used, picked
-/// by a hash of the text so an item keeps its colour across sessions and pages.
+/// A stable accent colour for a name (project, user, team), picked by a hash of the text so an item keeps its colour
+/// across sessions and pages. Same hues and order as the web UI's ten-colour palette, one step deeper so the white
+/// monogram text on top keeps at least 3.5:1 in both themes.
 /// </summary>
 public class PaletteConverter : IValueConverter
 {
     private static readonly SolidColorBrush[] Palette = CreatePalette(
-        "#4F8CFF", "#2DD4A7", "#F5B85C", "#FF5D6C", "#B07BFF", "#36B6E8", "#FF8F6B", "#8BD66B", "#E86B9A", "#9AA8FF");
+        "#3E6FE0", "#0E9384", "#C2790F", "#DC3F55", "#8455EB", "#1A88C2", "#D9603A", "#3F9142", "#C2437E", "#5A6BD8");
 
     private static SolidColorBrush[] CreatePalette(params string[] hex)
     {
@@ -306,6 +307,59 @@ public class ZeroToVisibilityConverter : IValueConverter
             _ => true,
         };
         return isZero ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>
+/// Project status token ("进行中", "已完成", "暂停", "归档") to its badge tone: in progress = success, completed = info,
+/// on hold = warning, archived (and anything unknown) = neutral. Same colours as the overview's status chart.
+/// </summary>
+public class StatusToToneConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => (value as string) switch
+    {
+        "进行中" => Controls.BadgeTone.Success,
+        "已完成" => Controls.BadgeTone.Info,
+        "暂停" => Controls.BadgeTone.Warning,
+        _ => Controls.BadgeTone.Neutral,
+    };
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>The first N items of a sequence (parameter N, default 3): a card shows a few tags, then "+n".</summary>
+public class TakeConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        int n = parameter is string s && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) ? p : 3;
+        if (value is not System.Collections.IEnumerable items) return Array.Empty<object>();
+        var taken = new System.Collections.Generic.List<object>(n);
+        foreach (var item in items)
+        {
+            if (taken.Count == n) break;
+            taken.Add(item);
+        }
+        return taken;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>
+/// "+n" for the items beyond the first N of a collection (parameter N, default 3); empty when nothing is hidden.
+/// Bound to a Visibility it answers Visible / Collapsed instead, so one converter drives both the chip and its text.
+/// </summary>
+public class OverflowCountConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        int n = parameter is string s && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) ? p : 3;
+        int count = value is System.Collections.ICollection c ? c.Count : 0;
+        if (targetType == typeof(Visibility)) return count > n ? Visibility.Visible : Visibility.Collapsed;
+        return count > n ? "+" + (count - n).ToString(CultureInfo.InvariantCulture) : string.Empty;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();

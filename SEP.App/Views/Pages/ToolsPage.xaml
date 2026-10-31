@@ -8,76 +8,68 @@
       xmlns:models="clr-namespace:SEP.App.Models"
       xmlns:vm="clr-namespace:SEP.App.ViewModels"
       Title="{loc:Tr Nav_Tools}"
-      Foreground="{DynamicResource SepTextBrush}">
+      Style="{StaticResource SepPage}">
 
     <Page.Resources>
+        <!-- tool card: equal cells of a two-column grid -->
         <Style x:Key="ToolCard" TargetType="Border" BasedOn="{StaticResource SepCard}">
-            <Setter Property="Padding" Value="16,14" />
-            <Setter Property="Margin" Value="0,0,12,12" />
-            <Setter Property="Width" Value="400" />
-        </Style>
-        <Style x:Key="ToolIconTile" TargetType="Border">
-            <Setter Property="Width" Value="36" />
-            <Setter Property="Height" Value="36" />
-            <Setter Property="CornerRadius" Value="9" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="Margin" Value="0,0,16,16" />
         </Style>
 
-        <!-- one check of a report -->
+        <!-- severity tile of one check: success / warning / danger / skipped -->
+        <Style x:Key="CheckTile" TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+            <Setter Property="Size" Value="Small" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Symbol" Value="CheckmarkCircle20" />
+            <Setter Property="Tone" Value="Success" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Warn">
+                    <Setter Property="Symbol" Value="Warning20" />
+                    <Setter Property="Tone" Value="Warning" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Fail">
+                    <Setter Property="Symbol" Value="DismissCircle20" />
+                    <Setter Property="Tone" Value="Danger" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Skip">
+                    <Setter Property="Symbol" Value="Subtract20" />
+                    <Setter Property="Tone" Value="Neutral" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- one check of a report: severity tile, title, detail, flagged lines, fix -->
         <DataTemplate x:Key="CheckRow" DataType="{x:Type models:DiagCheck}">
-            <Border BorderBrush="{DynamicResource SepBorderBrush}" BorderThickness="0,0,0,1" Padding="0,8">
+            <Border BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ui:SymbolIcon FontSize="18" Margin="0,1,10,0" VerticalAlignment="Top">
-                        <ui:SymbolIcon.Style>
-                            <Style TargetType="ui:SymbolIcon">
-                                <Setter Property="Symbol" Value="CheckmarkCircle24" />
-                                <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Status}" Value="Warn">
-                                        <Setter Property="Symbol" Value="Warning24" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SepWarningBrush}" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Status}" Value="Fail">
-                                        <Setter Property="Symbol" Value="DismissCircle24" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Status}" Value="Skip">
-                                        <Setter Property="Symbol" Value="Subtract24" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ui:SymbolIcon.Style>
-                    </ui:SymbolIcon>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="{Binding Name}" Style="{StaticResource SepBody}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding Detail}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,2,0,0" />
-                        <ItemsControl ItemsSource="{Binding Lines}" Margin="0,4,0,0" Visibility="{Binding HasLines, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <controls:IconTile Style="{StaticResource CheckTile}" Margin="0,0,12,0" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource SepBodyStrong}" />
+                        <TextBlock Text="{Binding Detail}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
+                        <ItemsControl ItemsSource="{Binding Lines}" Margin="0,6,0,0" Visibility="{Binding HasLines, Converter={StaticResource BoolToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type models:FlaggedLine}">
-                                    <Border Style="{StaticResource SepWell}" Padding="8,4" Margin="0,2">
+                                    <Border Style="{StaticResource SepWell}" Padding="10,5" Margin="0,2">
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding LineNumber, StringFormat='L{0}'}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepAccentBrush}" Margin="0,0,8,0" />
-                                                <TextBlock Text="{Binding RawLine}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding LineNumber, StringFormat='L{0}'}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepAccentBrush}" Margin="0,0,10,0" Typography.NumeralAlignment="Tabular" />
+                                                <TextBlock Text="{Binding RawLine}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" TextWrapping="Wrap" TextTrimming="None" />
                                             </StackPanel>
-                                            <TextBlock Text="{Binding Reason}" Style="{StaticResource SepCaption}" Foreground="{DynamicResource SepWarningBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Reason}" Style="{StaticResource SepCaption}" Foreground="{DynamicResource SepWarningBrush}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,0,0" Visibility="{Binding HasFix, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Wrench20}" Content="{Binding Fix.Title}" Padding="8,4" FontSize="12"
-                                   Command="{Binding DataContext.ApplyFixCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding Fix}" />
-                    </StackPanel>
+                    <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Wrench20}" Content="{Binding Fix.Title}" Padding="10,5" FontSize="12" Margin="12,0,0,0"
+                               VerticalAlignment="Top" Visibility="{Binding HasFix, Converter={StaticResource BoolToVisibilityConverter}}"
+                               Command="{Binding DataContext.ApplyFixCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding Fix}" />
                 </Grid>
             </Border>
         </DataTemplate>
@@ -87,31 +79,33 @@
             <Border Style="{StaticResource SepCardInner}" Margin="0,0,0,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel>
+                    <controls:IconTile Size="Small" Symbol="Wrench20" Tone="Accent" VerticalAlignment="Top" Margin="0,0,12,0" />
+                    <StackPanel Grid.Column="1">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Title}" Style="{StaticResource SepBody}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                            <controls:Badge Content="{loc:Tr Tools_NeedsAdmin}" Tone="Warning" Margin="8,0,0,0" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" VerticalAlignment="Center" />
+                            <controls:Badge Content="{loc:Tr Tools_NeedsAdmin}" Tone="Warning" HasDot="True" Margin="8,0,0,0" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding Steps}" Margin="0,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,1" />
+                                    <TextBlock Text="{Binding}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,1" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <ItemsControl ItemsSource="{Binding Commands}" Margin="0,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" TextWrapping="Wrap" Margin="0,1" />
+                                    <TextBlock Text="{Binding}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" TextWrapping="Wrap" TextTrimming="None" Margin="0,1" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,0,0">
-                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Wrench20}" Content="{loc:Tr Tools_FixRun}" Padding="8,4" FontSize="12" Margin="0,0,6,0"
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
+                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Wrench20}" Content="{loc:Tr Tools_FixRun}" Padding="10,5" FontSize="12" Margin="0,0,6,0"
                                    Command="{Binding DataContext.ApplyFixCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                         <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Copy20}" ToolTip="{loc:Tr Tools_CopyCommands}" AutomationProperties.Name="{loc:Tr Tools_CopyCommands}"
                                    Visibility="{Binding Commands.Count, Converter={StaticResource NonZeroToVisibilityConverter}}"
@@ -122,7 +116,7 @@
         </DataTemplate>
     </Page.Resources>
 
-    <Grid Margin="24,16,24,12">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -130,193 +124,229 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,12">
+        <Grid Grid.Row="0" Margin="{StaticResource SepPageHeaderMargin}">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{loc:Tr Tools_Title}" Style="{StaticResource SepPageTitle}" />
-                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="14,0,0,0" VerticalAlignment="Center" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
-                <TextBlock Text="{loc:Tr Tools_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,2,0,0" />
+                <TextBlock Text="{loc:Tr Tools_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
             </StackPanel>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
-            <StackPanel Margin="0,0,10,0">
-                <!-- Report -->
-                <Border Margin="0,0,0,12" Visibility="{Binding HasReport, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <Border.Style>
-                        <Style TargetType="Border" BasedOn="{StaticResource SepCard}">
-                            <Setter Property="BorderBrush" Value="{DynamicResource SepDangerBrush}" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ReportOk}" Value="True">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource SepSuccessBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <StackPanel>
-                        <Grid Margin="0,0,0,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ui:SymbolIcon FontSize="22" Margin="0,0,10,0" VerticalAlignment="Center">
-                                <ui:SymbolIcon.Style>
-                                    <Style TargetType="ui:SymbolIcon">
-                                        <Setter Property="Symbol" Value="ErrorCircle24" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ReportOk}" Value="True">
-                                                <Setter Property="Symbol" Value="CheckmarkCircle24" />
-                                                <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ui:SymbolIcon.Style>
-                            </ui:SymbolIcon>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding ReportTitle}" Style="{StaticResource SepSectionTitle}" />
-                                <TextBlock Text="{Binding ReportSubtitle}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,2,0,0" />
-                            </StackPanel>
-                            <ui:Button Grid.Column="2" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Dismiss24}" Command="{Binding CloseReportCommand}" ToolTip="{loc:Tr Common_Close}" AutomationProperties.Name="{loc:Tr Common_Close}" />
-                        </Grid>
-                        <ItemsControl ItemsSource="{Binding Checks}" ItemTemplate="{StaticResource CheckRow}" />
-                        <StackPanel Margin="0,10,0,0" Visibility="{Binding Fixes.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
-                            <TextBlock Text="{loc:Tr Tools_FixesHeader}" Style="{StaticResource SepLabel}" />
-                            <ItemsControl ItemsSource="{Binding Fixes}" ItemTemplate="{StaticResource FixRow}" />
+            <StackPanel Margin="{StaticResource SepPageContentMargin}">
+                <!-- Health: an idle prompt until something ran, then the report with its summary strip -->
+                <Border Style="{StaticResource SepHeroCard}" Padding="20,16" Margin="0,0,0,24" Visibility="{Binding HasReport, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <controls:IconTile Symbol="HeartPulse20" Tone="Accent" />
+                        <StackPanel Grid.Column="1" Margin="14,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="{loc:Tr Tools_IdleTitle}" Style="{StaticResource SepSubtitle}" TextWrapping="Wrap" />
+                            <TextBlock Text="{loc:Tr Tools_IdleHint}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
                         </StackPanel>
-                        <Border Style="{StaticResource SepWell}" Margin="0,8,0,0" Visibility="{Binding HasOutput, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <ItemsControl ItemsSource="{Binding Output}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,1" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Border>
-                    </StackPanel>
+                        <ui:Button Grid.Column="2" Style="{StaticResource SepAccentGradientButton}" Icon="{ui:SymbolIcon Symbol=Stethoscope20}" Content="{loc:Tr Tools_CheckButton}"
+                                   Command="{Binding CheckConfigCommand}" VerticalAlignment="Center" Padding="16,8" />
+                    </Grid>
                 </Border>
 
-                <!-- Tool cards -->
-                <WrapPanel Orientation="Horizontal">
-                    <!-- configuration health -->
-                    <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
+                <Border Style="{StaticResource SepCard}" Margin="0,0,0,24" Padding="0" Visibility="{Binding HasReport, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!-- outcome stripe -->
+                        <Border CornerRadius="11,0,0,11">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource SepDangerBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ReportOk}" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource SepSuccessBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="16,14,16,12">
+                            <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepAccentSoftBrush}">
-                                    <ui:SymbolIcon Symbol="Stethoscope24" Foreground="{DynamicResource SepAccentBrush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_ConfigTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_ConfigBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                    <TextBlock Text="{Binding CustomEvarsPath}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding CustomEvarsPath}" />
+                                <controls:IconTile>
+                                    <controls:IconTile.Style>
+                                        <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                                            <Setter Property="Symbol" Value="ErrorCircle20" />
+                                            <Setter Property="Tone" Value="Danger" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ReportOk}" Value="True">
+                                                    <Setter Property="Symbol" Value="CheckmarkCircle20" />
+                                                    <Setter Property="Tone" Value="Success" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </controls:IconTile.Style>
+                                </controls:IconTile>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,12,0">
+                                    <TextBlock Text="{Binding ReportTitle}" Style="{StaticResource SepSubtitle}" />
+                                    <TextBlock Text="{Binding ReportSubtitle}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
                                 </StackPanel>
+                                <ui:Button Grid.Column="2" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Dismiss20}" Command="{Binding CloseReportCommand}" ToolTip="{loc:Tr Common_Close}" AutomationProperties.Name="{loc:Tr Common_Close}"
+                                           VerticalAlignment="Top" />
                             </Grid>
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play24}" Content="{loc:Tr Tools_CheckButton}" Command="{Binding CheckConfigCommand}" Margin="0,0,8,0" />
-                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Wrench24}" Content="{loc:Tr Tools_FixConfigButton}" Command="{Binding FixConfigCommand}" ToolTip="{loc:Tr Tools_FixConfigTooltip}" />
+                            <!-- summary strip: checks per severity -->
+                            <WrapPanel Margin="48,0,0,10" Visibility="{Binding Checks.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                                <controls:Badge Tone="Success" HasDot="True" Margin="0,0,8,0" Padding="10,3">
+                                    <controls:Badge.Content>
+                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                            <Binding Path="[Tools_SummaryPassed]" Source="{x:Static loc:Loc.Instance}" />
+                                            <Binding Path="CheckOkCount" />
+                                        </MultiBinding>
+                                    </controls:Badge.Content>
+                                </controls:Badge>
+                                <controls:Badge Tone="Warning" HasDot="True" Margin="0,0,8,0" Padding="10,3">
+                                    <controls:Badge.Content>
+                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                            <Binding Path="[Tools_SummaryWarnings]" Source="{x:Static loc:Loc.Instance}" />
+                                            <Binding Path="CheckWarnCount" />
+                                        </MultiBinding>
+                                    </controls:Badge.Content>
+                                </controls:Badge>
+                                <controls:Badge Tone="Danger" HasDot="True" Margin="0,0,8,0" Padding="10,3">
+                                    <controls:Badge.Content>
+                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                            <Binding Path="[Tools_SummaryFailed]" Source="{x:Static loc:Loc.Instance}" />
+                                            <Binding Path="CheckFailCount" />
+                                        </MultiBinding>
+                                    </controls:Badge.Content>
+                                </controls:Badge>
+                                <controls:Badge HasDot="True" Margin="0,0,8,0" Padding="10,3" Visibility="{Binding CheckSkipCount, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                                    <controls:Badge.Content>
+                                        <MultiBinding Converter="{StaticResource FormatConverter}">
+                                            <Binding Path="[Tools_SummarySkipped]" Source="{x:Static loc:Loc.Instance}" />
+                                            <Binding Path="CheckSkipCount" />
+                                        </MultiBinding>
+                                    </controls:Badge.Content>
+                                </controls:Badge>
+                            </WrapPanel>
+                            <ItemsControl ItemsSource="{Binding Checks}" ItemTemplate="{StaticResource CheckRow}" />
+                            <StackPanel Margin="0,12,0,0" Visibility="{Binding Fixes.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                                <TextBlock Text="{loc:Tr Tools_FixesHeader}" Style="{StaticResource SepLabel}" />
+                                <ItemsControl ItemsSource="{Binding Fixes}" ItemTemplate="{StaticResource FixRow}" />
                             </StackPanel>
+                            <Border Style="{StaticResource SepWell}" Margin="0,8,0,4" Visibility="{Binding HasOutput, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <ItemsControl ItemsSource="{Binding Output}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepTextBrush}" FontSize="12" TextWrapping="Wrap" TextTrimming="None" Margin="0,1" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
                         </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Tool cards -->
+                <controls:SectionHeader Title="{loc:Tr Tools_ToolsHeader}" Symbol="Toolbox20" Tone="Info" />
+                <UniformGrid Columns="2" Margin="0,0,-16,8">
+                    <!-- configuration health -->
+                    <Border Style="{StaticResource ToolCard}">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:IconTile Symbol="Stethoscope20" Tone="Accent" VerticalAlignment="Top" Margin="0,0,12,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{loc:Tr Tools_ConfigTitle}" Style="{StaticResource SepSectionTitle}" />
+                                <TextBlock Text="{loc:Tr Tools_ConfigBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
+                                <TextBlock Text="{Binding CustomEvarsPath}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding CustomEvarsPath}" />
+                            </StackPanel>
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,12,0,0">
+                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play20}" Content="{loc:Tr Tools_CheckButton}" Command="{Binding CheckConfigCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Wrench20}" Content="{loc:Tr Tools_FixConfigButton}" Command="{Binding FixConfigCommand}" ToolTip="{loc:Tr Tools_FixConfigTooltip}" />
+                            </WrapPanel>
+                        </Grid>
                     </Border>
 
                     <!-- network / library -->
                     <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepPurpleSoftBrush}">
-                                    <ui:SymbolIcon Symbol="Globe24" Foreground="{DynamicResource SepPurpleBrush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_NetTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_NetBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                </StackPanel>
-                            </Grid>
-                            <ComboBox x:Name="LibraryBox" ItemsSource="{Binding Libraries}" SelectedItem="{Binding SelectedLibrary}" DisplayMemberPath="Display" Margin="0,10,0,0" HorizontalAlignment="Stretch" />
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play24}" Content="{loc:Tr Tools_DiagnoseButton}" Command="{Binding DiagnoseLibraryCommand}" Margin="0,0,8,0" />
-                                <ui:Button Appearance="Secondary" Content="{loc:Tr Tools_DiagnoseAllButton}" Command="{Binding DiagnoseAllCommand}" />
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:IconTile Symbol="Globe20" Tone="Purple" VerticalAlignment="Top" Margin="0,0,12,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{loc:Tr Tools_NetTitle}" Style="{StaticResource SepSectionTitle}" />
+                                <TextBlock Text="{loc:Tr Tools_NetBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
+                                <ComboBox x:Name="LibraryBox" ItemsSource="{Binding Libraries}" SelectedItem="{Binding SelectedLibrary}" DisplayMemberPath="Display" Margin="0,10,0,0" HorizontalAlignment="Stretch" />
                             </StackPanel>
-                        </StackPanel>
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,12,0,0">
+                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play20}" Content="{loc:Tr Tools_DiagnoseButton}" Command="{Binding DiagnoseLibraryCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Secondary" Content="{loc:Tr Tools_DiagnoseAllButton}" Command="{Binding DiagnoseAllCommand}" />
+                            </WrapPanel>
+                        </Grid>
                     </Border>
 
                     <!-- USERDATA -->
                     <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepWarningSoftBrush}">
-                                    <ui:SymbolIcon Symbol="Broom24" Foreground="{DynamicResource SepWarningBrush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_UserDataTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_UserDataBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                    <TextBlock Text="{Binding UserDataDir}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding UserDataDir}" />
-                                </StackPanel>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Broom24}" Content="{loc:Tr Tools_UserDataButton}" Command="{Binding CleanUserDataCommand}" Margin="0,0,8,0" />
-                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" Content="{loc:Tr Lib_OpenFolder}" Command="{Binding OpenUserDataCommand}" />
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:IconTile Symbol="Broom20" Tone="Warning" VerticalAlignment="Top" Margin="0,0,12,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{loc:Tr Tools_UserDataTitle}" Style="{StaticResource SepSectionTitle}" />
+                                <TextBlock Text="{loc:Tr Tools_UserDataBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
+                                <TextBlock Text="{Binding UserDataDir}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding UserDataDir}" />
                             </StackPanel>
-                        </StackPanel>
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,12,0,0">
+                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Broom20}" Content="{loc:Tr Tools_UserDataButton}" Command="{Binding CleanUserDataCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Content="{loc:Tr Lib_OpenFolder}" Command="{Binding OpenUserDataCommand}" />
+                            </WrapPanel>
+                        </Grid>
                     </Border>
-
 
                     <!-- plug-in indexes -->
                     <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepSuccessSoftBrush}">
-                                    <ui:SymbolIcon Symbol="DocumentSync24" Foreground="{DynamicResource SepSuccessBrush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_ReindexTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_ReindexBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                </StackPanel>
-                            </Grid>
-                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=DocumentSync24}" Content="{loc:Tr Tools_ReindexButton}" Command="{Binding RebuildIndexesCommand}" Margin="0,12,0,0" />
-                        </StackPanel>
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:IconTile Symbol="DocumentSync20" Tone="Success" VerticalAlignment="Top" Margin="0,0,12,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{loc:Tr Tools_ReindexTitle}" Style="{StaticResource SepSectionTitle}" />
+                                <TextBlock Text="{loc:Tr Tools_ReindexBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
+                            </StackPanel>
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,12,0,0">
+                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=DocumentSync20}" Content="{loc:Tr Tools_ReindexButton}" Command="{Binding RebuildIndexesCommand}" />
+                            </WrapPanel>
+                        </Grid>
                     </Border>
 
                     <!-- E3D install -->
                     <Border Style="{StaticResource ToolCard}">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepSurface2Brush}">
-                                    <ui:SymbolIcon Symbol="Desktop24" Foreground="{DynamicResource SepText2Brush}" FontSize="18" />
-                                </Border>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{loc:Tr Tools_InstallTitle}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <TextBlock Text="{loc:Tr Tools_InstallBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
-                                    <TextBlock Text="{Binding InstallDir}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding InstallDir}" />
-                                </StackPanel>
-                            </Grid>
-                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Settings24}" Content="{loc:Tr Nav_Settings}" Command="{Binding GoSettingsCommand}" Margin="0,12,0,0" />
-                        </StackPanel>
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <controls:IconTile Symbol="Desktop20" Tone="Neutral" VerticalAlignment="Top" Margin="0,0,12,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{loc:Tr Tools_InstallTitle}" Style="{StaticResource SepSectionTitle}" />
+                                <TextBlock Text="{loc:Tr Tools_InstallBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
+                                <TextBlock Text="{Binding InstallDir}" Style="{StaticResource SepMono}" Margin="0,6,0,0" ToolTip="{Binding InstallDir}" />
+                            </StackPanel>
+                            <WrapPanel Grid.Row="1" Grid.Column="1" Margin="0,12,0,0">
+                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Settings20}" Content="{loc:Tr Nav_Settings}" Command="{Binding GoSettingsCommand}" />
+                            </WrapPanel>
+                        </Grid>
                     </Border>
-                </WrapPanel>
+                </UniformGrid>
 
                 <!-- Session locks -->
-                <Border Style="{StaticResource SepCard}" Margin="0,0,0,12">
+                <Border Style="{StaticResource SepCard}" Margin="0,8,0,0">
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -324,13 +354,11 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource ToolIconTile}" Background="{DynamicResource SepDangerSoftBrush}">
-                                <ui:SymbolIcon Symbol="LockClosed24" Foreground="{DynamicResource SepDangerBrush}" FontSize="18" />
-                            </Border>
+                            <controls:IconTile Symbol="LockClosed20" Tone="Danger" VerticalAlignment="Top" Margin="0,0,12,0" />
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{loc:Tr Diag_LocksHeader}" Style="{StaticResource SepSectionTitle}" FontSize="14" />
-                                    <controls:Badge Margin="10,0,0,0" Tone="Danger" Visibility="{Binding Locks.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                                    <TextBlock Text="{loc:Tr Diag_LocksHeader}" Style="{StaticResource SepSubtitle}" />
+                                    <controls:Badge Margin="10,0,0,0" Tone="Danger" HasDot="True" Visibility="{Binding Locks.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
                                         <controls:Badge.Content>
                                             <MultiBinding Converter="{StaticResource FormatConverter}">
                                                 <Binding Path="[Diag_LocksCountFormat]" Source="{x:Static loc:Loc.Instance}" />
@@ -339,18 +367,18 @@
                                         </controls:Badge.Content>
                                     </controls:Badge>
                                 </StackPanel>
-                                <TextBlock Text="{loc:Tr Tools_LocksBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
+                                <TextBlock Text="{loc:Tr Tools_LocksBody}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,3,0,0" />
                             </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Search24}" Content="{loc:Tr Tools_ScanLocks}" Command="{Binding ScanLocksCommand}" Margin="0,0,8,0" />
-                                <ui:Button Appearance="Danger" Icon="{ui:SymbolIcon Symbol=LockOpen24}" Content="{loc:Tr Diag_UnlockAll}" Command="{Binding UnlockAllCommand}"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Search20}" Content="{loc:Tr Tools_ScanLocks}" Command="{Binding ScanLocksCommand}" Margin="0,0,8,0" />
+                                <ui:Button Appearance="Danger" Icon="{ui:SymbolIcon Symbol=LockOpen20}" Content="{loc:Tr Diag_UnlockAll}" Command="{Binding UnlockAllCommand}"
                                            Visibility="{Binding Locks.Count, Converter={StaticResource NonZeroToVisibilityConverter}}" />
                             </StackPanel>
                         </Grid>
-                        <ItemsControl ItemsSource="{Binding Locks}" Margin="0,12,0,0">
+                        <ItemsControl ItemsSource="{Binding Locks}" Margin="0,14,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type models:SessionLockItem}">
-                                    <Border Style="{StaticResource SepRow}" Padding="12,8">
+                                    <Border Style="{StaticResource SepNestedRow}" Padding="12,8">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -360,23 +388,23 @@
                                             </Grid.ColumnDefinitions>
                                             <controls:Badge Content="{Binding ProjectCode}" Tone="Accent" FontFamily="{StaticResource SepMonoFont}" VerticalAlignment="Center" Margin="0,0,12,0" />
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding FileName}" Style="{StaticResource SepBody}" FontFamily="{StaticResource SepMonoFont}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding FileName}" Style="{StaticResource SepBodyStrong}" FontFamily="{StaticResource SepMonoFont}" />
                                                 <TextBlock Text="{Binding FilePath}" Style="{StaticResource SepMono}" ToolTip="{Binding FilePath}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0">
-                                                <TextBlock Text="{Binding LockTime, StringFormat='{}{0:g}'}" Style="{StaticResource SepMuted}" HorizontalAlignment="Right" />
-                                                <TextBlock Text="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Style="{StaticResource SepCaption}" HorizontalAlignment="Right" />
+                                                <TextBlock Text="{Binding LockTime, StringFormat='{}{0:g}'}" Style="{StaticResource SepNumber}" HorizontalAlignment="Right" />
+                                                <TextBlock Text="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Style="{StaticResource SepCaption}" HorizontalAlignment="Right" Typography.NumeralAlignment="Tabular" />
                                             </StackPanel>
-                                            <ui:Button Grid.Column="3" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=LockOpen20}" Content="{loc:Tr Diag_UnlockButton}" Padding="8,4" FontSize="12"
+                                            <ui:Button Grid.Column="3" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=LockOpen20}" Content="{loc:Tr Diag_UnlockButton}" Padding="10,5" FontSize="12"
                                                        Command="{Binding DataContext.UnlockCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="{loc:Tr Diag_NoLocks}" Margin="0,10,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource SepMuted}">
+                        <Border Margin="0,12,0,0" Padding="12,10" CornerRadius="{StaticResource SepRadiusS}" Background="{DynamicResource SepSuccessSoftBrush}">
+                            <Border.Style>
+                                <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
                                         <MultiDataTrigger>
@@ -388,15 +416,19 @@
                                         </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                            </Border.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="CheckmarkCircle20" FontSize="16" Foreground="{DynamicResource SepSuccessBrush}" Margin="0,0,8,0" />
+                                <TextBlock Text="{loc:Tr Diag_NoLocks}" Style="{StaticResource SepBody}" Foreground="{DynamicResource SepSuccessBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
 
         <!-- status -->
-        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,8,0,0" ToolTip="{Binding StatusMessage}">
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="{StaticResource SepPageStatusMargin}" ToolTip="{Binding StatusMessage}">
             <TextBlock.Style>
                 <Style TargetType="TextBlock" BasedOn="{StaticResource SepStatusText}">
                     <Style.Triggers>

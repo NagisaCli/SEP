@@ -29,6 +29,9 @@ public partial class OverviewViewModel : ObservableObject
 
     public ProjectActions Actions { get; }
 
+    /// <summary>Title-bar state (launch command, E3D running, launch mode) for the overview's hero card.</summary>
+    public MainWindowViewModel Shell { get; }
+
     [ObservableProperty] private int _projectCount;
     [ObservableProperty] private int _myCount;
     [ObservableProperty] private int _libraryCount;
@@ -38,6 +41,9 @@ public partial class OverviewViewModel : ObservableObject
     [ObservableProperty] private int _lockedCount;
     [ObservableProperty] private string _activeLabel = string.Empty;
     [ObservableProperty] private string _activeMode = string.Empty;
+    [ObservableProperty] private bool _hasActiveProject;
+    /// <summary>Library of the active single project (empty for "all" / "library" modes).</summary>
+    [ObservableProperty] private string _activeLibrary = string.Empty;
     [ObservableProperty] private bool _e3dInstallOk;
     [ObservableProperty] private string _e3dInstallText = string.Empty;
     [ObservableProperty] private bool _isScanning;
@@ -51,8 +57,10 @@ public partial class OverviewViewModel : ObservableObject
     public ObservableCollection<DistributionBar> Statuses { get; } = new();
     public ObservableCollection<NotificationRecord> Notifications { get; } = new();
 
-    public OverviewViewModel(IProjectCatalog catalog, SessionService sessions, E3dToolsService tools, ToastService toasts, ProjectActions actions, SepDataStore store)
+    public OverviewViewModel(IProjectCatalog catalog, SessionService sessions, E3dToolsService tools, ToastService toasts, ProjectActions actions, SepDataStore store,
+        MainWindowViewModel shell)
     {
+        Shell = shell;
         _catalog = catalog;
         _sessions = sessions;
         _tools = tools;
@@ -89,6 +97,8 @@ public partial class OverviewViewModel : ObservableObject
 
         var s = _catalog.Data.Settings;
         bool hasActive = !string.IsNullOrEmpty(s.LastLaunched);
+        HasActiveProject = hasActive;
+        ActiveLibrary = hasActive && s.LastMode is not ("all" or "library") ? _catalog.ActiveProject?.LibraryName ?? string.Empty : string.Empty;
         ActiveLabel = !hasActive ? Strings.Main_NoActiveProjectSet : (s.LastMode == "all" ? Strings.Launch_AllName : s.LastLaunched!);
         ActiveMode = !hasActive ? Strings.Overview_ActiveHint : s.LastMode switch
         {
@@ -117,7 +127,8 @@ public partial class OverviewViewModel : ObservableObject
         if (uncategorised > 0) Categories.Add(new DistributionBar(Strings.Category_None, uncategorised, (double)uncategorised / total, "#6B7280"));
 
         Statuses.Clear();
-        string[] colors = { "#34D399", "#60A5FA", "#FBBF24", "#A78BFA" };
+        // same tones as the status pills (StatusToToneConverter): in progress, completed, on hold, archived
+        string[] colors = { "#34D399", "#60A5FA", "#FBBF24", "#94A3B8" };
         int i = 0;
         foreach (var token in IProjectCatalog.StatusOptions)
         {

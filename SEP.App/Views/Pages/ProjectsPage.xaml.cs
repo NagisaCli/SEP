@@ -24,4 +24,12 @@ public partial class ProjectsPage : Page
     private void OnFilterMineClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Mine";
     private void OnFilterLocalClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Local";
     private void OnFilterUncClick(object sender, RoutedEventArgs e) => _viewModel.FilterTab = "Unc";
+
+    // Ctrl+F (ApplicationCommands.Find) focuses the search box and selects what is typed there.
+    private void OnFindExecuted(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+        e.Handled = true;
+    }
 }

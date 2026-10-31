@@ -1,38 +1,62 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Light counterpart of SepTheme.Dark.xaml: same keys, daylight values. -->
-    <Color x:Key="SepPageColor">#F4F6F9</Color>
+    <!-- Light counterpart of SepTheme.Dark.xaml: same keys, daylight values. Light rule: white cards on a cool grey
+         page, slightly stronger borders, and a darker bottom edge (SepCardBorderBrush) carry the depth. Tone colours
+         are one step darker than the usual 600 shades so badge text stays near 4.5:1 on its soft tint. -->
+
+    <!-- surfaces -->
+    <Color x:Key="SepPageColor">#F2F4F8</Color>
     <Color x:Key="SepSurfaceColor">#FFFFFF</Color>
-    <Color x:Key="SepSurface2Color">#F3F5F8</Color>
-    <Color x:Key="SepSurfaceHoverColor">#EAEEF4</Color>
+    <Color x:Key="SepSurface2Color">#F5F7FA</Color>
+    <Color x:Key="SepSurfaceHoverColor">#EEF2F7</Color>
+    <Color x:Key="SepSurfacePressedColor">#E6EBF2</Color>
+    <!-- segmented controls: the track and the raised selected segment -->
+    <Color x:Key="SepTrackColor">#E9EDF3</Color>
+    <Color x:Key="SepSegmentColor">#FFFFFF</Color>
+    <!-- tray: the recessed area a card list sits in inside a group card -->
+    <Color x:Key="SepTrayColor">#F5F7FA</Color>
     <Color x:Key="SepInputColor">#FFFFFF</Color>
-    <Color x:Key="SepBorderColor">#E1E6EE</Color>
-    <Color x:Key="SepBorderStrongColor">#C7CFDB</Color>
-    <Color x:Key="SepTextColor">#111827</Color>
-    <Color x:Key="SepText2Color">#4B5563</Color>
-    <Color x:Key="SepText3Color">#8A94A6</Color>
-    <Color x:Key="SepAccentColor">#0891B2</Color>
+
+    <!-- strokes -->
+    <Color x:Key="SepBorderColor">#DCE2EA</Color>
+    <Color x:Key="SepBorderStrongColor">#C2CBD7</Color>
+    <Color x:Key="SepDividerColor">#E8ECF2</Color>
+    <Color x:Key="SepCardEdgeColor">#C3CCD8</Color>
+
+    <!-- text: Text3 keeps 4.5:1 on Surface2 -->
+    <Color x:Key="SepTextColor">#101828</Color>
+    <Color x:Key="SepText2Color">#475467</Color>
+    <Color x:Key="SepText3Color">#667085</Color>
+
+    <!-- accent + tones -->
+    <Color x:Key="SepAccentColor">#0B7BA0</Color>
     <Color x:Key="SepAccentStrongColor">#0E7490</Color>
-    <Color x:Key="SepAccentSoftColor">#DFF6FB</Color>
+    <Color x:Key="SepAccentSoftColor">#DFF4FA</Color>
     <Color x:Key="SepOnAccentColor">#FFFFFF</Color>
-    <Color x:Key="SepSuccessColor">#059669</Color>
-    <Color x:Key="SepSuccessSoftColor">#DCFCE7</Color>
+    <Color x:Key="SepSuccessColor">#047857</Color>
+    <Color x:Key="SepSuccessSoftColor">#DCFAEA</Color>
     <Color x:Key="SepWarningColor">#B45309</Color>
     <Color x:Key="SepWarningSoftColor">#FEF3C7</Color>
-    <Color x:Key="SepDangerColor">#DC2626</Color>
-    <Color x:Key="SepDangerSoftColor">#FEE2E2</Color>
-    <Color x:Key="SepInfoColor">#2563EB</Color>
-    <Color x:Key="SepInfoSoftColor">#DBEAFE</Color>
-    <Color x:Key="SepPurpleColor">#7C3AED</Color>
-    <Color x:Key="SepPurpleSoftColor">#EDE9FE</Color>
+    <Color x:Key="SepDangerColor">#C42727</Color>
+    <Color x:Key="SepDangerSoftColor">#FEE4E2</Color>
+    <Color x:Key="SepInfoColor">#1D4ED8</Color>
+    <Color x:Key="SepInfoSoftColor">#E0EAFF</Color>
+    <Color x:Key="SepPurpleColor">#6D28D9</Color>
+    <Color x:Key="SepPurpleSoftColor">#EEE8FE</Color>
 
     <SolidColorBrush x:Key="SepPageBrush" Color="{StaticResource SepPageColor}" />
     <SolidColorBrush x:Key="SepSurfaceBrush" Color="{StaticResource SepSurfaceColor}" />
     <SolidColorBrush x:Key="SepSurface2Brush" Color="{StaticResource SepSurface2Color}" />
     <SolidColorBrush x:Key="SepSurfaceHoverBrush" Color="{StaticResource SepSurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SepSurfacePressedBrush" Color="{StaticResource SepSurfacePressedColor}" />
+    <SolidColorBrush x:Key="SepTrackBrush" Color="{StaticResource SepTrackColor}" />
+    <SolidColorBrush x:Key="SepSegmentBrush" Color="{StaticResource SepSegmentColor}" />
+    <SolidColorBrush x:Key="SepTrayBrush" Color="{StaticResource SepTrayColor}" />
     <SolidColorBrush x:Key="SepInputBrush" Color="{StaticResource SepInputColor}" />
     <SolidColorBrush x:Key="SepBorderBrush" Color="{StaticResource SepBorderColor}" />
     <SolidColorBrush x:Key="SepBorderStrongBrush" Color="{StaticResource SepBorderStrongColor}" />
+    <SolidColorBrush x:Key="SepDividerBrush" Color="{StaticResource SepDividerColor}" />
+    <SolidColorBrush x:Key="SepCardEdgeBrush" Color="{StaticResource SepCardEdgeColor}" />
     <SolidColorBrush x:Key="SepTextBrush" Color="{StaticResource SepTextColor}" />
     <SolidColorBrush x:Key="SepText2Brush" Color="{StaticResource SepText2Color}" />
     <SolidColorBrush x:Key="SepText3Brush" Color="{StaticResource SepText3Color}" />
@@ -51,8 +75,23 @@
     <SolidColorBrush x:Key="SepPurpleBrush" Color="{StaticResource SepPurpleColor}" />
     <SolidColorBrush x:Key="SepPurpleSoftBrush" Color="{StaticResource SepPurpleSoftColor}" />
 
+    <!-- Card stroke: border colour turning into the darker edge along the bottom (see the dark theme). -->
+    <LinearGradientBrush x:Key="SepCardBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource SepBorderColor}" Offset="0" />
+        <GradientStop Color="{StaticResource SepBorderColor}" Offset="0.9" />
+        <GradientStop Color="{StaticResource SepCardEdgeColor}" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- White text (SepOnAccentBrush) stays above 4.4:1 across the whole gradient. -->
     <LinearGradientBrush x:Key="SepAccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#0891B2" Offset="0" />
+        <GradientStop Color="#0E7FB0" Offset="0" />
         <GradientStop Color="#2563EB" Offset="1" />
     </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SepHeroBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E3F4FA" Offset="0" />
+        <GradientStop Color="#F6FBFD" Offset="0.55" />
+        <GradientStop Color="#FFFFFF" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="SepHeroBorderBrush" Color="#BFE2EE" />
 </ResourceDictionary>

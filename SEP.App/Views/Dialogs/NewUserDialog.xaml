@@ -4,24 +4,38 @@
         xmlns:sepsvc="clr-namespace:SEP.App.Services"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:loc="clr-namespace:SEP.App.Localization"
+        xmlns:controls="clr-namespace:SEP.App.Controls"
         Title="{Binding Title}"
-        Width="520" SizeToContent="Height"
+        Width="560" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
+        FontFamily="{StaticResource SepTextFont}"
         Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{Binding Title}" ShowMinimize="False" ShowMaximize="False" />
+        <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,8,24,20">
-            <TextBlock Text="{loc:Tr Users_NewIntro}" Style="{StaticResource SepPageSubtitle}" Margin="0,0,0,16" />
+        <StackPanel Grid.Row="1" Margin="24,0,24,20">
+            <!-- dialog header -->
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <controls:IconTile Symbol="PersonAdd20" Tone="Accent" VerticalAlignment="Top" />
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
+                    <TextBlock Text="{loc:Tr Users_NewIntro}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
+                </StackPanel>
+            </Grid>
 
-            <Grid Margin="0,0,0,12">
+            <Grid Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
@@ -34,17 +48,17 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="{loc:Tr Users_NewSecurityLabel}" Style="{StaticResource SepLabel}" />
-                    <Border Style="{StaticResource SepWell}" Padding="4">
+                    <Border Style="{StaticResource SepWell}" Padding="6,5">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="GeneralRadio" Content="{loc:Tr Users_SecurityGeneral}" IsChecked="{Binding IsGeneral}" Margin="4,0,12,0" />
+                            <RadioButton x:Name="GeneralRadio" Content="{loc:Tr Users_SecurityGeneral}" IsChecked="{Binding IsGeneral}" Margin="2,0,14,0" />
                             <RadioButton x:Name="FreeRadio" Content="{loc:Tr Users_SecurityFree}" IsChecked="{Binding IsFree}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </Grid>
-            <TextBlock Text="{Binding SecurityHint}" Style="{StaticResource SepCaption}" TextWrapping="Wrap" Margin="0,-6,0,12" />
+            <TextBlock Text="{Binding SecurityHint}" Style="{StaticResource SepCaption}" TextWrapping="Wrap" Margin="0,-6,0,14" />
 
-            <Grid Margin="0,0,0,12">
+            <Grid Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
@@ -61,18 +75,27 @@
             </Grid>
 
             <TextBlock Text="{loc:Tr Users_NewTeamLabel}" Style="{StaticResource SepLabel}" />
-            <ComboBox x:Name="TeamBox" ItemsSource="{Binding TeamChoices}" SelectedItem="{Binding Team}" HorizontalAlignment="Stretch" Margin="0,0,0,12" IsEditable="True" Text="{Binding TeamText, UpdateSourceTrigger=PropertyChanged}" />
+            <ComboBox x:Name="TeamBox" ItemsSource="{Binding TeamChoices}" SelectedItem="{Binding Team}" HorizontalAlignment="Stretch" Margin="0,0,0,14" IsEditable="True" Text="{Binding TeamText, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Text="{loc:Tr Users_NewDescLabel}" Style="{StaticResource SepLabel}" />
             <ui:TextBox x:Name="DescriptionField" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Users_NewDescPlaceholder}" MaxLength="120" />
 
-            <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"
-                       Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="90" Margin="0,0,10,0" IsCancel="True" />
-                <ui:Button Content="{loc:Tr Users_CreateButton}" Appearance="Primary" Click="OnOk" MinWidth="130" IsDefault="True" />
-            </StackPanel>
+            <!-- error -->
+            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,12,0,0"
+                    Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="460" />
+                </StackPanel>
+            </Border>
         </StackPanel>
+
+        <!-- footer -->
+        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
+                <ui:Button Content="{loc:Tr Users_CreateButton}" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=PersonAdd20}" Click="OnOk" MinWidth="130" IsDefault="True" />
+            </StackPanel>
+        </Border>
     </Grid>
 </ui:FluentWindow>
