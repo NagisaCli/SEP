@@ -193,12 +193,12 @@ namespace SEP.PluginPanel.UI
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var avatar = new Border
             {
-                Width = 30, Height = 30, CornerRadius = new CornerRadius(9),
+                Width = 32, Height = 32, CornerRadius = new CornerRadius(8),
                 Background = (Brush)new HexToSoftBrush().Convert(card.AvatarColor, typeof(Brush), null, CultureInfo.InvariantCulture),
                 Child = new TextBlock
                 {
                     Text = card.Initials, FontWeight = FontWeights.Bold, FontSize = 11,
-                    Foreground = (Brush)new HexToBrush().Convert(card.AvatarColor, typeof(Brush), null, CultureInfo.InvariantCulture),
+                    Foreground = AvatarInk.Ink(card.AvatarColor, _vm.Theme == Theme.Dark),
                     HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
                 },
             };
@@ -206,7 +206,7 @@ namespace SEP.PluginPanel.UI
             var text = new StackPanel { Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = card.DisplayName, FontWeight = FontWeights.SemiBold, FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis });
             var state = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 0) };
-            string tone = card.State == PluginState.Ready ? "Success" : card.State == PluginState.NotLoaded ? "Warning" : card.State == PluginState.Missing ? "Danger" : "Neutral";
+            string tone = card.State == PluginState.Ready ? "Success" : card.State == PluginState.NotLoaded ? "Warning" : card.State == PluginState.Missing ? "Danger" : "Accent";
             state.Children.Add(new Ellipse { Width = 6, Height = 6, Fill = (Brush)FindResource(tone), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) });
             state.Children.Add(new TextBlock { Text = card.StateText, FontSize = 11, Foreground = (Brush)FindResource("Text2") });
             text.Children.Add(state);
@@ -235,24 +235,25 @@ namespace SEP.PluginPanel.UI
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.Children.Add(new Border
             {
-                Width = 26, Height = 26, CornerRadius = new CornerRadius(7), Background = (Brush)FindResource("AccentSoft"),
-                Child = new TextBlock { Text = action.Glyph, Style = (Style)FindResource("Glyph"), FontSize = 13, Foreground = (Brush)FindResource("AccentStrong") },
+                Width = 28, Height = 28, CornerRadius = new CornerRadius(7), Background = (Brush)FindResource("AccentSoft"),
+                Child = new TextBlock { Text = action.Glyph, Style = (Style)FindResource("Glyph"), FontSize = 14, Foreground = (Brush)FindResource("Accent") },
             });
             var text = new StackPanel { Margin = new Thickness(10, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = action.Caption, TextTrimming = TextTrimming.CharacterEllipsis });
             if (!string.IsNullOrEmpty(subtitle))
-                text.Children.Add(new TextBlock { Text = subtitle, FontSize = 10.5, Foreground = (Brush)FindResource("Text3"), TextTrimming = TextTrimming.CharacterEllipsis });
+                text.Children.Add(new TextBlock { Text = subtitle, FontSize = 11, Foreground = (Brush)FindResource("Text3"), TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 1, 0, 0) });
             Grid.SetColumn(text, 1);
             grid.Children.Add(text);
             var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             if (action.HasShortcut)
                 right.Children.Add(new Border
                 {
-                    CornerRadius = new CornerRadius(5), Padding = new Thickness(6, 1, 6, 1), Background = (Brush)FindResource("NeutralSoft"),
-                    Child = new TextBlock { Text = action.Shortcut, FontSize = 10.5, Foreground = (Brush)FindResource("Text2") },
+                    CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1), Background = (Brush)FindResource("NeutralSoft"),
+                    BorderBrush = (Brush)FindResource("Border"), BorderThickness = new Thickness(1, 1, 1, 2),
+                    Child = new TextBlock { Text = action.Shortcut, FontSize = 10, Foreground = (Brush)FindResource("Text2") },
                 });
             if (action.IsPinned)
-                right.Children.Add(new TextBlock { Text = Glyphs.Pin, Style = (Style)FindResource("Glyph"), FontSize = 11, Foreground = (Brush)FindResource("Accent"), Margin = new Thickness(8, 0, 0, 0), ToolTip = "Pinned to the bar" });
+                right.Children.Add(new TextBlock { Text = Glyphs.Pin, Style = (Style)FindResource("Glyph"), FontSize = 10, Foreground = (Brush)FindResource("Accent"), Margin = new Thickness(8, 0, 0, 0), ToolTip = "Pinned to the bar" });
             Grid.SetColumn(right, 2);
             grid.Children.Add(right);
 
@@ -301,7 +302,7 @@ namespace SEP.PluginPanel.UI
             var text = new StackPanel { Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = caption });
             if (!string.IsNullOrEmpty(subtitle))
-                text.Children.Add(new TextBlock { Text = subtitle, FontSize = 10.5, Foreground = (Brush)FindResource("Text3"), TextTrimming = TextTrimming.CharacterEllipsis });
+                text.Children.Add(new TextBlock { Text = subtitle, FontSize = 11, Foreground = (Brush)FindResource("Text3"), TextTrimming = TextTrimming.CharacterEllipsis });
             Grid.SetColumn(text, 1);
             grid.Children.Add(text);
             var row = new Button { Style = (Style)FindResource("RowButton"), Content = grid, MinHeight = 32 };
@@ -458,11 +459,11 @@ namespace SEP.PluginPanel.UI
             _flyout = FlyoutKind.None;
         }
 
-        private FrameworkElement Separator() => new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4), Background = (Brush)FindResource("Border") };
+        private FrameworkElement Separator() => new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4), Background = (Brush)FindResource("Divider") };
 
         private FrameworkElement Hint(string text) => new TextBlock
         {
-            Text = text, FontSize = 10.5, Foreground = (Brush)FindResource("Text3"), Margin = new Thickness(8, 6, 8, 2), TextWrapping = TextWrapping.Wrap,
+            Text = text, FontSize = 11, Foreground = (Brush)FindResource("Text3"), Margin = new Thickness(8, 6, 8, 2), TextWrapping = TextWrapping.Wrap,
         };
 
         // ── toast ──────────────────────────────────────────────────────────────────
@@ -471,10 +472,8 @@ namespace SEP.PluginPanel.UI
         {
             ToastText.Text = text;
             ToastIcon.Text = ok ? "" : "";
-            // the toast is dark on the light look and light on the dark one: the icon takes the other palette's tone
-            bool dark = _vm.Theme == Theme.Dark;
-            ToastIcon.Foreground = new SolidColorBrush(ok ? (dark ? Color.FromRgb(0x15, 0x80, 0x3D) : Color.FromRgb(0x4A, 0xDE, 0x80))
-                                                          : (dark ? Color.FromRgb(0xC6, 0x28, 0x28) : Color.FromRgb(0xF8, 0x71, 0x71)));
+            // the palette's toast tones read on its own toast background (dark on both looks)
+            ToastIcon.Foreground = (Brush)FindResource(ok ? "ToastOk" : "ToastError");
             ToastPopup.Placement = _vm.IsBarVertical ? PlacementMode.Right : PlacementMode.Bottom;
             if (!IsVisible) return;
             ToastPopup.IsOpen = true;

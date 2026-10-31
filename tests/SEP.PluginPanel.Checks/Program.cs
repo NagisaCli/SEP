@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Threading;
 using Aveva.ApplicationFramework.Presentation;
 using SEP.PluginPanel;
@@ -161,6 +162,18 @@ internal static class Program
                     Require(!raised.Contains(nameof(PanelViewModel.ShownCards)) && !raised.Contains(nameof(PanelViewModel.ReadyCount)), "Unrelated lists or a recent status check were refreshed.");
                 }
             });
+            Check("Both themes define the same tokens, each a #RRGGBB or #AARRGGBB colour", () =>
+            {
+                // a token only one theme has leaves the views' DynamicResources unresolved after a theme switch
+                var light = Palette("LightColors");
+                var dark = Palette("DarkColors");
+                var odd = light.Keys.Except(dark.Keys).Concat(dark.Keys.Except(light.Keys)).ToList();
+                Require(odd.Count == 0, "Token in one theme only: " + string.Join(", ", odd));
+                var bad = light.Concat(dark).Where(p => !Regex.IsMatch(p.Value, "^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")).Select(p => p.Key).ToList();
+                Require(bad.Count == 0, "Malformed colour: " + string.Join(", ", bad));
+                foreach (string key in new[] { "Page", "Surface", "Surface2", "Border", "Text", "Text2", "Text3", "Accent", "AccentSoft", "Success", "Warning", "Danger", "ToastOk", "ToastError", "BrandStart", "BrandEnd" })
+                    Require(light.ContainsKey(key), "Token the views need is missing: " + key);
+            });
             Console.WriteLine($"PASS: {passed} checks (CAF API and simulated feedback; native E3D acceptance remains separate).");
             return 0;
         }
@@ -170,6 +183,9 @@ internal static class Program
     private const string Manifest = "{\"plugins\":[{\"name\":\"Plot\",\"actions\":[" +
         "{\"id\":\"plot\",\"caption\":\"Plot\",\"command\":\"q var\",\"featured\":true}," +
         "{\"id\":\"replot\",\"caption\":\"Replot\",\"command\":\"q var\"}]},{\"name\":\"Other\",\"mode\":\"status\"}]}";
+
+    private static Dictionary<string, string> Palette(string field) =>
+        (Dictionary<string, string>)typeof(Theme).GetField(field, BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
 
     private static string TempDir()
     {

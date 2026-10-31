@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -313,9 +314,8 @@ namespace SEP.PluginPanel.UI
         {
             ToastText.Text = text;
             ToastIcon.Text = ok ? Glyphs.Accept : "\uE7BA";
-            // the toast is dark on the light theme and light on the dark one: pick a status colour that reads on it
-            bool darkToast = _vm.Theme == Theme.Light;
-            ToastIcon.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(ok ? (darkToast ? "#4ADE80" : "#15803D") : (darkToast ? "#FCA5A5" : "#C62828")));
+            // the palette's toast tones read on its own toast background (dark on both themes)
+            ToastIcon.Foreground = (Brush)FindResource(ok ? "ToastOk" : "ToastError");
             var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
             ToastHost.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(160)));
             ToastSlide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(220)) { EasingFunction = ease });
@@ -357,6 +357,55 @@ namespace SEP.PluginPanel.UI
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
+    }
+
+    /// <summary>
+    /// Initials on a plug-in's tinted tile: its own colour, deepened on the light theme and lifted on the dark one so
+    /// they read on both. Values: the hex colour, the theme name (bound too, so a theme switch repaints them).
+    /// </summary>
+    public sealed class AvatarInk : IMultiValueConverter
+    {
+        private static readonly Dictionary<string, Brush> Cache = new Dictionary<string, Brush>(StringComparer.OrdinalIgnoreCase);
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+            Ink(values.Length > 0 ? values[0] as string : null, values.Length > 1 && values[1] as string == Theme.Dark);
+
+        public static Brush Ink(string hex, bool dark)
+        {
+            string key = (dark ? "d" : "l") + hex;
+            if (Cache.TryGetValue(key, out var cached)) return cached;
+            Color c;
+            try { c = (Color)ColorConverter.ConvertFromString(hex ?? "#888888"); }
+            catch { c = Colors.Gray; }
+            byte Mix(byte v) => dark ? (byte)(v + (255 - v) * 0.45) : (byte)(v * 0.82);
+            var brush = new SolidColorBrush(Color.FromRgb(Mix(c.R), Mix(c.G), Mix(c.B)));
+            brush.Freeze();
+            Cache[key] = brush;
+            return brush;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
+    }
+
+    /// <summary>
+    /// Columns of a card's command grid, from its width: as many tiles of at least <see cref="MinTile"/> as fit, never
+    /// more than there are commands (a wide docked panel gets three or four, the default 360 px two).
+    /// Values: the ItemsControl's ActualWidth (it includes the tiles' right gap), the number of commands.
+    /// </summary>
+    public sealed class TileColumns : IMultiValueConverter
+    {
+        private const double MinTile = 128, Gap = 6;
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            int count = values.Length > 1 && values[1] is int n ? n : 2;
+            double width = values.Length > 0 && values[0] is double w ? w : 0;
+            // before the first layout pass: the usual two
+            int fit = width > 0 ? (int)(width / (MinTile + Gap)) : 2;
+            return Math.Max(1, Math.Min(count, fit));
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
     }
 
     /// <summary>
