@@ -35,11 +35,17 @@ namespace SEP.PluginPanel.UI
             ["BarBg"] = "#F5222830", ["BarBorder"] = "#3346505C",
         };
 
+        private static ResourceDictionary _light, _dark;
+
         public static string Normalize(string theme) => theme == Dark ? Dark : Light;
 
+        /// <summary>The palette of <paramref name="theme"/>, built once: its brushes are frozen, so the views and menus share it.</summary>
         public static ResourceDictionary Build(string theme)
         {
-            var colors = Normalize(theme) == Dark ? DarkColors : LightColors;
+            bool dark = Normalize(theme) == Dark;
+            var built = dark ? _dark : _light;
+            if (built != null) return built;
+            var colors = dark ? DarkColors : LightColors;
             var dict = new ResourceDictionary();
             foreach (var pair in colors)
             {
@@ -49,7 +55,23 @@ namespace SEP.PluginPanel.UI
                 dict[pair.Key + "Color"] = color;
                 dict[pair.Key] = brush;
             }
+            if (dark) _dark = dict;
+            else _light = dict;
             return dict;
+        }
+
+        /// <summary>
+        /// Puts the palette of <paramref name="theme"/> into <paramref name="resources"/> in place of
+        /// <paramref name="current"/>. Nothing happens when it is there already: a swap re-resolves every
+        /// DynamicResource of the view, and each reload of the panel asks again with the theme unchanged.
+        /// </summary>
+        public static void Apply(ResourceDictionary resources, ref ResourceDictionary current, string theme)
+        {
+            var palette = Build(theme);
+            if (ReferenceEquals(palette, current)) return;
+            if (current != null) resources.MergedDictionaries.Remove(current);
+            resources.MergedDictionaries.Add(palette);
+            current = palette;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Threading;
 using Aveva.ApplicationFramework.Presentation;
@@ -108,10 +109,73 @@ internal static class Program
                     Require(host.Calls == 1, "Clicks queued duplicate execution.");
                 }
             });
+            Check("A manifest being rewritten keeps the plug-ins read before", () =>
+            {
+                string root = TempDir(), manifest = Path.Combine(root, "manifest.json");
+                File.WriteAllText(manifest, Manifest);
+                using (var store = new PanelStore(manifest, Path.Combine(root, "user.json")))
+                {
+                    store.Load();
+                    var first = store.Manifest;
+                    foreach (string partial in new[] { "", "{\"plugins\":[" })
+                    {
+                        File.WriteAllText(manifest, partial);
+                        store.Load();
+                        Require(ReferenceEquals(first, store.Manifest) && store.LoadError == null, "Plug-ins dropped while the manifest was rewritten.");
+                    }
+                    File.Delete(manifest);
+                    store.Load();
+                    Require(store.Manifest == null, "A removed manifest still lists plug-ins.");
+                }
+            });
+            Check("Nothing is saved before the panel has read your layout", () =>
+            {
+                string root = TempDir(), user = Path.Combine(root, "user.json");
+                File.WriteAllText(Path.Combine(root, "manifest.json"), Manifest);
+                using (var store = new PanelStore(Path.Combine(root, "manifest.json"), user))
+                {
+                    new PanelViewModel(store, new Host(), new ShortcutFilter()).Close();
+                    Require(!File.Exists(user), "An unread layout was overwritten.");
+                }
+            });
+            Check("Search and status refreshes keep the card lists; pins reorder results", () =>
+            {
+                string root = TempDir();
+                File.WriteAllText(Path.Combine(root, "manifest.json"), Manifest);
+                using (var store = new PanelStore(Path.Combine(root, "manifest.json"), Path.Combine(root, "user.json")))
+                {
+                    var vm = new PanelViewModel(store, new Host(), new ShortcutFilter());
+                    vm.Reload();
+                    var shown = vm.ShownCards;
+                    var bar = vm.BarPlugins;
+                    var raised = new List<string>();
+                    vm.PropertyChanged += (s, e) => raised.Add(e.PropertyName);
+                    // both captions merely contain "o": the pinned one goes first
+                    vm.SearchText = "o";
+                    Require(vm.SearchResults.Select(a => a.Id).SequenceEqual(new[] { "plot", "replot" }), "Unexpected search results.");
+                    vm.TogglePin(vm.SearchResults[1]);
+                    Require(vm.SearchResults[0].Id == "replot", "A pinned command does not lead the results.");
+                    vm.SearchText = string.Empty;
+                    vm.RefreshStatus();
+                    Require(ReferenceEquals(shown, vm.ShownCards) && ReferenceEquals(bar, vm.BarPlugins), "Card lists were rebuilt (the cards replay their entrance).");
+                    Require(!raised.Contains(nameof(PanelViewModel.ShownCards)) && !raised.Contains(nameof(PanelViewModel.ReadyCount)), "Unrelated lists or a recent status check were refreshed.");
+                }
+            });
             Console.WriteLine($"PASS: {passed} checks (CAF API and simulated feedback; native E3D acceptance remains separate).");
             return 0;
         }
         catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+    }
+
+    private const string Manifest = "{\"plugins\":[{\"name\":\"Plot\",\"actions\":[" +
+        "{\"id\":\"plot\",\"caption\":\"Plot\",\"command\":\"q var\",\"featured\":true}," +
+        "{\"id\":\"replot\",\"caption\":\"Replot\",\"command\":\"q var\"}]},{\"name\":\"Other\",\"mode\":\"status\"}]}";
+
+    private static string TempDir()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "sep-check-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        return root;
     }
 
     private static ToggleCommand Toggle()

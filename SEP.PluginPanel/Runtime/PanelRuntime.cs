@@ -7,37 +7,50 @@ using SEP.PluginPanel.UI;
 namespace SEP.PluginPanel
 {
     /// <summary>
-    /// The panel inside a WinForms host (E3D's docked window, or the preview form): store, shortcuts and the view.
-    /// Shortcuts and the file watch start at once; the WPF view is only built when the window is first shown, so
-    /// E3D starts no slower with the panel closed.
+    /// The panel inside a WinForms host (E3D's docked window): store, shortcuts and the view. The constructor runs
+    /// while E3D starts, so it only sets up; the files are read, the plug-ins checked and the shortcuts and file watch
+    /// started by <see cref="EnsureLoaded"/> (E3D's first idle, or the first time the panel or bar is shown). The WPF
+    /// view is only built when the window is first shown, so E3D starts no slower with the panel closed.
     /// </summary>
     public sealed class PanelRuntime : IDisposable
     {
         private ElementHost _elementHost;
         private PanelView _view;
         private BarWindow _bar;
+        private bool _loaded;
 
         public PanelRuntime(string manifestPath, IPanelHost host, string userPath = null)
         {
             Store = new PanelStore(manifestPath, userPath);
             Shortcuts = new ShortcutFilter();
             ViewModel = new PanelViewModel(Store, host, Shortcuts);
-            ViewModel.Reload();
-            Store.Watch();
             Application.AddMessageFilter(Shortcuts);
-            Log.Write($"panel started: manifest {manifestPath} ({(Store.Manifest == null ? "missing" : ViewModel.Cards.Count + " plug-ins")}), layout {Store.UserPath}");
         }
 
         public PanelStore Store { get; }
         public ShortcutFilter Shortcuts { get; }
         public PanelViewModel ViewModel { get; }
-        public PanelView View => _view;
-        public BarWindow Bar => _bar;
+
+        /// <summary>
+        /// Reads SEP's plug-in list and your layout, checks every plug-in and starts the shortcuts and the file watch
+        /// (once). True when this call did it.
+        /// </summary>
+        public bool EnsureLoaded()
+        {
+            if (_loaded) return false;
+            _loaded = true;
+            // watch first: a file rewritten while it is being read here is read again
+            Store.Watch();
+            ViewModel.Reload();
+            Log.Write($"panel started: manifest {Store.ManifestPath} ({(Store.Manifest == null ? "missing" : ViewModel.Cards.Count + " plug-ins")}), layout {Store.UserPath}");
+            return true;
+        }
 
         /// <summary>The floating bar over <paramref name="owner"/> (E3D's main window), built on first use.</summary>
         public BarWindow EnsureBar(Form owner)
         {
             if (_bar != null) return _bar;
+            EnsureLoaded();
             _ = System.IO.Packaging.PackUriHelper.UriSchemePack;
             _bar = new BarWindow(ViewModel, owner);
             Log.Write("bar created");
@@ -48,6 +61,7 @@ namespace SEP.PluginPanel
         public void EnsureView(Control container)
         {
             if (_elementHost != null) return;
+            EnsureLoaded();
             // E3D has no WPF Application object: make sure the pack:// scheme is registered before XAML loads
             _ = System.IO.Packaging.PackUriHelper.UriSchemePack;
             _view = new PanelView(ViewModel);
@@ -56,7 +70,7 @@ namespace SEP.PluginPanel
             Log.Write("panel view created");
         }
 
-        /// <summary>The window became visible: refresh the status of every plug-in.</summary>
+        /// <summary>The window became visible: refresh the status of every plug-in (unless that was a moment ago).</summary>
         public void Shown() => ViewModel.RefreshStatus();
 
         public void FocusSearch()
@@ -68,8 +82,11 @@ namespace SEP.PluginPanel
 
         public void Dispose()
         {
-            try { ViewModel.CancelRecording(); ViewModel.SaveNow(); } catch { }
+            try { ViewModel.Close(); } catch (Exception ex) { Log.Write("close: " + ex.Message); }
             try { _bar?.Close(); } catch { }
+            try { _elementHost?.Dispose(); } catch { }
+            _bar = null;
+            _elementHost = null;
             Application.RemoveMessageFilter(Shortcuts);
             Store.Dispose();
         }

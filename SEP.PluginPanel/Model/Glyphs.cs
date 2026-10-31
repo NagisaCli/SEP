@@ -9,22 +9,16 @@ namespace SEP.PluginPanel.Model
     public static class Glyphs
     {
         public const string Run = "\uE768";
-        public const string Search = "\uE721";
         public const string Edit = "\uE70F";
-        public const string More = "\uE712";
         public const string Refresh = "\uE72C";
         public const string Pin = "\uE718";
         public const string Unpin = "\uE77A";
         public const string Keyboard = "\uE765";
-        public const string Add = "\uE710";
-        public const string Delete = "\uE74D";
         public const string Folder = "\uE8B7";
         public const string Cancel = "\uE711";
         public const string Accept = "\uE8FB";
         public const string ChevronDown = "\uE70D";
         public const string ChevronUp = "\uE70E";
-        public const string Puzzle = "\uEA86";
-        public const string Clock = "\uE823";
         public const string OpenApp = "\uE8A7";
         public const string Theme = "\uE793";
 

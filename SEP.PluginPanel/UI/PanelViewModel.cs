@@ -21,6 +21,8 @@ namespace SEP.PluginPanel.UI
         private readonly DispatcherTimer _reloadTimer;
         private List<string> _recent = new List<string>();
         private PanelAction _runningAction;
+        /// <summary>Set once the files were read: saving before that would replace your layout with an empty one.</summary>
+        private bool _loaded;
 
         public PanelViewModel(PanelStore store, IPanelHost host, ShortcutFilter shortcuts)
         {
@@ -30,7 +32,13 @@ namespace SEP.PluginPanel.UI
             _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(450) };
             _saveTimer.Tick += (s, e) => { _saveTimer.Stop(); SaveNow(); };
             _reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-            _reloadTimer.Tick += (s, e) => { _reloadTimer.Stop(); Reload(); };
+            _reloadTimer.Tick += (s, e) =>
+            {
+                _reloadTimer.Stop();
+                // a timer tick comes from E3D's message loop: an exception must not get past here
+                try { Reload(); }
+                catch (Exception ex) { Log.Write("reload: " + ex); }
+            };
             var dispatcher = Dispatcher.CurrentDispatcher;
             _store.FilesChanged += () => dispatcher.BeginInvoke(new Action(() => { _reloadTimer.Stop(); _reloadTimer.Start(); }));
         }
@@ -59,7 +67,7 @@ namespace SEP.PluginPanel.UI
                 {
                     if (e.PropertyName == nameof(PluginCard.IsCollapsed) || e.PropertyName == nameof(PluginCard.Mode))
                     {
-                        if (e.PropertyName == nameof(PluginCard.Mode)) RaiseLists();
+                        if (e.PropertyName == nameof(PluginCard.Mode)) Invalidate(Lists.Cards);
                         ScheduleSave();
                     }
                 };
@@ -67,6 +75,7 @@ namespace SEP.PluginPanel.UI
                 if (expanded.Contains(card.Name) && card.MoreCount > 0) card.ShowMore = true;
                 Cards.Add(card);
             }
+            _loaded = true;
             _recent = (_store.User.Recent ?? new List<string>()).ToList();
             _theme = UI.Theme.Normalize(_store.User.Theme);
             _panelShortcut = Shortcut.Normalize(_store.User.PanelShortcut);
@@ -76,11 +85,11 @@ namespace SEP.PluginPanel.UI
                 var saved = _store.User.Bar;
                 _bar = new BarLayout { Visible = saved?.Visible ?? false, X = saved?.X, Y = saved?.Y, Vertical = saved?.Vertical ?? false };
             }
-            RefreshStatus();
+            RefreshStatus(force: true);
             RebuildShortcuts();
             Raise(nameof(Theme)); Raise(nameof(PanelShortcut)); Raise(nameof(HasPanelShortcut)); Raise(nameof(IsBarVertical));
-            Raise(nameof(HasManifest)); Raise(nameof(EmptyTitle)); Raise(nameof(EmptyText)); Raise(nameof(IsEmpty));
-            RaiseLists();
+            Raise(nameof(HasManifest)); Raise(nameof(EmptyTitle)); Raise(nameof(EmptyText));
+            Invalidate(Lists.All);
             ThemeChanged?.Invoke();
         }
 
@@ -96,10 +105,14 @@ namespace SEP.PluginPanel.UI
                         ScheduleSave();
                         break;
                     case nameof(PanelAction.IsPinned):
-                        RaiseLists();
+                        // pinned commands also leave Recent and lead the search results
+                        Invalidate(Lists.Pinned | Lists.Recent | Lists.Search);
                         ScheduleSave();
                         break;
                     case nameof(PanelAction.Caption):
+                        Invalidate(Lists.Search);
+                        ScheduleSave();
+                        break;
                     case nameof(PanelAction.Command):
                         ScheduleSave();
                         break;
@@ -107,8 +120,18 @@ namespace SEP.PluginPanel.UI
             };
         }
 
-        public void RefreshStatus()
+        private static readonly TimeSpan StatusTtl = TimeSpan.FromSeconds(5);
+        private DateTime _statusAt = DateTime.MinValue;
+
+        /// <summary>
+        /// Works out every plug-in's state. The docked window asks on each activation (every click into it), so a
+        /// look within a few seconds of the last one is skipped, unless <paramref name="force"/>d (reload, a run).
+        /// </summary>
+        public void RefreshStatus(bool force = false)
         {
+            var now = DateTime.UtcNow;
+            if (!force && now - _statusAt < StatusTtl) return;
+            _statusAt = now;
             StatusProbe.Evaluate(Cards, _host.HasCommand);
             Raise(nameof(Summary)); Raise(nameof(AttentionCount)); Raise(nameof(ReadyCount)); Raise(nameof(NeedsAttention));
         }
@@ -138,20 +161,26 @@ namespace SEP.PluginPanel.UI
 
         // ── lists ──────────────────────────────────────────────────────────────────
 
-        /// <summary>Cards shown in normal use (hidden plug-ins are left out; customize mode shows them all).</summary>
-        public IReadOnlyList<PluginCard> ShownCards => IsCustomizing ? Cards.ToList() : Cards.Where(c => !c.IsHidden).ToList();
+        // Each list is built when read after a change to what it shows, and handed out again until the next one: a new
+        // list makes WPF rebuild every item of the ItemsControls bound to it (both views bind these) and the cards
+        // replay their entrance. A rebuilt list with the same items in the same order is dropped for the old one.
+        [Flags]
+        private enum Lists { None = 0, Cards = 1, Pinned = 2, Recent = 4, Search = 8, All = Cards | Pinned | Recent | Search }
 
-        public IReadOnlyList<PanelAction> Pinned => AllActions.Where(a => a.IsPinned).ToList();
+        private Lists _stale = Lists.All;
+        private IReadOnlyList<PluginCard> _shownCards = Array.Empty<PluginCard>();
+        private IReadOnlyList<PluginCard> _barPlugins = Array.Empty<PluginCard>();
+        private IReadOnlyList<PanelAction> _pinned = Array.Empty<PanelAction>();
+        private IReadOnlyList<PanelAction> _recentActions = Array.Empty<PanelAction>();
+        private IReadOnlyList<PanelAction> _searchResults = Array.Empty<PanelAction>();
+
+        /// <summary>Cards shown in normal use (hidden plug-ins are left out; customize mode shows them all).</summary>
+        public IReadOnlyList<PluginCard> ShownCards { get { Build(Lists.Cards); return _shownCards; } }
+
+        public IReadOnlyList<PanelAction> Pinned { get { Build(Lists.Pinned); return _pinned; } }
         public bool HasPinned => Pinned.Count > 0;
 
-        public IReadOnlyList<PanelAction> Recent
-        {
-            get
-            {
-                var byKey = AllActions.GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-                return _recent.Select(k => byKey.TryGetValue(k, out var a) ? a : null).Where(a => a != null && !a.IsPinned).Take(4).ToList();
-            }
-        }
+        public IReadOnlyList<PanelAction> Recent { get { Build(Lists.Recent); return _recentActions; } }
 
         public bool HasRecent => Recent.Count > 0;
         public bool ShowQuickAccess => !IsSearching && !IsCustomizing && (HasPinned || HasRecent);
@@ -159,13 +188,39 @@ namespace SEP.PluginPanel.UI
         private IEnumerable<PanelAction> AllActions => Cards.SelectMany(c => c.Actions);
 
         /// <summary>Plug-ins on the floating bar: the ones shown with buttons (status-only and hidden ones stay in the panel).</summary>
-        public IReadOnlyList<PluginCard> BarPlugins => Cards.Where(c => c.IsButtons && c.HasActions).ToList();
+        public IReadOnlyList<PluginCard> BarPlugins { get { Build(Lists.Cards); return _barPlugins; } }
 
-        private void RaiseLists()
+        /// <summary>Marks lists as changed and tells the views, which read them again (each is rebuilt on that read).</summary>
+        private void Invalidate(Lists lists)
         {
-            Raise(nameof(BarPlugins)); Raise(nameof(ShownCards)); Raise(nameof(Pinned)); Raise(nameof(HasPinned)); Raise(nameof(Recent)); Raise(nameof(HasRecent));
-            Raise(nameof(ShowQuickAccess)); Raise(nameof(SearchResults)); Raise(nameof(HasNoResults)); Raise(nameof(IsEmpty)); Raise(nameof(Summary));
+            _stale |= lists;
+            if ((lists & Lists.Cards) != 0) { Raise(nameof(BarPlugins)); Raise(nameof(ShownCards)); Raise(nameof(IsEmpty)); Raise(nameof(Summary)); }
+            if ((lists & Lists.Pinned) != 0) { Raise(nameof(Pinned)); Raise(nameof(HasPinned)); }
+            if ((lists & Lists.Recent) != 0) { Raise(nameof(Recent)); Raise(nameof(HasRecent)); }
+            if ((lists & (Lists.Pinned | Lists.Recent)) != 0) Raise(nameof(ShowQuickAccess));
+            if ((lists & Lists.Search) != 0) { Raise(nameof(SearchResults)); Raise(nameof(HasNoResults)); }
         }
+
+        private void Build(Lists lists)
+        {
+            lists &= _stale;
+            if (lists == Lists.None) return;
+            _stale &= ~lists;
+            if ((lists & Lists.Cards) != 0)
+            {
+                _shownCards = Same(_shownCards, IsCustomizing ? Cards.ToList() : Cards.Where(c => !c.IsHidden).ToList());
+                _barPlugins = Same(_barPlugins, Cards.Where(c => c.IsButtons && c.HasActions).ToList());
+            }
+            if ((lists & Lists.Pinned) != 0) _pinned = Same(_pinned, AllActions.Where(a => a.IsPinned).ToList());
+            if ((lists & Lists.Recent) != 0)
+            {
+                var byKey = AllActions.GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                _recentActions = Same(_recentActions, _recent.Select(k => byKey.TryGetValue(k, out var a) ? a : null).Where(a => a != null && !a.IsPinned).Take(4).ToList());
+            }
+            if ((lists & Lists.Search) != 0) _searchResults = Same(_searchResults, FindActions());
+        }
+
+        private static IReadOnlyList<T> Same<T>(IReadOnlyList<T> old, IReadOnlyList<T> fresh) => old.SequenceEqual(fresh) ? old : fresh;
 
         // ── search ─────────────────────────────────────────────────────────────────
 
@@ -176,30 +231,29 @@ namespace SEP.PluginPanel.UI
             set
             {
                 if (!Set(ref _searchText, value ?? string.Empty)) return;
-                Raise(nameof(IsSearching)); Raise(nameof(ShowCards)); RaiseLists();
+                Raise(nameof(IsSearching)); Raise(nameof(ShowQuickAccess));
+                Invalidate(Lists.Search);
             }
         }
 
         public bool IsSearching => !string.IsNullOrWhiteSpace(_searchText);
-        public bool ShowCards => !IsSearching;
 
         /// <summary>Every matching command of every plug-in (also ones not shown as buttons), best first.</summary>
-        public IReadOnlyList<PanelAction> SearchResults
+        public IReadOnlyList<PanelAction> SearchResults { get { Build(Lists.Search); return _searchResults; } }
+
+        private IReadOnlyList<PanelAction> FindActions()
         {
-            get
-            {
-                if (!IsSearching) return Array.Empty<PanelAction>();
-                string q = _searchText.Trim();
-                var tokens = q.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                return AllActions
-                    .Where(a => tokens.All(t => a.SearchText.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0))
-                    .OrderBy(a => a.Caption.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0
-                                : a.Caption.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 ? 1 : 2)
-                    .ThenBy(a => a.IsPinned ? 0 : 1)
-                    .ThenBy(a => _recent.IndexOf(a.Key) is int i && i >= 0 ? i : int.MaxValue)
-                    .Take(40)
-                    .ToList();
-            }
+            if (!IsSearching) return Array.Empty<PanelAction>();
+            string q = _searchText.Trim();
+            var tokens = q.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return AllActions
+                .Where(a => tokens.All(t => a.SearchText.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0))
+                .OrderBy(a => a.Caption.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0
+                            : a.Caption.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 ? 1 : 2)
+                .ThenBy(a => a.IsPinned ? 0 : 1)
+                .ThenBy(a => _recent.IndexOf(a.Key) is int i && i >= 0 ? i : int.MaxValue)
+                .Take(40)
+                .ToList();
         }
 
         public bool HasNoResults => IsSearching && SearchResults.Count == 0;
@@ -215,8 +269,8 @@ namespace SEP.PluginPanel.UI
                 if (!Set(ref _isCustomizing, value)) return;
                 if (!value) { CancelRecording(); foreach (var c in Cards) c.IsAdding = false; SaveNow(); }
                 if (value) SearchText = string.Empty;
-                Raise(nameof(IsNormal));
-                RaiseLists();
+                Raise(nameof(IsNormal)); Raise(nameof(ShowQuickAccess));
+                Invalidate(Lists.Cards);
             }
         }
 
@@ -271,8 +325,6 @@ namespace SEP.PluginPanel.UI
                 ScheduleSave();
             }
         }
-
-        public void ToggleBar(bool focusSearch) => _host.ToggleBar(focusSearch);
 
         public void ShowPanel() => _host.ShowPanel();
 
@@ -331,13 +383,14 @@ namespace SEP.PluginPanel.UI
                 catch (Exception ex) { result = RunResult.Failure(ex.Message); }
             }
             Log.Write($"run {action.Key} ({action.Kind}: {action.Command}) -> {(result.Ok ? "ok" : result.Message)} ({elapsed.ElapsedMilliseconds} ms)");
-            RefreshStatus();
+            // a command may load its add-in or change PMLLIB
+            RefreshStatus(force: true);
             Toast?.Invoke(result.Ok ? action.Caption : action.Caption + ": " + result.Message, result.Ok);
 
             _recent.RemoveAll(k => string.Equals(k, action.Key, StringComparison.OrdinalIgnoreCase));
             _recent.Insert(0, action.Key);
             if (_recent.Count > 8) _recent.RemoveRange(8, _recent.Count - 8);
-            Raise(nameof(Recent)); Raise(nameof(HasRecent)); Raise(nameof(ShowQuickAccess));
+            Invalidate(Lists.Recent);
             ScheduleSave();
         }
 
@@ -379,6 +432,8 @@ namespace SEP.PluginPanel.UI
             if (i < 0 || j < 0 || j >= list.Count) return;
             list.Move(i, j);
             action.Plugin.Refresh();
+            // pinned chips and search results follow the order of the commands
+            Invalidate(Lists.Pinned | Lists.Search);
             ScheduleSave();
         }
 
@@ -387,7 +442,7 @@ namespace SEP.PluginPanel.UI
             int i = Cards.IndexOf(card), j = i + delta;
             if (i < 0 || j < 0 || j >= Cards.Count) return;
             Cards.Move(i, j);
-            RaiseLists();
+            Invalidate(Lists.All);
             ScheduleSave();
         }
 
@@ -408,6 +463,8 @@ namespace SEP.PluginPanel.UI
             card.Actions.Add(action);
             card.IsAdding = false;
             card.Refresh();
+            // a card's first command puts it on the bar
+            Invalidate(Lists.Cards | Lists.Search);
             ScheduleSave();
         }
 
@@ -417,7 +474,7 @@ namespace SEP.PluginPanel.UI
             action.Plugin.Actions.Remove(action);
             action.Plugin.Refresh();
             RebuildShortcuts();
-            RaiseLists();
+            Invalidate(Lists.All);
             ScheduleSave();
         }
 
@@ -433,6 +490,7 @@ namespace SEP.PluginPanel.UI
             var order = card.Actions.Where(a => !a.IsCustom).Concat(card.Actions.Where(a => a.IsCustom)).ToList();
             for (int i = 0; i < order.Count; i++) card.Actions.Move(card.Actions.IndexOf(order[i]), i);
             card.Refresh();
+            Invalidate(Lists.Pinned | Lists.Search);
             ScheduleSave();
         }
 
@@ -585,12 +643,21 @@ namespace SEP.PluginPanel.UI
         public void SaveNow()
         {
             _saveTimer.Stop();
+            if (!_loaded) return;
             try { _store.Save(Cards, _recent, _theme, _panelShortcut, _bar); }
             catch (Exception ex)
             {
                 Log.Write("save: " + ex);
                 Toast?.Invoke("Your layout could not be saved: " + ex.Message, false);
             }
+        }
+
+        /// <summary>The panel goes away (E3D closes): no more reloads, your layout is written now.</summary>
+        public void Close()
+        {
+            _reloadTimer.Stop();
+            CancelRecording();
+            SaveNow();
         }
     }
 }

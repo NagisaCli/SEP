@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using SEP.PluginPanel.Model;
 using Shortcut = SEP.PluginPanel.Model.Shortcut;
@@ -12,6 +15,10 @@ namespace SEP.PluginPanel
     public static class Log
     {
         private static readonly object Gate = new object();
+        // worked out once: lines are written on E3D's UI thread, often several per click
+        private static int _pid;
+        private static bool _ready;
+        private static int _lines;
         public static string FilePath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SEP", "plugin_panel.log");
 
         public static void Write(string message)
@@ -20,13 +27,23 @@ namespace SEP.PluginPanel
             {
                 lock (Gate)
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-                    var fi = new FileInfo(FilePath);
-                    if (fi.Exists && fi.Length > 512 * 1024) File.Delete(FilePath);
-                    File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{System.Diagnostics.Process.GetCurrentProcess().Id}] {message}{Environment.NewLine}");
+                    if (!_ready)
+                    {
+                        using (var process = System.Diagnostics.Process.GetCurrentProcess()) _pid = process.Id;
+                        Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+                        _ready = true;
+                    }
+                    // the size every 50 lines is enough to keep the log near 512 KB
+                    if (_lines++ % 50 == 0)
+                    {
+                        var fi = new FileInfo(FilePath);
+                        if (fi.Exists && fi.Length > 512 * 1024) File.Delete(FilePath);
+                    }
+                    File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_pid}] {message}{Environment.NewLine}");
                 }
             }
-            catch { }
+            // the folder may have gone meanwhile: make it again on the next line
+            catch { _ready = false; }
         }
     }
 
@@ -66,20 +83,92 @@ namespace SEP.PluginPanel
     /// <summary>Works out a plug-in's state in this E3D session from what the process has loaded.</summary>
     public static class StatusProbe
     {
+        private static readonly object LoadedGate = new object();
+        private static volatile ConcurrentDictionary<string, bool> _loaded;
+
+        private static readonly Dictionary<string, FolderCheck> Folders = new Dictionary<string, FolderCheck>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>How long a folder's answer is used before it is asked again (in the background).</summary>
+        private static readonly TimeSpan FolderTtl = TimeSpan.FromSeconds(30);
+
+        private sealed class FolderCheck
+        {
+            public bool Exists;
+            public DateTime CheckedUtc;
+            public bool Rechecking;
+        }
+
         public static void Evaluate(IEnumerable<PluginCard> cards, Func<string, bool> hasCommand = null)
         {
-            var loaded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    try { loaded.Add(asm.GetName().Name); } catch { }
-                }
-            }
-            catch { }
+            var loaded = LoadedAssemblies();
             // PMLLIB may separate its folders with ';' or spaces, and folders may contain spaces: match whole folders
             string pmllib = ";" + NormalizeDir(Environment.GetEnvironmentVariable("PMLLIB")).ToLowerInvariant() + ";";
             foreach (var card in cards) Evaluate(card, loaded, pmllib, hasCommand);
+        }
+
+        /// <summary>
+        /// Names of the assemblies in this process, gathered once and then kept up to date as assemblies load: E3D
+        /// has hundreds, and asking each for its name on every look at the panel is slow.
+        /// </summary>
+        private static ConcurrentDictionary<string, bool> LoadedAssemblies()
+        {
+            var loaded = _loaded;
+            if (loaded != null) return loaded;
+            lock (LoadedGate)
+            {
+                if (_loaded != null) return _loaded;
+                loaded = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+                try
+                {
+                    // subscribe first: an assembly that loads while the list is read is not missed
+                    AppDomain.CurrentDomain.AssemblyLoad += (s, e) => AddAssembly(loaded, e.LoadedAssembly);
+                    foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) AddAssembly(loaded, asm);
+                }
+                catch { }
+                _loaded = loaded;
+                return loaded;
+            }
+        }
+
+        private static void AddAssembly(ConcurrentDictionary<string, bool> loaded, Assembly asm)
+        {
+            try { loaded[asm.GetName().Name] = true; } catch { }
+        }
+
+        /// <summary>
+        /// Directory.Exists blocks for many seconds on a share that does not answer, and this runs on E3D's UI thread.
+        /// A folder is asked here once; later looks use that answer, and once it is older than <see cref="FolderTtl"/>
+        /// it is asked again on a worker thread (the look after that sees the new answer).
+        /// </summary>
+        private static bool FolderExists(string path)
+        {
+            lock (Folders)
+            {
+                if (Folders.TryGetValue(path, out var check))
+                {
+                    if (!check.Rechecking && DateTime.UtcNow - check.CheckedUtc > FolderTtl)
+                    {
+                        check.Rechecking = true;
+                        ThreadPool.QueueUserWorkItem(_ => Recheck(path, check));
+                    }
+                    return check.Exists;
+                }
+            }
+            bool exists = Directory.Exists(path);
+            lock (Folders) Folders[path] = new FolderCheck { Exists = exists, CheckedUtc = DateTime.UtcNow };
+            return exists;
+        }
+
+        private static void Recheck(string path, FolderCheck check)
+        {
+            bool exists = check.Exists;
+            // a worker thread: nothing may escape into E3D
+            try { exists = Directory.Exists(path); } catch { }
+            lock (Folders)
+            {
+                check.Exists = exists;
+                check.CheckedUtc = DateTime.UtcNow;
+                check.Rechecking = false;
+            }
         }
 
         private static bool OnPmlLib(string pmllib, string dir)
@@ -97,14 +186,14 @@ namespace SEP.PluginPanel
 
         private static bool IsBoundary(char c) => c == ';' || c == '"' || c == '(' || c == ')' || char.IsWhiteSpace(c);
 
-        private static void Evaluate(PluginCard card, ISet<string> loaded, string pmllib, Func<string, bool> hasCommand)
+        private static void Evaluate(PluginCard card, ConcurrentDictionary<string, bool> loaded, string pmllib, Func<string, bool> hasCommand)
         {
-            if (!string.IsNullOrEmpty(card.Path) && !Directory.Exists(card.Path))
+            if (!string.IsNullOrEmpty(card.Path) && !FolderExists(card.Path))
             {
                 card.SetState(PluginState.Missing, "Folder missing", "SEP lists this plug-in but its folder is gone:\n" + card.Path);
                 return;
             }
-            var missingAddins = card.Addins.Where(a => !loaded.Contains(a)).ToList();
+            var missingAddins = card.Addins.Where(a => a == null || !loaded.ContainsKey(a)).ToList();
             var missingPml = card.PmlPaths.Where(p => !OnPmlLib(pmllib, p)).ToList();
             var commands = card.Actions.Where(a => a.Kind == "command").Select(a => a.Command)
                 .Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -154,8 +243,6 @@ namespace SEP.PluginPanel
         public void Record(Action<Keys> recorder) => _recorder = recorder;
 
         public void StopRecording() => _recorder = null;
-
-        public bool IsRecording => _recorder != null;
 
         public bool PreFilterMessage(ref Message m)
         {

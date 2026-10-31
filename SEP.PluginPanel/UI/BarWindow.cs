@@ -43,8 +43,10 @@ namespace SEP.PluginPanel.UI
             if (owner != null)
             {
                 new WindowInteropHelper(this).Owner = owner.Handle;
-                owner.Move += (s, e) => FollowOwner();
-                owner.Resize += (s, e) => FollowOwner();
+                owner.Move += OnOwnerMoved;
+                owner.Resize += OnOwnerMoved;
+                // E3D's window outlives the bar: let go of it
+                Closed += (s, e) => { owner.Move -= OnOwnerMoved; owner.Resize -= OnOwnerMoved; };
             }
             // a WPF window inside E3D's WinForms message loop needs this for typing (search)
             Forms.Integration.ElementHost.EnableModelessKeyboardInterop(this);
@@ -155,6 +157,8 @@ namespace SEP.PluginPanel.UI
             MoveTo(owner.Left + offset.X, owner.Top + offset.Y);
             KeepOnScreen();
         }
+
+        private void OnOwnerMoved(object sender, EventArgs e) => FollowOwner();
 
         private void FollowOwner()
         {

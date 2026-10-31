@@ -18,6 +18,8 @@ namespace SEP.PluginPanel.Model
         private readonly List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
         /// <summary>What this panel last wrote to the layout file: its own save must not reload the panel.</summary>
         private byte[] _ownWrite;
+        /// <summary>The manifest read as empty or broken last time (logged once per spell).</summary>
+        private bool _manifestUnreadable;
 
         public PanelStore(string manifestPath, string userPath = null)
         {
@@ -37,10 +39,26 @@ namespace SEP.PluginPanel.Model
         public void Load()
         {
             LoadError = null;
-            try { Manifest = Json.Read<PanelManifest>(ManifestPath); }
-            catch (Exception ex) { LoadError = "SEP's plug-in list could not be read: " + ex.Message; Log.Write("manifest: " + ex); }
-            try { User = Json.Read<UserLayout>(UserPath) ?? new UserLayout(); }
-            catch (Exception ex) { User = new UserLayout(); Log.Write("user layout: " + ex); }
+            PanelManifest manifest = null;
+            Exception error = null;
+            try { manifest = Json.Read<PanelManifest>(ManifestPath); }
+            catch (Exception ex) { error = ex; }
+            if (manifest != null || !File.Exists(ManifestPath))
+            {
+                Manifest = manifest;
+                _manifestUnreadable = false;
+            }
+            else
+            {
+                // there but empty, cut short or locked: SEP is rewriting it, and the watcher reports the finished file.
+                // Until then the plug-ins read last time stay on the panel (a first read has none and says why)
+                if (!_manifestUnreadable) Log.Write("manifest unreadable, keeping the last list: " + (error?.ToString() ?? "empty file"));
+                _manifestUnreadable = true;
+                if (Manifest == null && error != null) LoadError = "SEP's plug-in list could not be read: " + error.Message;
+            }
+            // likewise a layout that cannot be read keeps the one read before: the next save would write the loss back
+            try { User = Json.Read<UserLayout>(UserPath) ?? (File.Exists(UserPath) ? User : new UserLayout()); }
+            catch (Exception ex) { Log.Write("user layout: " + ex); }
         }
 
         public List<PluginCard> BuildCards()
@@ -201,6 +219,8 @@ namespace SEP.PluginPanel.Model
 
         public void Dispose()
         {
+            // an event already on its way finds nobody to tell
+            FilesChanged = null;
             foreach (var w in _watchers) w.Dispose();
             _watchers.Clear();
         }

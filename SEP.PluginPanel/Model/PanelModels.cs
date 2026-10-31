@@ -82,7 +82,12 @@ namespace SEP.PluginPanel.Model
         public string Caption
         {
             get => _caption;
-            set { if (Set(ref _caption, string.IsNullOrWhiteSpace(value) ? DefaultCaption : value)) Raise(nameof(ToolTipText)); }
+            set
+            {
+                if (!Set(ref _caption, string.IsNullOrWhiteSpace(value) ? DefaultCaption : value)) return;
+                _searchText = null;
+                Raise(nameof(ToolTipText));
+            }
         }
 
         private string _command;
@@ -123,8 +128,9 @@ namespace SEP.PluginPanel.Model
             }
         }
 
-        /// <summary>Text matched by search.</summary>
-        public string SearchText => Caption + " " + DefaultCaption + " " + Tooltip + " " + Plugin.DisplayName + " " + Plugin.Name + " " + Group;
+        private string _searchText;
+        /// <summary>Text matched by search (built once per caption: search reads it for every command on each key press).</summary>
+        public string SearchText => _searchText ?? (_searchText = Caption + " " + DefaultCaption + " " + Tooltip + " " + Plugin.DisplayName + " " + Plugin.Name + " " + Group);
     }
 
     /// <summary>One enabled plug-in on the panel.</summary>

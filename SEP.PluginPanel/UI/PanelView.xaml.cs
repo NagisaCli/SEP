@@ -50,13 +50,7 @@ namespace SEP.PluginPanel.UI
             }));
         }
 
-        private void ApplyTheme()
-        {
-            var palette = Theme.Build(_vm.Theme);
-            if (_palette != null) Resources.MergedDictionaries.Remove(_palette);
-            Resources.MergedDictionaries.Add(palette);
-            _palette = palette;
-        }
+        private void ApplyTheme() => Theme.Apply(Resources, ref _palette, _vm.Theme);
 
         // ── running ────────────────────────────────────────────────────────────────
 

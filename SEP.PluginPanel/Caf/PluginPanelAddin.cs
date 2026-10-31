@@ -49,52 +49,67 @@ namespace SEP.PluginPanel.Caf
         private readonly DockedWindow _window;
         private readonly Panel _container;
         private readonly ICommandManager _commands;
+        /// <summary>The commands this panel added to CAF, taken out again by <see cref="Teardown"/>.</summary>
+        private readonly List<Command> _added = new List<Command>();
         private ShowPanelCommand _showCommand;
         private ShowPanelCommand _barCommand;
         private readonly Form _mainForm;
+        private EventHandler _idle;
+        private bool _stopped;
         private int _macroCounter;
 
         private CafPanel()
         {
             string dir = Path.GetDirectoryName(typeof(CafPanel).Assembly.Location) ?? string.Empty;
             _commands = DependencyResolver.GetImplementationOf<ICommandManager>();
+            // only sets up: the files are read and the plug-ins checked on E3D's first idle (below)
             _runtime = new PanelRuntime(Path.Combine(dir, PanelStore.ManifestFileName), this);
-
-            _container = new Panel { Dock = DockStyle.Fill, BackColor = System.Drawing.Color.FromArgb(0xF3, 0xF5, 0xF8) };
-            var windows = DependencyResolver.GetImplementationOf<IWindowManager>();
-            _mainForm = windows.MainForm;
-            _window = windows.CreateDockedWindow(WindowKey, "Plug-ins", _container, DockedPosition.Right);
-            _window.Width = 360;
-            // a launcher you keep open: E3D brings it back where you left it
-            _window.SaveLayout = true;
-            _window.Shown += (s, e) => OnShown();
-            _window.Activated += (s, e) => OnShown();
-            _window.Closed += (s, e) => { if (_showCommand != null) _showCommand.Checked = false; };
-
-            _showCommand = new ShowPanelCommand(ShowKey, () => TogglePanel(focusSearch: false));
-            _commands.Commands.Add(_showCommand);
-            _commands.Commands.Add(new ShowPanelCommand(SearchKey, () => TogglePanel(focusSearch: true)));
-            _barCommand = new ShowPanelCommand(BarKey, () => ToggleBar(focusSearch: false));
-            _commands.Commands.Add(_barCommand);
-            _runtime.ViewModel.PropertyChanged += (s, e) =>
+            try
             {
-                if (e.PropertyName == nameof(UI.PanelViewModel.IsBarVisible)) _barCommand.Checked = _runtime.ViewModel.IsBarVisible;
-            };
-            _commands.Commands.Add(new ShowPanelCommand(BarSearchKey, () => ToggleBar(focusSearch: true)));
+                _container = new Panel { Dock = DockStyle.Fill, BackColor = System.Drawing.Color.FromArgb(0xF3, 0xF5, 0xF8) };
+                var windows = DependencyResolver.GetImplementationOf<IWindowManager>();
+                _mainForm = windows.MainForm;
+                _window = windows.CreateDockedWindow(WindowKey, "Plug-ins", _container, DockedPosition.Right);
+                _window.Width = 360;
+                // a launcher you keep open: E3D brings it back where you left it
+                _window.SaveLayout = true;
+                // Activated comes with every click into the panel: the status check behind it is skipped when the last
+                // one was a moment ago
+                _window.Shown += (s, e) => OnWindowShown();
+                _window.Activated += (s, e) => OnWindowShown();
+                _window.Closed += (s, e) => OnWindowClosed();
 
-            // a layout restored as open shows the window before anyone clicks: build the view on the first idle;
-            // the bar comes back once E3D's main window is up, if it was open when E3D last closed
-            EventHandler idle = null;
-            idle = (s, e) =>
+                _showCommand = AddCommand(ShowKey, () => TogglePanel(focusSearch: false));
+                AddCommand(SearchKey, () => TogglePanel(focusSearch: true));
+                _barCommand = AddCommand(BarKey, () => ToggleBar(focusSearch: false));
+                _runtime.ViewModel.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(UI.PanelViewModel.IsBarVisible)) _barCommand.Checked = _runtime.ViewModel.IsBarVisible;
+                };
+                AddCommand(BarSearchKey, () => ToggleBar(focusSearch: true));
+
+                // once E3D's main window is up: read the plug-in list and your layout and check the plug-ins (not
+                // during E3D's start); a layout restored as open shows the window before anyone clicks: build the view;
+                // the bar comes back if it was open when E3D last closed
+                _idle = (s, e) =>
+                {
+                    if (_mainForm != null && !_mainForm.Visible) return;
+                    Application.Idle -= _idle;
+                    _idle = null;
+                    // E3D's own shortcuts are known once its ribbon is up: saved shortcuts that clash with them go. A
+                    // window shown earlier already loaded the panel, before the ribbon: check the shortcuts again
+                    try { if (!_runtime.EnsureLoaded()) _runtime.ViewModel.RebuildShortcuts(); } catch (Exception ex) { Log.Write("load: " + ex); }
+                    try { if (_window.Visible) OnShown(); } catch (Exception ex) { Log.Write("idle: " + ex.Message); }
+                    try { if (_runtime.ViewModel.IsBarVisible) ShowBar(focusSearch: false); } catch (Exception ex) { Log.Write("bar restore: " + ex); }
+                };
+                Application.Idle += _idle;
+            }
+            catch
             {
-                if (_mainForm != null && !_mainForm.Visible) return;
-                Application.Idle -= idle;
-                // E3D's own shortcuts are known once its ribbon is up: saved shortcuts that clash with them go
-                try { _runtime.ViewModel.RebuildShortcuts(); } catch (Exception ex) { Log.Write("shortcuts: " + ex.Message); }
-                try { if (_window.Visible) OnShown(); } catch (Exception ex) { Log.Write("idle: " + ex.Message); }
-                try { if (_runtime.ViewModel.IsBarVisible) ShowBar(focusSearch: false); } catch (Exception ex) { Log.Write("bar restore: " + ex); }
-            };
-            Application.Idle += idle;
+                // a half-built panel must not stay: its shortcut filter would take keys for the rest of the session
+                Teardown();
+                throw;
+            }
         }
 
         public static void Start()
@@ -106,8 +121,48 @@ namespace SEP.PluginPanel.Caf
 
         public static void Stop()
         {
-            _instance?._runtime.Dispose();
+            var instance = _instance;
             _instance = null;
+            instance?.Teardown();
+        }
+
+        private ShowPanelCommand AddCommand(string key, Action execute)
+        {
+            // a command left behind (if it cannot be removed) does nothing once the panel is gone
+            var command = new ShowPanelCommand(key, () => { if (!_stopped) execute(); });
+            _commands.Commands.Add(command);
+            _added.Add(command);
+            return command;
+        }
+
+        /// <summary>Undoes what the constructor set up, also when it stopped half-way. Never throws.</summary>
+        private void Teardown()
+        {
+            _stopped = true;
+            if (_idle != null) Application.Idle -= _idle;
+            _idle = null;
+            // saves your layout, closes the bar, drops the view, the shortcut filter and the file watch
+            try { _runtime.Dispose(); } catch (Exception ex) { Log.Write("dispose: " + ex); }
+            foreach (var command in _added) RemoveCommand(command);
+            _added.Clear();
+        }
+
+        /// <summary>
+        /// Takes a command out of CAF's list. The method is looked up at run time (by command, else by key), so the
+        /// add-in still loads on an E3D whose command list has no such method; the command then just stays inert.
+        /// </summary>
+        private void RemoveCommand(Command command)
+        {
+            try
+            {
+                object list = _commands.Commands;
+                var byCommand = list.GetType().GetMethod("Remove", new[] { typeof(Command) });
+                if (byCommand != null) { byCommand.Invoke(list, new object[] { command }); return; }
+                var byKey = list.GetType().GetMethod("Remove", new[] { typeof(string) });
+                if (byKey != null) { byKey.Invoke(list, new object[] { command.Key }); return; }
+                Log.Write("command " + command.Key + " left registered: the command list has no Remove");
+            }
+            catch (Exception ex) { Log.Write("remove command " + command.Key + ": " + ex.Message); }
         }
 
         private void OnShown()
@@ -115,6 +170,21 @@ namespace SEP.PluginPanel.Caf
             _runtime.EnsureView(_container);
             _runtime.Shown();
             if (_showCommand != null) _showCommand.Checked = true;
+        }
+
+        // CAF raises these from E3D's message loop: an exception must not get past here
+        private void OnWindowShown()
+        {
+            if (_stopped) return;
+            try { OnShown(); }
+            catch (Exception ex) { Log.Write("shown: " + ex); }
+        }
+
+        private void OnWindowClosed()
+        {
+            if (_stopped) return;
+            try { if (_showCommand != null) _showCommand.Checked = false; }
+            catch (Exception ex) { Log.Write("closed: " + ex.Message); }
         }
 
         // ── IPanelHost ─────────────────────────────────────────────────────────────
