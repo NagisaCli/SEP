@@ -10,10 +10,11 @@ using SEP.App.Resources;
 
 namespace SEP.App.Services;
 
-public sealed class ProjectCatalog : IProjectCatalog
+public sealed class ProjectCatalog : IProjectCatalog, IDisposable
 {
     private static readonly TimeSpan LibraryScanTimeout = TimeSpan.FromSeconds(12);   // same as rescan_library(timeout=12)
     private static readonly TimeSpan ScanReuseWindow = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(400);
 
     /// <summary>Same palette as e3d_store.CATEGORY_COLORS, assigned round-robin to new categories.</summary>
     private static readonly string[] CategoryColors =
@@ -23,7 +24,12 @@ public sealed class ProjectCatalog : IProjectCatalog
 
     private readonly SepDataStore _store;
     private readonly object _gate = new();
+    private readonly object _writeGate = new();
+    private readonly Timer _saveTimer;
+    private int _savePending;
     private Task? _runningScan;
+    private int _activeScans;
+    private readonly HashSet<string> _scansInFlight = new();
     private DateTime _lastFullScan = DateTime.MinValue;
     private List<LibraryItem> _libraries = new();
     private List<ProjectItem> _projects = new();
@@ -64,6 +70,8 @@ public sealed class ProjectCatalog : IProjectCatalog
             Data.Settings.LocalProjectsDir = LocalProjectsDir;   // same default the Python store fills in
         CleanCategories();
         RebuildModels();
+        _saveTimer = new Timer(_ => Flush(), null, Timeout.Infinite, Timeout.Infinite);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => Flush();   // Environment.Exit paths skip Application.OnExit
     }
 
     // ── model building (cache → UI items) ────────────────────────────────────────
@@ -149,8 +157,18 @@ public sealed class ProjectCatalog : IProjectCatalog
                 item.IsCached = lib.LastError != null;
                 projs.Add(item);
             }
+            // indexed once: this runs after every library of a scan, and the old per-library Count() was O(L×P)
+            var counts = new Dictionary<string, int>();
+            var byId = new Dictionary<string, ProjectItem>();
+            var byBat = new Dictionary<string, ProjectItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var p in projs)
+            {
+                counts[p.LibraryId] = counts.GetValueOrDefault(p.LibraryId) + 1;
+                byId.TryAdd(p.Id, p);
+                byBat.TryAdd(p.BatPath, p);
+            }
             foreach (var lib in libs)
-                lib.ProjectCount = projs.Count(p => p.LibraryId == lib.Id);
+                lib.ProjectCount = counts.GetValueOrDefault(lib.Id);
 
             _libraries = libs;
             _projects = projs;
@@ -159,8 +177,7 @@ public sealed class ProjectCatalog : IProjectCatalog
                 .Select(m =>
                 {
                     string bat = SepPaths.Normalize(m.BatPath);
-                    var p = projs.FirstOrDefault(x => x.Id == m.Id) ??
-                            (bat.Length == 0 ? null : projs.FirstOrDefault(x => string.Equals(x.BatPath, bat, StringComparison.OrdinalIgnoreCase)));
+                    var p = byId.GetValueOrDefault(m.Id) ?? (bat.Length == 0 ? null : byBat.GetValueOrDefault(bat));
                     if (p != null)
                     {
                         p.MyGroupId = m.GroupId;
@@ -182,12 +199,24 @@ public sealed class ProjectCatalog : IProjectCatalog
         Data.ProjectMeta.TryGetValue(item.Id, out var meta);
         item.DisplayName = meta?.Name;
         item.Owner = meta?.Owner;
-        item.Tags = meta?.Tags?.ToList() ?? new List<string>();
+        // Tags is a list, so a fresh copy always counts as a change and every card re-templated its chips on every
+        // rebuild; only replace it when the tags really differ.
+        var tags = meta?.Tags;
+        if (!SameTags(item.Tags, tags)) item.Tags = tags is { Count: > 0 } ? tags.ToList() : Array.Empty<string>();
         item.Description = meta?.Description;
         item.Notes = meta?.Notes;
         item.Status = meta?.Status is { Length: > 0 } st && IProjectCatalog.StatusOptions.Contains(st) ? st : string.Empty;
         item.Category = meta?.CategoryId is { Length: > 0 } cid && categories.TryGetValue(cid, out var cat) ? cat : null;
         item.MetaUpdatedAt = SepPaths.ParseIso(meta?.UpdatedAt);
+    }
+
+    private static bool SameTags(IReadOnlyList<string> current, IReadOnlyList<string>? wanted)
+    {
+        int n = wanted?.Count ?? 0;
+        if (current.Count != n) return false;
+        for (int i = 0; i < n; i++)
+            if (!string.Equals(current[i], wanted![i], StringComparison.Ordinal)) return false;
+        return true;
     }
 
     private void CleanCategories()
@@ -232,6 +261,8 @@ public sealed class ProjectCatalog : IProjectCatalog
 
     private async Task ScanLibrariesAsync(List<LibraryRecord> records, bool markFull)
     {
+        // a library whose scan is still running (a single rescan during a full one) is not scanned a second time
+        lock (_gate) records = records.Where(r => _scansInFlight.Add(r.Id)).ToList();
         if (records.Count == 0) { if (markFull) _lastFullScan = DateTime.UtcNow; return; }
         SetScanning(true);
         foreach (var rec in records) { var it = FindItem(rec.Id); if (it != null) it.IsScanning = true; }
@@ -263,6 +294,7 @@ public sealed class ProjectCatalog : IProjectCatalog
         }
         finally
         {
+            lock (_gate) foreach (var rec in records) _scansInFlight.Remove(rec.Id);
             foreach (var rec in records) { var it = FindItem(rec.Id); if (it != null) it.IsScanning = false; }
             SetScanning(false);
         }
@@ -273,6 +305,7 @@ public sealed class ProjectCatalog : IProjectCatalog
     {
         lock (_gate)
         {
+            if (!Data.Libraries.Contains(rec)) return;   // removed (or replaced by an import) while its scan ran
             rec.LastScan = SepPaths.NowIso();
             if (!result.Ok)
             {
@@ -295,9 +328,12 @@ public sealed class ProjectCatalog : IProjectCatalog
 
     private LibraryItem? FindItem(string id) { lock (_gate) return _libraries.FirstOrDefault(l => l.Id == id); }
 
+    /// <summary>Scanning while any scan runs: a single rescan finishing must not hide the spinner of a full one.</summary>
     private void SetScanning(bool value)
     {
-        IsScanning = value;
+        bool scanning = (value ? Interlocked.Increment(ref _activeScans) : Interlocked.Decrement(ref _activeScans)) > 0;
+        if (IsScanning == scanning) return;
+        IsScanning = scanning;
         ScanStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -829,22 +865,50 @@ public sealed class ProjectCatalog : IProjectCatalog
         CleanCategories();
         RebuildModels();
         Save();
+        Flush();   // an import is something the user just did on purpose: on disk now
     }
 
+    /// <summary>
+    /// Queues a write of both config files. Writes are coalesced and done off the UI thread: a favourite toggle, a
+    /// group collapse and a launch each used to serialise the whole catalog on the click, holding the lock that the
+    /// scans wait for. <see cref="Flush"/> writes at once; exit and import call it.
+    /// </summary>
     public void Save()
     {
+        Volatile.Write(ref _savePending, 1);
+        try { _saveTimer.Change(SaveDelay, Timeout.InfiniteTimeSpan); }
+        catch (ObjectDisposedException) { Flush(); }
+    }
+
+    public void Flush()
+    {
+        if (Interlocked.Exchange(ref _savePending, 0) == 0) return;
         try
         {
-            lock (_gate)
+            lock (_writeGate)   // snapshots and writes in one order, even when a timer write and the exit flush overlap
             {
-                _store.SaveData(Data);
-                _store.SavePaths(Paths);
+                string data, paths;
+                lock (_gate)
+                {
+                    data = _store.SerializeData(Data);
+                    paths = _store.SerializePaths(Paths);
+                }
+                _store.WriteData(data);
+                _store.WritePaths(paths);
             }
         }
         catch (Exception ex)
         {
             App.Log($"Save failed: {ex.Message}");
         }
+    }
+
+    public void Dispose()
+    {
+        // let a write that is already running finish, then write whatever is still pending
+        using var drained = new ManualResetEvent(false);
+        if (_saveTimer.Dispose(drained)) drained.WaitOne(TimeSpan.FromSeconds(5));
+        Flush();
     }
 
     public string? GetPluginDisplayName(string pluginName)

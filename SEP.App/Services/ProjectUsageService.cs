@@ -37,6 +37,10 @@ public sealed class ProjectUsageService
     private const int MaxRegisterBytes = 32 * 1024 * 1024;
     private const int SharingViolation = 32, LockViolation = 33;
     private static readonly Regex TagRe = new(@"^X[0-9A-Fa-f]{2,8}-[A-Za-z0-9_.\-]+$", RegexOptions.Compiled);
+    // "set XXX000=<folder>" lines of an evars file; one compiled pattern for every code instead of one per project
+    private static readonly Regex DbDirRe = new(@"(?im)^\s*set\s+""?([A-Za-z][A-Za-z0-9]{1,4})000\s*=\s*""?([^""\r\n]+)", RegexOptions.Compiled);
+    private static readonly Regex ProjectsDirVarRe = new(@"%projects_dir%\\?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex Dp0VarRe = new(@"%~dp0\\?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private readonly SessionService _sessions;
     private readonly SemaphoreSlim _running = new(1, 1);
@@ -97,13 +101,21 @@ public sealed class ProjectUsageService
             }
             // a project open in E3D on this PC is in use without asking the server at all
             bool openHere = _sessions.OpenProjectIds.Contains(project.Id);
+            if (string.IsNullOrEmpty(project.Code)) return openHere ? (UsageState.InUse, none) : (UsageState.Unknown, none);
+            string code = project.Code.ToLowerInvariant();
 
-            var (sys, com) = DatabaseFiles(project);
-            if (sys == null) return openHere ? (UsageState.InUse, none) : (UsageState.Unknown, none);
-
-            UsageState state = openHere ? UsageState.InUse : ProbeInUse(sys);
-            if (state != UsageState.InUse) return (state, none);
-            return (UsageState.InUse, com == null ? none : ReadRegister(com));
+            // One round trip per free project: the open itself tells "no database here" from "free" and "in use",
+            // so the folder is not stat'ed first, and the session register is only opened for a project in use.
+            foreach (var dir in CandidateDbDirs(project, code))
+            {
+                UsageState state = openHere ? UsageState.InUse : ProbeInUse(Path.Combine(dir, code + "sys"));
+                if (state == UsageState.Unknown) continue;   // no sys database in this folder: try the one the evars file names
+                if (state != UsageState.InUse) return (state, none);
+                var logins = ReadRegister(Path.Combine(dir, code + "com"));
+                if (logins != null) return (UsageState.InUse, logins);
+                if (!openHere) return (UsageState.InUse, none);   // in use, but no register next to its sys database
+            }
+            return openHere ? (UsageState.InUse, none) : (UsageState.Unknown, none);
         }
         catch (Exception ex)
         {
@@ -135,23 +147,9 @@ public sealed class ProjectUsageService
     }
 
     /// <summary>
-    /// &lt;code&gt;sys / &lt;code&gt;com of the project: in &lt;project&gt;\&lt;code&gt;000 normally, otherwise wherever
-    /// the evars file's "set &lt;CODE&gt;000=" points.
+    /// Folders that may hold the project's &lt;code&gt;sys / &lt;code&gt;com: &lt;project&gt;\&lt;code&gt;000 normally,
+    /// otherwise wherever the evars file's "set &lt;CODE&gt;000=" points (read lazily, only when the first is not it).
     /// </summary>
-    private static (string? Sys, string? Com) DatabaseFiles(ProjectItem project)
-    {
-        if (string.IsNullOrEmpty(project.Code)) return (null, null);
-        string code = project.Code.ToLowerInvariant();
-        foreach (var dir in CandidateDbDirs(project, code))
-        {
-            string sys = Path.Combine(dir, code + "sys");
-            if (!File.Exists(sys)) continue;
-            string com = Path.Combine(dir, code + "com");
-            return (sys, File.Exists(com) ? com : null);
-        }
-        return (null, null);
-    }
-
     private static IEnumerable<string> CandidateDbDirs(ProjectItem project, string code)
     {
         yield return Path.Combine(project.ProjectDir, code + "000");
@@ -159,26 +157,31 @@ public sealed class ProjectUsageService
         try
         {
             var (text, _) = SepPaths.ReadTextSmart(project.BatPath);
-            var m = Regex.Match(text, $@"(?im)^\s*set\s+""?{Regex.Escape(code)}000\s*=\s*""?([^""\r\n]+)");
-            if (m.Success)
+            foreach (Match m in DbDirRe.Matches(text))
             {
+                if (!m.Groups[1].Value.Equals(code, StringComparison.OrdinalIgnoreCase)) continue;
                 string batDir = Path.GetDirectoryName(project.BatPath) ?? project.ProjectDir;
                 string projectsDir = Path.GetDirectoryName(project.ProjectDir.TrimEnd('\\')) ?? batDir;
-                string value = Regex.Replace(m.Groups[1].Value.Trim(), @"%projects_dir%\\?", projectsDir.TrimEnd('\\') + "\\", RegexOptions.IgnoreCase);
-                value = Regex.Replace(value, @"%~dp0\\?", batDir.TrimEnd('\\') + "\\", RegexOptions.IgnoreCase);
+                string value = ProjectsDirVarRe.Replace(m.Groups[2].Value.Trim(), projectsDir.TrimEnd('\\') + "\\");
+                value = Dp0VarRe.Replace(value, batDir.TrimEnd('\\') + "\\");
                 if (!value.Contains('%')) fromEvars = SepPaths.Normalize(value);
+                break;
             }
         }
         catch { }
         if (fromEvars != null) yield return fromEvars;
     }
 
-    /// <summary>Logins in E3D's session register (communications database), newest first, one per user@computer.</summary>
-    private static IReadOnlyList<ProjectSession> ReadRegister(string comFile)
+    /// <summary>
+    /// Logins in E3D's session register (communications database), newest first, one per user@computer; null when
+    /// there is no register at that path.
+    /// </summary>
+    private static IReadOnlyList<ProjectSession>? ReadRegister(string comFile)
     {
         byte[] data;
-        using (var fs = new FileStream(comFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+        try
         {
+            using var fs = new FileStream(comFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             if (fs.Length > MaxRegisterBytes) return Array.Empty<ProjectSession>();
             data = new byte[fs.Length];
             int read = 0;
@@ -188,6 +191,10 @@ public sealed class ProjectUsageService
                 if (n == 0) break;
                 read += n;
             }
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
         }
         return ParseRegister(data, DateTime.Now);
     }

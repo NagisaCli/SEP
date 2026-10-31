@@ -70,23 +70,23 @@ public sealed class PluginDiscoveryService
 
             // Current managed plugins dir (for baseline comparison)
             if (Directory.Exists(managedRoot))
-                searchRoots.Add((managedRoot, "SEP 托管目录", 2));
+                searchRoots.Add((managedRoot, Strings.Discovery_RootManaged, 2));
 
             // User profile locations (Desktop, Downloads, Documents)
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            if (Directory.Exists(desktop)) searchRoots.Add((desktop, "桌面", 3));
+            if (Directory.Exists(desktop)) searchRoots.Add((desktop, Strings.Discovery_RootDesktop, 3));
 
             string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string downloads = Path.Combine(userProfile, "Downloads");
-            if (Directory.Exists(downloads)) searchRoots.Add((downloads, "下载目录", 3));
+            if (Directory.Exists(downloads)) searchRoots.Add((downloads, Strings.Discovery_RootDownloads, 3));
 
             string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            if (Directory.Exists(documents)) searchRoots.Add((documents, "我的文档", 3));
+            if (Directory.Exists(documents)) searchRoots.Add((documents, Strings.Discovery_RootDocuments, 3));
 
             // Discovered external directories from custom_evars.bat
             foreach (var extDir in _pluginService.DiscoverPluginDirsFromCustomEvars())
             {
-                if (Directory.Exists(extDir)) searchRoots.Add((extDir, "环境变量引用", 2));
+                if (Directory.Exists(extDir)) searchRoots.Add((extDir, Strings.Discovery_RootEnvironment, 2));
             }
 
             // Active Project libraries
@@ -94,7 +94,7 @@ public sealed class PluginDiscoveryService
             {
                 if (!string.IsNullOrWhiteSpace(lib.Path) && Directory.Exists(lib.Path))
                 {
-                    searchRoots.Add((lib.Path, "工程库目录", 3));
+                    searchRoots.Add((lib.Path, Strings.Discovery_RootLibrary, 3));
                 }
             }
 
@@ -103,7 +103,7 @@ public sealed class PluginDiscoveryService
             {
                 if (Directory.Exists(cand) && !cand.Equals(managedRoot, StringComparison.OrdinalIgnoreCase))
                 {
-                    searchRoots.Add((cand, "磁盘插件目录", 3));
+                    searchRoots.Add((cand, Strings.Discovery_RootDriveFolder, 3));
                 }
             }
 
@@ -121,7 +121,7 @@ public sealed class PluginDiscoveryService
                             if (SkipDirNames.Contains(fn)) continue;
                             if (fn.Contains("plugin") || fn.Contains("e3d") || fn.Contains("pml") || fn.Contains("aveva") || fn.Contains("tool"))
                             {
-                                searchRoots.Add((sub, $"驱动器 ({drive.Name.TrimEnd('\\')})", 3));
+                                searchRoots.Add((sub, string.Format(Strings.Discovery_RootDrive, drive.Name.TrimEnd('\\')), 3));
                             }
                         }
                     }
@@ -330,14 +330,14 @@ public sealed class PluginDiscoveryService
 
         // Build feature description
         var features = new List<string>();
-        if (hasPmlFiles) features.Add(pmlFormNames.Count > 0 ? $"{pmlFormNames.Count} 个表单" : "PML 宏/函数");
-        if (hasAvevaDll) features.Add($"程序集: {string.Join(", ", assemblyNames.Distinct().Take(2))}");
-        if (hasUic) features.Add("自定义 UIC");
-        if (isMultiVersion) features.Add("多版本支持");
-        if (isNested) features.Add("多层嵌套分包");
-        if (hasIndex) features.Add("含索引");
+        if (hasPmlFiles) features.Add(pmlFormNames.Count > 0 ? string.Format(Strings.Discovery_FeatureForms, pmlFormNames.Count) : Strings.Discovery_FeaturePml);
+        if (hasAvevaDll) features.Add(string.Format(Strings.Discovery_FeatureAssemblies, string.Join(", ", assemblyNames.Distinct().Take(2))));
+        if (hasUic) features.Add(Strings.Discovery_FeatureUic);
+        if (isMultiVersion) features.Add(Strings.Discovery_FeatureMultiVersion);
+        if (isNested) features.Add(Strings.Discovery_FeatureNested);
+        if (hasIndex) features.Add(Strings.Discovery_FeatureIndexed);
 
-        string desc = features.Count > 0 ? string.Join(" | ", features) : "E3D 辅助组件";
+        string desc = features.Count > 0 ? string.Join(" | ", features) : Strings.Discovery_DefaultDescription;
 
         return new DiscoveredPluginInfo(
             Name: name,
@@ -360,7 +360,7 @@ public sealed class PluginDiscoveryService
     public static bool IsAvevaRelatedAssembly(string dllPath)
     {
         string fn = Path.GetFileNameWithoutExtension(dllPath).ToLowerInvariant();
-        if (fn.StartsWith("system.") || fn.StartsWith("microsoft.") || fn.StartsWith("mscorlib")) return false;
+        if (fn.StartsWith("system.", StringComparison.Ordinal) || fn.StartsWith("microsoft.", StringComparison.Ordinal) || fn.StartsWith("mscorlib", StringComparison.Ordinal)) return false;
 
         try
         {
@@ -403,7 +403,7 @@ public sealed class PluginDiscoveryService
                 string targetDir = Path.Combine(root, safeName);
                 if (targetDir.Equals(discovered.Path, StringComparison.OrdinalIgnoreCase))
                 {
-                    return ToolResult.Failure($"该插件已位于 SEP 托管目录: {targetDir}");
+                    return ToolResult.Failure(string.Format(Strings.Discovery_AlreadyHosted, targetDir));
                 }
 
                 if (Directory.Exists(targetDir))
@@ -502,6 +502,11 @@ public sealed class PluginDiscoveryService
         return dir;
     }
 
+    // Folders left out when a plug-in is copied into the managed folder. Not SkipDirNames: that list is for the
+    // disk search and skips "bin", which is where a plug-in keeps its add-in and PML.NET assemblies.
+    private static readonly HashSet<string> CopySkipDirNames = new(StringComparer.OrdinalIgnoreCase)
+        { ".git", ".svn", ".vs", ".idea", "obj", "node_modules", "temp", "tmp" };
+
     private static void CopyDirectory(string src, string dst)
     {
         Directory.CreateDirectory(dst);
@@ -512,7 +517,7 @@ public sealed class PluginDiscoveryService
         foreach (var d in Directory.EnumerateDirectories(src))
         {
             string subName = Path.GetFileName(d);
-            if (subName.StartsWith('.') || SkipDirNames.Contains(subName)) continue;
+            if (subName.StartsWith('.') || CopySkipDirNames.Contains(subName)) continue;
             CopyDirectory(d, Path.Combine(dst, subName));
         }
     }

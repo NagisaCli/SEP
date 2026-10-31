@@ -6327,6 +6327,114 @@ namespace SEP.App.Resources {
             }
         }
 
+        public static string Plugins_UninstallDirMissing {
+            get {
+                return ResourceManager.GetString("Plugins_UninstallDirMissing", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootManaged {
+            get {
+                return ResourceManager.GetString("Discovery_RootManaged", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootDesktop {
+            get {
+                return ResourceManager.GetString("Discovery_RootDesktop", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootDownloads {
+            get {
+                return ResourceManager.GetString("Discovery_RootDownloads", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootDocuments {
+            get {
+                return ResourceManager.GetString("Discovery_RootDocuments", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootEnvironment {
+            get {
+                return ResourceManager.GetString("Discovery_RootEnvironment", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootLibrary {
+            get {
+                return ResourceManager.GetString("Discovery_RootLibrary", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootDriveFolder {
+            get {
+                return ResourceManager.GetString("Discovery_RootDriveFolder", resourceCulture);
+            }
+        }
+
+        public static string Discovery_RootDrive {
+            get {
+                return ResourceManager.GetString("Discovery_RootDrive", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureForms {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureForms", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeaturePml {
+            get {
+                return ResourceManager.GetString("Discovery_FeaturePml", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureAssemblies {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureAssemblies", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureUic {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureUic", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureMultiVersion {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureMultiVersion", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureNested {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureNested", resourceCulture);
+            }
+        }
+
+        public static string Discovery_FeatureIndexed {
+            get {
+                return ResourceManager.GetString("Discovery_FeatureIndexed", resourceCulture);
+            }
+        }
+
+        public static string Discovery_DefaultDescription {
+            get {
+                return ResourceManager.GetString("Discovery_DefaultDescription", resourceCulture);
+            }
+        }
+
+        public static string Discovery_AlreadyHosted {
+            get {
+                return ResourceManager.GetString("Discovery_AlreadyHosted", resourceCulture);
+            }
+        }
+
         public static string Plugins_TabDiscovery {
             get {
                 return ResourceManager.GetString("Plugins_TabDiscovery", resourceCulture);

@@ -60,9 +60,16 @@ public sealed class SepDataStore
 
     public E3dPathsConfig LoadPaths() => Load<E3dPathsConfig>(PathsFile, out _lastPathsJson);
 
-    public void SaveData(SepData data) => Save(ProjectsFile, data, ref _lastProjectsJson);
+    public void SaveData(SepData data) => WriteData(SerializeData(data));
 
-    public void SavePaths(E3dPathsConfig paths) => Save(PathsFile, paths, ref _lastPathsJson);
+    public void SavePaths(E3dPathsConfig paths) => WritePaths(SerializePaths(paths));
+
+    // Serialising and writing are separate steps so the catalog can take its snapshot under its lock and do the
+    // disk work outside it (and off the UI thread).
+    public string SerializeData(SepData data) => JsonSerializer.Serialize(data, JsonOptions);
+    public string SerializePaths(E3dPathsConfig paths) => JsonSerializer.Serialize(paths, JsonOptions);
+    public void WriteData(string json) => Write(ProjectsFile, json, ref _lastProjectsJson);
+    public void WritePaths(string json) => Write(PathsFile, json, ref _lastPathsJson);
 
     private static T Load<T>(string path, out string lastJson) where T : new()
     {
@@ -84,9 +91,8 @@ public sealed class SepDataStore
         return result;
     }
 
-    private static void Save<T>(string path, T value, ref string lastJson)
+    private static void Write(string path, string json, ref string lastJson)
     {
-        string json = JsonSerializer.Serialize(value, JsonOptions);
         if (json == lastJson) return;
 
         string tmp = path + ".tmp";

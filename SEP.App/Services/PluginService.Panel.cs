@@ -497,10 +497,10 @@ public sealed partial class PluginService
             foreach (string raw in File.ReadLines(readme).Take(80))
             {
                 string line = raw.Trim();
-                if (line.StartsWith("```")) { inCode = !inCode; continue; }
+                if (line.StartsWith("```", StringComparison.Ordinal)) { inCode = !inCode; continue; }
                 if (inCode) continue;
                 if (line.Length == 0) { if (para.Count > 0) break; continue; }
-                if (line.StartsWith('#') || line.StartsWith('!') || line.StartsWith('|') || line.StartsWith('>') || line.StartsWith("<")) { if (para.Count > 0) break; continue; }
+                if (line.StartsWith('#') || line.StartsWith('!') || line.StartsWith('|') || line.StartsWith('>') || line.StartsWith("<", StringComparison.Ordinal)) { if (para.Count > 0) break; continue; }
                 para.Add(line);
             }
             if (para.Count == 0) return null;
@@ -524,7 +524,11 @@ public sealed partial class PluginService
             string json = JsonSerializer.Serialize(manifest, PanelJson);
             string path = Path.Combine(installDir, PanelManifestFile);
             if (File.Exists(path) && SameWithoutTimestamp(File.ReadAllText(path), json)) return;
-            File.WriteAllText(path, json, new UTF8Encoding(false));
+            // Written next to it and renamed into place: the panel inside E3D watches this file and would otherwise
+            // read it truncated (zero bytes) between WriteAllText's truncate and its write.
+            string tmp = path + ".tmp";
+            File.WriteAllText(tmp, json, new UTF8Encoding(false));
+            File.Move(tmp, path, overwrite: true);
         }
         catch (Exception ex)
         {
@@ -532,12 +536,10 @@ public sealed partial class PluginService
         }
     }
 
+    private static readonly Regex GeneratedAtRe = new(@"""generatedAt"":\s*""[^""]*""", RegexOptions.Compiled);
+
     /// <summary>Unchanged apart from the time it was written: leave the file alone so open panels do not reload.</summary>
-    private static bool SameWithoutTimestamp(string a, string b)
-    {
-        var re = new Regex(@"""generatedAt"":\s*""[^""]*""");
-        return re.Replace(a, "") == re.Replace(b, "");
-    }
+    private static bool SameWithoutTimestamp(string a, string b) => GeneratedAtRe.Replace(a, "") == GeneratedAtRe.Replace(b, "");
 
     private static readonly JsonSerializerOptions PanelJson = new()
     {

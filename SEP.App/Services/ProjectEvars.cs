@@ -33,7 +33,7 @@ public static class ProjectEvars
         foreach (var rawLine in text.Split('\n'))
         {
             string line = rawLine.Trim();
-            if (line.Length == 0 || line.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || line.StartsWith("::")) continue;
+            if (line.Length == 0 || line.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || line.StartsWith("::", StringComparison.Ordinal)) continue;
             var m = SetLine.Match(line);
             if (!m.Success) continue;
 

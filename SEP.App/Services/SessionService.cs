@@ -36,18 +36,30 @@ public sealed class SessionService : IDisposable
     private readonly object _gate = new();
     private readonly Dictionary<string, DateTime> _launched = new();     // project id → launched by SEP at
     private readonly Dictionary<string, DateTime> _openSince = new();    // project id → first seen open
+    private static readonly int SessionId = CurrentSessionId();
     private DateTime _e3dCheckedAt = DateTime.MinValue;
     private bool _e3dRunning;
     private int _pollBusy;
+    private int _itemsStale = 1;   // the catalog rebuilt its items: they need this PC's sessions written again
     private Task<HashSet<string>?>? _probe;   // still running after its deadline: never start a second one
 
     /// <summary>Raised (on a worker thread) when the set of projects open on this PC changes.</summary>
     public event EventHandler? PresenceChanged;
 
+    /// <summary>Raised (on a worker thread) when an E3D module process appears or the last one ends.</summary>
+    public event EventHandler? E3dRunningChanged;
+
     public SessionService(IProjectCatalog catalog)
     {
         _catalog = catalog;
+        _catalog.Changed += (_, _) => Volatile.Write(ref _itemsStale, 1);
         _poll = new Timer(_ => Poll(), null, TimeSpan.FromSeconds(3), PollEvery);
+    }
+
+    private static int CurrentSessionId()
+    {
+        using var me = Process.GetCurrentProcess();
+        return me.SessionId;
     }
 
     public static string ComputerName => Environment.MachineName;
@@ -88,14 +100,13 @@ public sealed class SessionService : IDisposable
     private static List<int> E3dProcessIds()
     {
         var ids = new List<int>();
-        int session = Process.GetCurrentProcess().SessionId;
         foreach (var p in Process.GetProcesses())
         {
             using (p)   // every Process object holds a handle; dispose them instead of waiting for the finalizer
             {
                 try
                 {
-                    if (p.SessionId == session && E3dProcesses.Contains(p.ProcessName)) ids.Add(p.Id);
+                    if (p.SessionId == SessionId && E3dProcesses.Contains(p.ProcessName)) ids.Add(p.Id);
                 }
                 catch { }
             }
@@ -121,8 +132,10 @@ public sealed class SessionService : IDisposable
     private void PollCore()
     {
         var pids = E3dProcessIds();
+        bool wasRunning = _e3dRunning;
         _e3dRunning = pids.Count > 0;
         _e3dCheckedAt = DateTime.UtcNow;
+        if (wasRunning != _e3dRunning) E3dRunningChanged?.Invoke(this, EventArgs.Empty);
 
         HashSet<string> open;
         if (pids.Count == 0)
@@ -145,7 +158,8 @@ public sealed class SessionService : IDisposable
             foreach (var id in _openSince.Keys.Where(id => !open.Contains(id)).ToList()) _openSince.Remove(id);
             foreach (var id in open) _openSince.TryAdd(id, DateTime.Now);
         }
-        Apply();
+        // the dispatcher round trip over every project only when something to show has changed
+        if (changed || Interlocked.Exchange(ref _itemsStale, 0) == 1) Apply();
         if (changed)
         {
             App.Log($"E3D open on this PC: {(open.Count == 0 ? "none" : string.Join(", ", _catalog.Projects.Where(p => open.Contains(p.Id)).Select(p => p.Name)))}");

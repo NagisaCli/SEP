@@ -35,6 +35,9 @@ $publishArgs = @(
     '--self-contained', $selfContained,
     '-p:PublishSingleFile=true',
     '-p:IncludeNativeLibrariesForSelfExtract=true',
+    # Pre-compiled (ReadyToRun) code: WPF, WPF-UI and the MVVM toolkit are no longer JIT-compiled on every start,
+    # which is most of the cold-start time of a self-contained exe. The exe grows, mostly absorbed by compression.
+    '-p:PublishReadyToRun=true',
     '-p:DebugType=embedded',
     '-o', 'dist'
 )

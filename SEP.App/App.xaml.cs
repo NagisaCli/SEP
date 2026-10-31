@@ -102,7 +102,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _instance?.Dispose();
-        // stop the heartbeat and drop this device's session files so nobody sees a ghost session
+        // stops the presence poll and writes catalog changes that are still queued (ProjectCatalog.Dispose)
         try { (Services as IDisposable)?.Dispose(); } catch (Exception ex) { Log($"OnExit: {ex.Message}"); }
         base.OnExit(e);
     }
@@ -202,12 +202,30 @@ public partial class App : Application
                 return;
             }
 
-            // Auto-detect & safely adopt legacy hand-written plugin and project configs in custom_evars.bat
-            try
+            Log("Resolving MainWindow");
+            var mainWindow = Services.GetRequiredService<MainWindow>();
+            Log("MainWindow resolved, calling Show()");
+            mainWindow.Show();
+            Log("MainWindow.Show() called successfully");
+
+            // After the first paint: adopt hand-written plug-in and project lines of custom_evars.bat, and bring
+            // E3D's SEP tab in line with the enabled plug-ins. Both scan every plug-in folder and write into the E3D
+            // folder; done before Show() they held the window back by seconds on every start.
+            var plugins = Services.GetRequiredService<PluginService>();
+            _ = Task.Run(() =>
             {
-                var plugins = Services.GetRequiredService<PluginService>();
-                var report = plugins.AdoptLegacyConfigs();
-                if (report.Changed)
+                AdoptionReport? report = null;
+                try
+                {
+                    report = plugins.AdoptLegacyConfigs();
+                    if (!report.Changed) plugins.SyncE3dRibbon();   // adoption syncs by itself when it changed something
+                }
+                catch (Exception ex)
+                {
+                    Log($"[AutoAdopt Error] {ex.Message}");
+                }
+                if (report is not { Changed: true }) return;
+                Dispatcher.BeginInvoke(() =>
                 {
                     catalog.Data.Notifications.Insert(0, new NotificationRecord
                     {
@@ -219,18 +237,8 @@ public partial class App : Application
                     });
                     catalog.Save();
                     Log($"[AutoAdopt] {report.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log($"[AutoAdopt Error] {ex.Message}");
-            }
-
-            Log("Resolving MainWindow");
-            var mainWindow = Services.GetRequiredService<MainWindow>();
-            Log("MainWindow resolved, calling Show()");
-            mainWindow.Show();
-            Log("MainWindow.Show() called successfully");
+                });
+            });
 
             // --shot-dir=<folder>: UI-check screenshots rendered from the visual tree (see Diagnostics/ScreenshotHook)
             string? shotDir = e.Args.FirstOrDefault(a => a.StartsWith("--shot-dir=", StringComparison.OrdinalIgnoreCase))?["--shot-dir=".Length..].Trim('"');

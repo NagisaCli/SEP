@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,41 +20,43 @@ public static class SepPaths
         if (string.IsNullOrWhiteSpace(path)) return string.Empty;
         string p = path.Trim().Trim('"').Trim();
         if (p.Length == 0) return string.Empty;
-        string low = p.ToLowerInvariant();
+        // Ordinal: a path prefix is bytes, and culture comparisons go through ICU for every project on every rebuild.
+        if (p.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || p.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return p;
 
-        if (low.StartsWith("http://") || low.StartsWith("https://")) return p;
-
-        if (low.StartsWith("smb://"))
+        if (p.StartsWith("smb://", StringComparison.OrdinalIgnoreCase))
         {
             string rest = p[6..].Replace('/', '\\');
             return StripTrailing(@"\\" + rest);
         }
-        if (low.StartsWith("file://"))
+        if (p.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
         {
             string rest = p[7..];
             if (rest.StartsWith('/')) rest = rest[1..];
             rest = rest.Replace('/', '\\');
-            return Regex.IsMatch(rest, @"^[A-Za-z]:\\") ? StripTrailing(rest) : @"\\" + StripTrailing(rest);
+            return DriveRootRe.IsMatch(rest) ? StripTrailing(rest) : @"\\" + StripTrailing(rest);
         }
 
-        p = Environment.ExpandEnvironmentVariables(p);
-        if (p.StartsWith("~")) p = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + p[1..];
+        if (p.Contains('%')) p = Environment.ExpandEnvironmentVariables(p);
+        if (p.StartsWith('~')) p = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + p[1..];
         p = p.Replace('/', '\\');
         return StripTrailing(p);
     }
+
+    private static readonly Regex DriveRootRe = new(@"^[A-Za-z]:\\", RegexOptions.Compiled);
+    private static readonly Regex DriveOnlyRe = new(@"^[A-Za-z]:\\?$", RegexOptions.Compiled);
 
     private static string StripTrailing(string p)
     {
         p = p.Trim();
         if (p.Length == 0) return string.Empty;
-        if (Regex.IsMatch(p, @"^[A-Za-z]:\\?$")) return p.TrimEnd('\\') + "\\";   // drive root keeps its slash
+        if (DriveOnlyRe.IsMatch(p)) return p.TrimEnd('\\') + "\\";   // drive root keeps its slash
         if (p.Trim('\\').Length == 0) return p.Length >= 2 ? @"\\" : p;
         while (p.Length > 2 && p.EndsWith('\\')) p = p[..^1];
         return p;
     }
 
     public static bool IsUrl(string p) => p.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || p.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
-    public static bool IsUnc(string p) => p.StartsWith(@"\\");
+    public static bool IsUnc(string p) => p.StartsWith(@"\\", StringComparison.Ordinal);
     public static string Protocol(string p) => IsUrl(p) ? "url" : IsUnc(p) ? "unc" : "local";
 
     /// <summary>Host name of a UNC path (\\host\share\...).</summary>
@@ -73,10 +76,19 @@ public static class SepPaths
         return prefix + "_" + Convert.ToHexString(hash).ToLowerInvariant()[..12];
     }
 
-    /// <summary>ISO timestamp without fractions, like e3d_util.now_iso().</summary>
-    public static string NowIso() => DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+    /// <summary>
+    /// ISO timestamp without fractions, like e3d_util.now_iso(). Invariant on purpose: ":" in a custom format is the
+    /// culture's time separator, and a locale that uses "." would write "10.00.00" into the JSON shared with the
+    /// Python tool.
+    /// </summary>
+    public static string NowIso() => DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
 
-    public static DateTime? ParseIso(string? s) => DateTime.TryParse(s, out var d) ? d : null;
+    public static DateTime? ParseIso(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return null;
+        if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) return d;
+        return DateTime.TryParse(s, out d) ? d : null;   // files written by older builds in the user's own culture
+    }
 
     // ── batch files: UTF-8 (with/without BOM) or GBK, which is what AVEVA writes ──
 

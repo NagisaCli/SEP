@@ -63,7 +63,7 @@ public partial class PluginsViewModel : ObservableObject
             if (!CanUsePluginPanel || value == UsePluginPanel) return;
             _plugins.RibbonMode = value ? "panel" : "classic";
             OnPropertyChanged();
-            _ = Task.Run(() => _plugins.SyncE3dRibbon());
+            _ = _plugins.SyncE3dRibbonAsync();
             _toasts.Info(value ? Strings.Plugins_PanelOn : Strings.Plugins_PanelOff);
         }
     }
@@ -131,7 +131,7 @@ public partial class PluginsViewModel : ObservableObject
             HasLoaded = true;
             IsEmpty = _all.Count == 0;
             ApplyFilter();
-            RefreshAnalysis();
+            await RefreshAnalysisAsync();
             SetStatus(string.Format(Strings.Plugins_ScanDone, Total, EnabledCount, PluginsDir), false);
         }
         catch (Exception ex)
@@ -152,17 +152,22 @@ public partial class PluginsViewModel : ObservableObject
         foreach (var p in wanted) Items.Add(p);
     }
 
-    private void RefreshAnalysis()
+    private async Task RefreshAnalysisAsync()
     {
+        var all = _all;
+        // The chain reads custom_evars.bat and the macro is written to disk together with E3D's init hook: that
+        // used to run on the UI thread after every refresh and toggle.
+        var (conflicts, chain, macro) = await Task.Run(() =>
+            (PluginService.DetectConflicts(all), _plugins.ResolutionChain(all).ToList(), _plugins.GenerateHotloadMacro(all)));
+        if (!ReferenceEquals(all, _all)) return;   // a newer scan finished meanwhile; its own refresh follows
         Conflicts.Clear();
-        foreach (var c in PluginService.DetectConflicts(_all)) Conflicts.Add(c);
+        foreach (var c in conflicts) Conflicts.Add(c);
         ConflictCount = Conflicts.Count;
         Chain.Clear();
         int i = 1;
-        foreach (var (variable, source, path) in _plugins.ResolutionChain(_all)) Chain.Add(new ChainEntry(i++, variable, source, path));
-        var (macroPath, content) = _plugins.GenerateHotloadMacro(_all);
-        MacroPath = macroPath;
-        MacroText = content;
+        foreach (var (variable, source, path) in chain) Chain.Add(new ChainEntry(i++, variable, source, path));
+        MacroPath = macro.Path;
+        MacroText = macro.Content;
     }
 
     private void SetStatus(string text, bool error) { StatusMessage = text; StatusIsError = error; }
@@ -180,7 +185,7 @@ public partial class PluginsViewModel : ObservableObject
         {
             plugin.Enabled = target;
             EnabledCount = _all.Count(p => p.Enabled);
-            RefreshAnalysis();
+            await RefreshAnalysisAsync();
         }
         else
         {
@@ -274,7 +279,7 @@ public partial class PluginsViewModel : ObservableObject
         string trimmed = res.Text?.Trim() ?? string.Empty;
         _catalog.SetPluginDisplayName(plugin.Name, string.IsNullOrEmpty(trimmed) ? null : trimmed);
         plugin.DisplayName = trimmed;
-        _plugins.SyncE3dRibbon();
+        await _plugins.SyncE3dRibbonAsync();
         _toasts.Success(Strings.Plugins_DisplayNameUpdated);
     }
 
@@ -332,7 +337,9 @@ public partial class PluginsViewModel : ObservableObject
         if (folder == null) return;
         _plugins.SetPluginsDir(folder);
         PluginsDir = _plugins.PluginsDir;
+        var sync = _plugins.SyncE3dRibbonAsync();   // E3D's tab follows the new folder (the watcher no longer syncs by itself)
         await RefreshAsync();
+        await sync;
     }
 
     [RelayCommand]

@@ -50,6 +50,10 @@ public sealed partial class PluginService
     private readonly IProjectCatalog _catalog;
     private FileSystemWatcher? _watcher;
     private readonly System.Timers.Timer _debounceTimer;
+    // One writer of custom_evars.bat and the E3D folder at a time: two quick toggles used to read the same enabled
+    // list, and the second write undid the first while both regenerated SEP.uic.
+    private readonly object _writeGate = new();
+    private const string RecycleDirName = "_recycle";   // uninstalled plug-ins wait here; never listed as a plug-in
 
     public event Action? PluginsDirectoryChanged;
 
@@ -65,7 +69,6 @@ public sealed partial class PluginService
     {
         try
         {
-            SyncE3dRibbon();
             _watcher?.Dispose();
             string root = PluginsDir;
             if (!Directory.Exists(root)) return;
@@ -134,6 +137,9 @@ public sealed partial class PluginService
 
     public Task<List<PluginInfo>> ScanAsync(bool autoHeal = true) => Task.Run(() => Scan(autoHeal));
 
+    /// <summary>The ribbon sync is a full plug-in scan plus writes into the E3D folder: never on the UI thread.</summary>
+    public Task SyncE3dRibbonAsync(IEnumerable<string>? enabledNames = null) => Task.Run(() => SyncE3dRibbon(enabledNames));
+
     private List<PluginInfo> Scan(bool autoHeal)
     {
         string root = PluginsDir;
@@ -154,7 +160,7 @@ public sealed partial class PluginService
                 foreach (var dir in Directory.EnumerateDirectories(root).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
                 {
                     string name = Path.GetFileName(dir);
-                    if (name.StartsWith('.') || name.Contains(".bak", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".old", StringComparison.OrdinalIgnoreCase) || name.Contains("_backup_", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (name.StartsWith('.') || name.Equals(RecycleDirName, StringComparison.OrdinalIgnoreCase) || name.Contains(".bak", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".old", StringComparison.OrdinalIgnoreCase) || name.Contains("_backup_", StringComparison.OrdinalIgnoreCase)) continue;
                     dirsToScan.Add(dir);
                     seenNames.Add(name);
                 }
@@ -248,7 +254,7 @@ public sealed partial class PluginService
             string low = name.ToLowerInvariant();
             if (low is "pmllib" or "pml" or "pdmsui" or "pmlui" or "ui" or "dflts" or "defaults" or ".git" or "doc" or "docs")
                 continue;
-            if (low.StartsWith('.') || low.Contains("bak") || low.Contains("backup") || low.EndsWith(".old"))
+            if (low.StartsWith('.') || low.Contains("bak") || low.Contains("backup") || low.EndsWith(".old", StringComparison.Ordinal))
                 continue;
 
             int score = 0;
@@ -334,6 +340,26 @@ public sealed partial class PluginService
             yield return part;
     }
 
+    private static readonly object DesignAddinsGate = new();
+    private static (string Path, DateTime Stamp, string Text) _designAddins;
+
+    /// <summary>DesignAddins.xml is consulted for every DLL of every plug-in: read once per change, not once per DLL.</summary>
+    private static string? CachedDesignAddins(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            if (!info.Exists) return null;
+            lock (DesignAddinsGate)
+            {
+                if (_designAddins.Path != path || _designAddins.Stamp != info.LastWriteTimeUtc)
+                    _designAddins = (path, info.LastWriteTimeUtc, File.ReadAllText(path));
+                return _designAddins.Text;
+            }
+        }
+        catch { return null; }
+    }
+
     /// <summary>The assembly's TargetFrameworkAttribute (e.g. ".NETFramework,Version=v4.7.2"), or null.</summary>
     public static string? TargetFramework(string dllPath)
     {
@@ -378,19 +404,9 @@ public sealed partial class PluginService
 
         if (!string.IsNullOrEmpty(installDir) && Directory.Exists(installDir))
         {
-            string designAddins = Path.Combine(installDir, "DesignAddins.xml");
-            if (File.Exists(designAddins))
-            {
-                try
-                {
-                    string xml = File.ReadAllText(designAddins);
-                    if (xml.Contains($"<string>{asmName}</string>", StringComparison.OrdinalIgnoreCase))
-                    {
-                        isAddin = true;
-                    }
-                }
-                catch { }
-            }
+            string? xml = CachedDesignAddins(Path.Combine(installDir, "DesignAddins.xml"));
+            if (xml != null && xml.Contains($"<string>{asmName}</string>", StringComparison.OrdinalIgnoreCase))
+                isAddin = true;
         }
 
         try
@@ -544,7 +560,7 @@ public sealed partial class PluginService
                 if (!sub.Equals(versionDir, StringComparison.OrdinalIgnoreCase))
                 {
                     string subName = Path.GetFileName(sub).ToLowerInvariant();
-                    if (subName.StartsWith("e3d") || subName.StartsWith("12") || subName.StartsWith("pdms") || subName.Contains("sp"))
+                    if (subName.StartsWith("e3d", StringComparison.Ordinal) || subName.StartsWith("12", StringComparison.Ordinal) || subName.StartsWith("pdms", StringComparison.Ordinal) || subName.Contains("sp"))
                     {
                         excludedDirs.Add(sub);
                     }
@@ -561,7 +577,7 @@ public sealed partial class PluginService
         {
             string fname = Path.GetFileName(file);
             string low = fname.ToLowerInvariant();
-            if (low.EndsWith(".bak") || low.EndsWith(".old") || low.EndsWith(".invalid") || low.Contains(".bak")) continue;
+            if (low.EndsWith(".bak", StringComparison.Ordinal) || low.EndsWith(".old", StringComparison.Ordinal) || low.EndsWith(".invalid", StringComparison.Ordinal) || low.Contains(".bak")) continue;
             string ext = Path.GetExtension(low);
             try
             {
@@ -653,9 +669,9 @@ public sealed partial class PluginService
                 string low = fn.ToLowerInvariant();
                 string ext = Path.GetExtension(low);
                 if (PmlExts.Contains(ext) &&
-                    !low.EndsWith(".bak") &&
-                    !low.EndsWith(".old") &&
-                    !low.EndsWith(".invalid") &&
+                    !low.EndsWith(".bak", StringComparison.Ordinal) &&
+                    !low.EndsWith(".old", StringComparison.Ordinal) &&
+                    !low.EndsWith(".invalid", StringComparison.Ordinal) &&
                     !low.Contains(".bak"))
                 {
                     pmlFilesInLib.Add(fn);
@@ -681,7 +697,7 @@ public sealed partial class PluginService
                 {
                     try
                     {
-                        var indexedFiles = File.ReadLines(idx)
+                        var indexedFiles = SepPaths.ReadTextSmart(idx).Text.Split('\n')
                             .Select(l => l.Trim())
                             .Where(l => l.Length > 0 && !l.StartsWith('/'))
                             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -817,7 +833,7 @@ public sealed partial class PluginService
                 int colonIdx = t.IndexOf(']');
                 if (colonIdx > 0) t = t[(colonIdx + 1)..].Trim();
             }
-            else if (t.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || t.StartsWith("::"))
+            else if (t.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || t.StartsWith("::", StringComparison.Ordinal))
             {
                 continue;
             }
@@ -884,7 +900,7 @@ public sealed partial class PluginService
         foreach (var line in outside.Split('\n'))
         {
             string t = line.Trim();
-            if (t.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || t.StartsWith("::")) continue;
+            if (t.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || t.StartsWith("::", StringComparison.Ordinal)) continue;
             var ms = Regex.Match(t, @"^(?:if\s+exist\s+""[^""]*""\s+)?set\s+(?:PMLLIB|PMLNET|CAF_ADDINS_PATH|PMLUI|AVEVA_DESIGN_DFLTS)=(.+)$", RegexOptions.IgnoreCase);
             if (ms.Success)
             {
@@ -905,11 +921,14 @@ public sealed partial class PluginService
     {
         try
         {
-            var current = new HashSet<string>(ReadEnabled(), StringComparer.OrdinalIgnoreCase);
-            if (enabled) current.Add(name); else current.Remove(name);
-            var sorted = current.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
-            WriteBlock(sorted);
-            SyncE3dRibbon(sorted);
+            lock (_writeGate)
+            {
+                var current = new HashSet<string>(ReadEnabled(), StringComparer.OrdinalIgnoreCase);
+                if (enabled) current.Add(name); else current.Remove(name);
+                var sorted = current.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
+                WriteBlock(sorted);
+                SyncE3dRibbon(sorted);
+            }
             return ToolResult.Success(string.Format(enabled ? Strings.Plugins_Enabled : Strings.Plugins_Disabled, name));
         }
         catch (Exception ex)
@@ -923,8 +942,11 @@ public sealed partial class PluginService
         try
         {
             var names = enabled ? plugins.Select(p => p.Name).ToList() : new List<string>();
-            WriteBlock(names);
-            SyncE3dRibbon(names);
+            lock (_writeGate)
+            {
+                WriteBlock(names);
+                SyncE3dRibbon(names);
+            }
             return ToolResult.Success(enabled ? string.Format(Strings.Plugins_AllEnabled, names.Count) : Strings.Plugins_AllDisabled);
         }
         catch (Exception ex)
@@ -941,26 +963,32 @@ public sealed partial class PluginService
     {
         try
         {
-            var current = new HashSet<string>(ReadEnabled(), StringComparer.OrdinalIgnoreCase);
-            var off = disable.Where(n => !enable.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
-            foreach (var n in off) current.Remove(n);
-            foreach (var n in enable) current.Add(n);
-            var sorted = current.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
-            WriteBlock(sorted);
-            // add-ins of the plug-ins switched off, also ones deployed before SEP tracked them; the sync below
-            // puts back any add-in a still-enabled plug-in shares with them
-            string installDir = SepPaths.Normalize(_catalog.Paths.InstallDir);
-            if (installDir.Length > 0 && Directory.Exists(installDir))
+            int count;
+            lock (_writeGate)
             {
-                foreach (var n in off)
+                var current = new HashSet<string>(ReadEnabled(), StringComparer.OrdinalIgnoreCase);
+                var off = disable.Where(n => !enable.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
+                foreach (var n in off) current.Remove(n);
+                foreach (var n in enable) current.Add(n);
+                var sorted = current.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
+                count = sorted.Count;
+                WriteBlock(sorted);
+                // add-ins of the plug-ins switched off, also ones deployed before SEP tracked them; the sync below
+                // puts back any add-in a still-enabled plug-in shares with them
+                string installDir = SepPaths.Normalize(_catalog.Paths.InstallDir);
+                if (installDir.Length > 0 && Directory.Exists(installDir))
                 {
-                    string dir = Path.Combine(PluginsDir, n);
-                    if (Directory.Exists(dir)) WithdrawAddinsForPlugin(installDir, n, dir);
+                    foreach (var n in off)
+                    {
+                        string dir = Path.Combine(PluginsDir, n);
+                        if (Directory.Exists(dir)) WithdrawAddinsForPlugin(installDir, n, dir);
+                    }
                 }
+                // the sync already scanned every plug-in: the macro is built from that list, not from a third scan
+                var all = SyncE3dRibbon(sorted) ?? Scan(autoHeal: false);
+                try { GenerateHotloadMacro(all); } catch { }
             }
-            SyncE3dRibbon(sorted);
-            try { GenerateHotloadMacro(Scan(autoHeal: false)); } catch { }
-            return ToolResult.Success(string.Format(Strings.Plugins_AllEnabled, sorted.Count));
+            return ToolResult.Success(string.Format(Strings.Plugins_AllEnabled, count));
         }
         catch (Exception ex)
         {
@@ -1130,7 +1158,7 @@ public sealed partial class PluginService
             if (raw.Contains(ProjectsBlockEnd)) { inProjectsBlock = false; continue; }
 
             if (inPluginsBlock || inProjectsBlock) continue;
-            if (raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::")) continue;
+            if (raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::", StringComparison.Ordinal)) continue;
 
             // Check if unmanaged plugin line
             var mp = Regex.Match(raw, @"^(?:if\s+exist\s+""[^""]*""\s+)?set\s+(?:PMLLIB|PMLNET|CAF_ADDINS_PATH|PMLUI|AVEVA_DESIGN_DFLTS)=(.+)$", RegexOptions.IgnoreCase);
@@ -1155,7 +1183,7 @@ public sealed partial class PluginService
                 string fn = Path.GetFileName(target).ToLowerInvariant();
                 if (fn.Contains("projects.bat") || fn.Contains("custom_evars.bat") || fn.Contains("custom_evar.bat") || fn.Contains("evars.bat"))
                     continue;
-                if (fn.EndsWith(".bat"))
+                if (fn.EndsWith(".bat", StringComparison.Ordinal))
                 {
                     hasUnmanaged = true;
                     string pName = LibraryScanner.ProjectName(target);
@@ -1198,7 +1226,7 @@ public sealed partial class PluginService
                 modifiedLines.Add(line);
                 continue;
             }
-            if (inManagedBlock || raw.Length == 0 || raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::"))
+            if (inManagedBlock || raw.Length == 0 || raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::", StringComparison.Ordinal))
             {
                 modifiedLines.Add(line);
                 continue;
@@ -1243,7 +1271,7 @@ public sealed partial class PluginService
                     modifiedLines.Add(line);
                     continue;
                 }
-                if (fn.EndsWith(".bat"))
+                if (fn.EndsWith(".bat", StringComparison.Ordinal))
                 {
                     string pName = LibraryScanner.ProjectName(target);
                     adoptedProjectNames.Add(pName);
@@ -1311,7 +1339,7 @@ public sealed partial class PluginService
         {
             string fname = Path.GetFileName(file);
             string low = fname.ToLowerInvariant();
-            if (!PmlExts.Contains(Path.GetExtension(low)) || low.EndsWith(".bak") || low.EndsWith(".old") || low.EndsWith(".invalid") || low.Contains(".bak")) continue;
+            if (!PmlExts.Contains(Path.GetExtension(low)) || low.EndsWith(".bak", StringComparison.Ordinal) || low.EndsWith(".old", StringComparison.Ordinal) || low.EndsWith(".invalid", StringComparison.Ordinal) || low.Contains(".bak")) continue;
             string rel = Path.GetRelativePath(pmllib, Path.GetDirectoryName(file)!).Replace('\\', '/');
             string key = rel == "." ? "/" : "/" + rel.Trim('/') + "/";
             if (!groups.TryGetValue(key, out var list)) groups[key] = list = new List<string>();
@@ -1338,7 +1366,9 @@ public sealed partial class PluginService
         }
         try
         {
-            File.WriteAllText(Path.Combine(pmllib, "pml.index"), string.Join("\r\n", lines) + "\r\n", Encoding.ASCII);
+            // E3D reads the index in the ANSI code page; written as ASCII, a Chinese file name became "?" and the
+            // index counted as outdated (and was rebuilt) on every scan
+            File.WriteAllText(Path.Combine(pmllib, "pml.index"), string.Join("\r\n", lines) + "\r\n", SepPaths.Gbk);
             return (true, string.Format(Strings.Plugins_IndexRebuilt, total));
         }
         catch (Exception ex)
@@ -1412,7 +1442,8 @@ public sealed partial class PluginService
         try
         {
             Directory.CreateDirectory(PluginsDir);
-            File.WriteAllText(path, content, new UTF8Encoding(false));
+            if (!File.Exists(path) || File.ReadAllText(path, Encoding.UTF8) != content)
+                File.WriteAllText(path, content, new UTF8Encoding(false));
             SyncDesInitMac(path);
         }
         catch (Exception ex)
@@ -1444,19 +1475,18 @@ public sealed partial class PluginService
                 }
             }
 
+            string block = $"{HotloadStart}\r\n!sepHotloadMac = '{hotloadMacroPath.Replace('\\', '/')}'\r\n!sepHotloadFile = object FILE(!sepHotloadMac)\r\nif (!sepHotloadFile.exists()) then\r\n  $M \"$!<sepHotloadMac>\"\r\n  handle ANY\r\n  endhandle\r\nendif\r\n{HotloadEnd}";
             foreach (var file in candidates)
             {
-                string text = File.ReadAllText(file, Encoding.ASCII);
-                const string startMarker = "-- >>> SEP MANAGED HOTLOAD (do not edit) >>>";
-                const string endMarker = "-- <<< SEP MANAGED HOTLOAD <<<";
-                string block = $"{startMarker}\r\n!sepHotloadMac = '{hotloadMacroPath.Replace('\\', '/')}'\r\n!sepHotloadFile = object FILE(!sepHotloadMac)\r\nif (!sepHotloadFile.exists()) then\r\n  $M \"$!<sepHotloadMac>\"\r\n  handle ANY\r\n  endhandle\r\nendif\r\n{endMarker}";
-
-                var blockRe = new System.Text.RegularExpressions.Regex(@"(?ms)^[ \t]*" + System.Text.RegularExpressions.Regex.Escape(startMarker) + @".*?" + System.Text.RegularExpressions.Regex.Escape(endMarker) + @"[ \t]*\r?\n?");
-                text = blockRe.Replace(text, string.Empty).TrimEnd();
-                text = string.IsNullOrWhiteSpace(text)
+                // The file keeps its own encoding: read and written as ASCII, every GBK comment in E3D's init macro
+                // turned into "?" and was written back that way on each refresh.
+                var (text, enc) = SepPaths.ReadTextSmart(file);
+                string body = HotloadBlockRe.Replace(text, string.Empty).TrimEnd();
+                string updated = string.IsNullOrWhiteSpace(body)
                     ? block + "\r\n"
-                    : text + "\r\n\r\n" + block + "\r\n";
-                File.WriteAllText(file, text, Encoding.ASCII);
+                    : body + "\r\n\r\n" + block + "\r\n";
+                if (updated == text) continue;   // E3D's init macro is not touched while nothing changed
+                File.WriteAllText(file, updated, enc);
             }
         }
         catch (Exception ex)
@@ -1464,6 +1494,11 @@ public sealed partial class PluginService
             App.Log($"SyncDesInitMac: {ex.Message}");
         }
     }
+
+    private const string HotloadStart = "-- >>> SEP MANAGED HOTLOAD (do not edit) >>>";
+    private const string HotloadEnd = "-- <<< SEP MANAGED HOTLOAD <<<";
+    private static readonly Regex HotloadBlockRe = new(
+        @"(?ms)^[ \t]*" + Regex.Escape(HotloadStart) + @".*?" + Regex.Escape(HotloadEnd) + @"[ \t]*\r?\n?", RegexOptions.Compiled);
 
     public static List<PluginConflict> DetectConflicts(IEnumerable<PluginInfo> plugins)
     {
@@ -1642,7 +1677,7 @@ public sealed partial class PluginService
                 }
                 else
                 {
-                    return ToolResult.Failure($"未找到待卸载插件目录: {name}");
+                    return ToolResult.Failure(string.Format(Strings.Plugins_UninstallDirMissing, name));
                 }
             }
 
@@ -1669,7 +1704,7 @@ public sealed partial class PluginService
             }
             else
             {
-                string recycleBase = Path.Combine(root, "_recycle");
+                string recycleBase = Path.Combine(root, RecycleDirName);
                 Directory.CreateDirectory(recycleBase);
                 string recycleDir = Path.Combine(recycleBase, $"{name}_{DateTime.Now:yyyyMMdd_HHmmss}");
                 Directory.Move(pluginDir, recycleDir);
@@ -1787,38 +1822,45 @@ public sealed partial class PluginService
     /// <summary>
     /// Synchronizes the unified E3D 【SEP】 Ribbon tab and cleanly unregisters all legacy scattered UI entries.
     /// Only plugins that are currently enabled in SEP will have their groups and buttons appear under 【SEP】.
+    /// Blocking (a full plug-in scan and writes into the E3D folder): call <see cref="SyncE3dRibbonAsync"/> from the
+    /// UI. Returns the scanned plug-ins, so a caller that needs them does not scan again; null when nothing was done.
     /// </summary>
-    public void SyncE3dRibbon(IEnumerable<string>? enabledNames = null)
+    public List<PluginInfo>? SyncE3dRibbon(IEnumerable<string>? enabledNames = null)
     {
         try
         {
-            var enabled = new HashSet<string>(enabledNames ?? ReadEnabled(), StringComparer.OrdinalIgnoreCase);
-            string installDir = !string.IsNullOrEmpty(_catalog.Paths.InstallDir) && Directory.Exists(_catalog.Paths.InstallDir)
-                ? SepPaths.Normalize(_catalog.Paths.InstallDir)
-                : (E3dLocator.InstallDir ?? string.Empty);
+            lock (_writeGate)
+            {
+                var enabled = new HashSet<string>(enabledNames ?? ReadEnabled(), StringComparer.OrdinalIgnoreCase);
+                string installDir = !string.IsNullOrEmpty(_catalog.Paths.InstallDir) && Directory.Exists(_catalog.Paths.InstallDir)
+                    ? SepPaths.Normalize(_catalog.Paths.InstallDir)
+                    : (E3dLocator.InstallDir ?? string.Empty);
 
-            if (string.IsNullOrEmpty(installDir) || !Directory.Exists(installDir)) return;
+                if (string.IsNullOrEmpty(installDir) || !Directory.Exists(installDir)) return null;
 
-            var allPlugins = Scan(autoHeal: false);
+                var allPlugins = Scan(autoHeal: false);
 
-            // 1. Generate the unified SEP.uic
-            GenerateSepUic(installDir, enabled, allPlugins);
+                // 1. Generate the unified SEP.uic
+                GenerateSepUic(installDir, enabled, allPlugins);
 
-            // 2. Sync DesignCustomization.xml (registers SEP.uic, unregisters legacy NozzleMgr.uic)
-            SyncDesignCustomizationXml(installDir);
+                // 2. Sync DesignCustomization.xml (registers SEP.uic, unregisters legacy NozzleMgr.uic)
+                SyncDesignCustomizationXml(installDir);
 
-            // 3. Clean legacy scattered injection files in E3D core directory
-            CleanCoreUicFiles(installDir);
+                // 3. Clean legacy scattered injection files in E3D core directory
+                CleanCoreUicFiles(installDir);
 
-            // 4. Clean user profile UIC duplicates
-            CleanUserDesignUic();
+                // 4. Clean user profile UIC duplicates
+                CleanUserDesignUic();
 
-            // 5. Generic Sync DesignAddins.xml and deploy/link Add-in binaries
-            SyncDesignAddins(installDir, allPlugins);
+                // 5. Generic Sync DesignAddins.xml and deploy/link Add-in binaries
+                SyncDesignAddins(installDir, allPlugins);
+                return allPlugins;
+            }
         }
         catch (Exception ex)
         {
             App.Log($"SyncE3dRibbon error: {ex.Message}");
+            return null;
         }
     }
 

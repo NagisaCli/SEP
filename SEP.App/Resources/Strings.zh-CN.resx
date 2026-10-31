@@ -1603,6 +1603,60 @@
   <data name="Plugins_UninstallFailed" xml:space="preserve">
     <value>卸载插件失败：{0}</value>
   </data>
+  <data name="Plugins_UninstallDirMissing" xml:space="preserve">
+    <value>未找到插件“{0}”的目录。</value>
+  </data>
+  <data name="Discovery_RootManaged" xml:space="preserve">
+    <value>SEP 托管目录</value>
+  </data>
+  <data name="Discovery_RootDesktop" xml:space="preserve">
+    <value>桌面</value>
+  </data>
+  <data name="Discovery_RootDownloads" xml:space="preserve">
+    <value>下载目录</value>
+  </data>
+  <data name="Discovery_RootDocuments" xml:space="preserve">
+    <value>我的文档</value>
+  </data>
+  <data name="Discovery_RootEnvironment" xml:space="preserve">
+    <value>custom_evars.bat 引用</value>
+  </data>
+  <data name="Discovery_RootLibrary" xml:space="preserve">
+    <value>工程库目录</value>
+  </data>
+  <data name="Discovery_RootDriveFolder" xml:space="preserve">
+    <value>磁盘插件目录</value>
+  </data>
+  <data name="Discovery_RootDrive" xml:space="preserve">
+    <value>驱动器 ({0})</value>
+  </data>
+  <data name="Discovery_FeatureForms" xml:space="preserve">
+    <value>{0} 个表单</value>
+  </data>
+  <data name="Discovery_FeaturePml" xml:space="preserve">
+    <value>PML 宏/函数</value>
+  </data>
+  <data name="Discovery_FeatureAssemblies" xml:space="preserve">
+    <value>程序集: {0}</value>
+  </data>
+  <data name="Discovery_FeatureUic" xml:space="preserve">
+    <value>自定义 UIC</value>
+  </data>
+  <data name="Discovery_FeatureMultiVersion" xml:space="preserve">
+    <value>多版本支持</value>
+  </data>
+  <data name="Discovery_FeatureNested" xml:space="preserve">
+    <value>多层嵌套分包</value>
+  </data>
+  <data name="Discovery_FeatureIndexed" xml:space="preserve">
+    <value>含索引</value>
+  </data>
+  <data name="Discovery_DefaultDescription" xml:space="preserve">
+    <value>E3D 辅助组件</value>
+  </data>
+  <data name="Discovery_AlreadyHosted" xml:space="preserve">
+    <value>该插件已位于 SEP 托管目录：{0}</value>
+  </data>
   <data name="Plugins_TabDiscovery" xml:space="preserve">
     <value>全盘检测</value>
   </data>

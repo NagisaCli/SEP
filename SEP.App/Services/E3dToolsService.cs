@@ -182,7 +182,7 @@ public sealed class E3dToolsService
                         {
                             string target = SepPaths.Normalize(ExpandEvars((mc.Groups[1].Success ? mc.Groups[1].Value : mc.Groups[2].Value).Trim(), projectsDir, installDir));
                             string low = target.ToLowerInvariant();
-                            if (low.EndsWith(".bat") && !SkipCallTargets.Any(low.Contains))
+                            if (low.EndsWith(".bat", StringComparison.Ordinal) && !SkipCallTargets.Any(low.Contains))
                             {
                                 var (ok, reason) = CheckPath(target);
                                 if (!ok) (target.StartsWith(@"\\") ? timeouts : invalid).Add(new FlaggedLine(no, raw, target, reason, false));
@@ -326,7 +326,7 @@ public sealed class E3dToolsService
                     {
                         string target = SepPaths.Normalize(ExpandEvars((mc.Groups[1].Success ? mc.Groups[1].Value : mc.Groups[2].Value).Trim(), projectsDir, installDir));
                         string low = target.ToLowerInvariant();
-                        if (low.EndsWith(".bat") && !SkipCallTargets.Any(low.Contains) && !CheckPath(target).Ok)
+                        if (low.EndsWith(".bat", StringComparison.Ordinal) && !SkipCallTargets.Any(low.Contains) && !CheckPath(target).Ok)
                         {
                             outLines.Add("rem [SEP DISABLED - UNREACHABLE PROJECT] " + line);
                             changes.Add($"custom_evars.bat: {Strings.Tools_ChangeDisabledProject} -> {raw}");
@@ -397,8 +397,8 @@ public sealed class E3dToolsService
             foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
             {
                 string low = Path.GetFileName(file).ToLowerInvariant();
-                bool junk = low.StartsWith("session_") || low.EndsWith(".lok") || low.EndsWith(".tmp") || low.EndsWith(".temp")
-                            || low.EndsWith(".dmp") || low.EndsWith(".crash") || low == "avevaabalog.txt";
+                bool junk = low.StartsWith("session_", StringComparison.Ordinal) || low.EndsWith(".lok", StringComparison.Ordinal) || low.EndsWith(".tmp", StringComparison.Ordinal) || low.EndsWith(".temp", StringComparison.Ordinal)
+                            || low.EndsWith(".dmp", StringComparison.Ordinal) || low.EndsWith(".crash", StringComparison.Ordinal) || low == "avevaabalog.txt";
                 if (!junk) continue;
                 try
                 {
@@ -617,7 +617,7 @@ public sealed class E3dToolsService
 
     // ── helpers ──────────────────────────────────────────────────────────────────
 
-    private static bool IsComment(string raw) => raw.Length == 0 || raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::");
+    private static bool IsComment(string raw) => raw.Length == 0 || raw.StartsWith("rem", StringComparison.OrdinalIgnoreCase) || raw.StartsWith("::", StringComparison.Ordinal);
 
     private static IEnumerable<string> PathsOfSetLine(string line, bool pmlOnly)
     {
@@ -658,12 +658,8 @@ public sealed class E3dToolsService
     {
         string? host = SepPaths.UncHost(unc);
         if (string.IsNullOrEmpty(host)) return false;
-        try
-        {
-            using var client = new TcpClient();
-            if (!client.ConnectAsync(host, 445).Wait(PathProbe)) return false;
-        }
-        catch { return false; }
+        // the shared host cache: a diagnosis of twenty paths on one server asks it once, not twenty times
+        if (!LibraryScanner.IsHostReachable(host, (int)PathProbe.TotalMilliseconds)) return false;
         return Bounded(() => File.Exists(unc) || Directory.Exists(unc), PathProbe);
     }
 

@@ -1603,6 +1603,60 @@ Save them anyway?</value>
   <data name="Plugins_UninstallFailed" xml:space="preserve">
     <value>Failed to uninstall plugin: {0}</value>
   </data>
+  <data name="Plugins_UninstallDirMissing" xml:space="preserve">
+    <value>The folder of plug-in "{0}" was not found.</value>
+  </data>
+  <data name="Discovery_RootManaged" xml:space="preserve">
+    <value>SEP managed folder</value>
+  </data>
+  <data name="Discovery_RootDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+  <data name="Discovery_RootDownloads" xml:space="preserve">
+    <value>Downloads</value>
+  </data>
+  <data name="Discovery_RootDocuments" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="Discovery_RootEnvironment" xml:space="preserve">
+    <value>Referenced from custom_evars.bat</value>
+  </data>
+  <data name="Discovery_RootLibrary" xml:space="preserve">
+    <value>Project library</value>
+  </data>
+  <data name="Discovery_RootDriveFolder" xml:space="preserve">
+    <value>Plug-in folder on a drive</value>
+  </data>
+  <data name="Discovery_RootDrive" xml:space="preserve">
+    <value>Drive ({0})</value>
+  </data>
+  <data name="Discovery_FeatureForms" xml:space="preserve">
+    <value>{0} forms</value>
+  </data>
+  <data name="Discovery_FeaturePml" xml:space="preserve">
+    <value>PML macros/functions</value>
+  </data>
+  <data name="Discovery_FeatureAssemblies" xml:space="preserve">
+    <value>Assemblies: {0}</value>
+  </data>
+  <data name="Discovery_FeatureUic" xml:space="preserve">
+    <value>Custom UIC</value>
+  </data>
+  <data name="Discovery_FeatureMultiVersion" xml:space="preserve">
+    <value>Multi-version</value>
+  </data>
+  <data name="Discovery_FeatureNested" xml:space="preserve">
+    <value>Nested packages</value>
+  </data>
+  <data name="Discovery_FeatureIndexed" xml:space="preserve">
+    <value>Indexed</value>
+  </data>
+  <data name="Discovery_DefaultDescription" xml:space="preserve">
+    <value>E3D helper component</value>
+  </data>
+  <data name="Discovery_AlreadyHosted" xml:space="preserve">
+    <value>This plug-in is already in the SEP managed folder: {0}</value>
+  </data>
   <data name="Plugins_TabDiscovery" xml:space="preserve">
     <value>System Scan</value>
   </data>

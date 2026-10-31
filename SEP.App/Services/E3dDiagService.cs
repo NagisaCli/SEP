@@ -31,6 +31,9 @@ public class E3dDiagService : IE3dDiagService
             await limiter.WaitAsync();
             try
             {
+                // cached TCP answer first: one server that is down must not hold 16 pool threads for the SMB timeout
+                if (SepPaths.IsUnc(proj.ProjectDir) && !await LibraryScanner.IsHostReachableAsync(SepPaths.UncHost(proj.ProjectDir) ?? string.Empty))
+                    return;
                 var work = Task.Run(() => LibraryScanner.FindLockFiles(proj.ProjectDir));
                 if (await Task.WhenAny(work, Task.Delay(LockProbeTimeout)) != work) return;
                 var locks = await work;

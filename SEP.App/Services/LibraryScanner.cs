@@ -148,7 +148,7 @@ public static class LibraryScanner
             string lower = entry.Name.ToLowerInvariant();
             if (entry is DirectoryInfo) subdirs.Add(entry.FullName);
             else if (lower is "custom_evars.bat" or "custom_evar.bat") customFile = entry.FullName;
-            else if (lower != "evars.bat" && lower.StartsWith("evars") && lower.EndsWith(".bat")) direct.Add(entry.FullName);
+            else if (lower != "evars.bat" && lower.StartsWith("evars", StringComparison.Ordinal) && lower.EndsWith(".bat", StringComparison.Ordinal)) direct.Add(entry.FullName);
         }
         direct.Sort(StringComparer.OrdinalIgnoreCase);
 
@@ -228,7 +228,7 @@ public static class LibraryScanner
             resolved = SepPaths.Normalize(resolved);
             string file = Path.GetFileName(resolved).ToLowerInvariant();
             if (file is "projects.bat" or "custom_evars.bat" or "custom_evar.bat" or "evars.bat") continue;
-            if (!file.EndsWith(".bat")) continue;
+            if (!file.EndsWith(".bat", StringComparison.Ordinal)) continue;
             string? dir = Path.GetDirectoryName(resolved);
             result.Add(MakeProject(resolved, baseNorm, string.Equals(dir, baseNorm, StringComparison.OrdinalIgnoreCase) ? null : dir));
         }

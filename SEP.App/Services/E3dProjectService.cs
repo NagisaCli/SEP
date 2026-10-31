@@ -59,7 +59,7 @@ public class E3dProjectService : IE3dProjectService
                     foreach (var srcSub in Directory.GetDirectories(templateDir))
                     {
                         string subName = Path.GetFileName(srcSub);
-                        if (subName.ToLowerInvariant().EndsWith("000"))
+                        if (subName.ToLowerInvariant().EndsWith("000", StringComparison.Ordinal))
                         {
                             string dest000 = Path.Combine(targetDir, $"{lc}000");
                             CopyDirectory(srcSub, dest000);
@@ -109,20 +109,21 @@ SET {code}000ID={code}
     public async Task<(bool Success, string Message)> DecommissionProjectAsync(ProjectItem project, string archiveDir, bool doArchive, bool doDelete)
     {
         string projectPath = project.ProjectDir;
-        if (!Directory.Exists(projectPath))
-            return (false, Strings.Decommission_DirMissing);
-
         string code = project.Code ?? project.Name.ToUpperInvariant();
-        if (doDelete)
-        {
-            string? refusal = WhyNotDeletable(project);
-            if (refusal != null) return (false, refusal);
-        }
 
         var result = await Task.Run(() =>
         {
             try
             {
+                // the pre-checks touch the (possibly remote) folder too, so they belong on this thread
+                if (!Directory.Exists(projectPath))
+                    return (false, Strings.Decommission_DirMissing);
+                if (doDelete)
+                {
+                    string? refusal = WhyNotDeletable(project);
+                    if (refusal != null) return (false, refusal);
+                }
+
                 // Check locks (DABACON writes *.lck and *.lok while somebody has the project open)
                 int locks = Directory.EnumerateFiles(projectPath, "*.*", SearchOption.AllDirectories).Count(LibraryScanner.IsLockFile);
                 if (locks > 0)
@@ -205,18 +206,22 @@ SET {code}000ID={code}
     public void OpenFolder(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
-        try
+        // Off the UI thread: the existence checks block for the SMB timeout when the share is gone.
+        _ = Task.Run(() =>
         {
-            if (Directory.Exists(path))
+            try
             {
-                Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+                if (Directory.Exists(path))
+                {
+                    Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+                }
+                else if (File.Exists(path))
+                {
+                    Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
+                }
             }
-            else if (File.Exists(path))
-            {
-                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
-            }
-        }
-        catch { }
+            catch (Exception ex) { App.Log($"open folder {path}: {ex.Message}"); }
+        });
     }
 
     private static void CopyDirectory(string src, string dest)

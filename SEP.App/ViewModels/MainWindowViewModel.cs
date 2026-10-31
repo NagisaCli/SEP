@@ -56,14 +56,9 @@ public partial class MainWindowViewModel : ObservableObject
             if (!IsBusy) StatusMessage = Strings.Common_Ready;
         };
 
-        // The process list is read off the UI thread: on a busy workstation it can take long enough to stutter.
-        var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-        timer.Tick += async (_, _) =>
-        {
-            try { IsE3dRunning = await Task.Run(() => _sessions.IsE3dRunning()); }
-            catch (Exception ex) { App.Log($"E3D process check failed: {ex.Message}"); }
-        };
-        timer.Start();
+        // SessionService already lists the processes every 15 s (off the UI thread); the title-bar badge follows it
+        // instead of running a second poll of its own.
+        _sessions.E3dRunningChanged += (_, _) => OnUiThread(() => IsE3dRunning = _sessions.IsE3dRunning());
         _ = Task.Run(() => _sessions.IsE3dRunning()).ContinueWith(t => { if (t.IsCompletedSuccessfully) OnUiThread(() => IsE3dRunning = t.Result); });
     }
 

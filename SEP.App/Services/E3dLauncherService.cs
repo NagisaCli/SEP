@@ -93,20 +93,14 @@ public class E3dLauncherService : IE3dLauncherService
         try
         {
             var bats = new List<string>();
-            var slowOrOffline = new List<string>();
             foreach (var p in targetProjects)
             {
                 if (p.BatPath.IndexOfAny(DangerousBatChars) >= 0) return (false, string.Format(Strings.Launch_UnsafePath, p.BatPath));
-                // Crucial fix: never drop projects configured in MyProjects or selected by user.
-                // Each line in custom_evars.bat is protected by 'if exist "%p%" call "%p%"'.
+                // Never drop a project the user chose: each line in custom_evars.bat is guarded by 'if exist "%p%"'.
                 bats.Add(p.BatPath);
-
-                // Quick non-blocking probe to report any paths currently taking long
-                if (!ExistsWithin(p.BatPath, TimeSpan.FromMilliseconds(400)))
-                {
-                    slowOrOffline.Add(p.Name);
-                }
             }
+            // only to tell the user which ones look slow or offline right now; nothing is dropped because of it
+            var slowOrOffline = ProbeUnavailable(targetProjects, TimeSpan.FromMilliseconds(1500));
 
             string localDir = _catalog.LocalProjectsDir;
             Directory.CreateDirectory(localDir);
@@ -219,9 +213,11 @@ public class E3dLauncherService : IE3dLauncherService
 
     public async Task<(bool Success, string Message)> LaunchE3dProcessAsync()
     {
-        _pluginService?.SyncE3dRibbon();
         return await Task.Run(() =>
         {
+            // E3D's SEP tab reflects the enabled plug-ins when it starts; a full scan and E3D-folder writes, so
+            // here on the worker and not on the UI thread the click came from.
+            _pluginService?.SyncE3dRibbon();
             try
             {
                 // 1. The shortcut carries the right arguments and working directory
@@ -278,8 +274,34 @@ public class E3dLauncherService : IE3dLauncherService
 
     private static bool ExistsWithin(string path, TimeSpan timeout)
     {
+        if (!HostUp(path)) return false;
         var work = Task.Run(() => File.Exists(path) || Directory.Exists(path));
         return work.Wait(timeout) && work.Result;
+    }
+
+    /// <summary>Cached TCP answer for a share's server (no SMB session): a server known to be down is not asked.</summary>
+    private static bool HostUp(string path) =>
+        !SepPaths.IsUnc(path) || LibraryScanner.IsHostReachable(SepPaths.UncHost(path) ?? string.Empty);
+
+    /// <summary>
+    /// Names of the projects whose evars file did not answer within <paramref name="deadline"/>. Probed together:
+    /// one after another, thirty projects on a slow share cost 400 ms each before E3D even started.
+    /// </summary>
+    private static List<string> ProbeUnavailable(IReadOnlyList<ProjectItem> projects, TimeSpan deadline)
+    {
+        var result = new List<string>();
+        var probes = new List<(string Name, Task<bool> Exists)>();
+        foreach (var p in projects)
+        {
+            if (!HostUp(p.BatPath)) { result.Add(p.Name); continue; }
+            string path = p.BatPath;
+            probes.Add((p.Name, Task.Run(() => File.Exists(path))));
+        }
+        if (probes.Count == 0) return result;
+        try { Task.WhenAll(probes.Select(x => x.Exists)).Wait(deadline); } catch (AggregateException) { }
+        foreach (var (name, exists) in probes)
+            if (!exists.IsCompletedSuccessfully || !exists.Result) result.Add(name);
+        return result;
     }
 
     private static void Backup(Dictionary<string, byte[]?> backups, params string[] files)
