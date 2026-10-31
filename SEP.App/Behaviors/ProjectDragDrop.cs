@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -24,6 +25,9 @@ public static class ProjectDragDrop
     public const string DragFormat = "SEP_ProjectDrag";
 
     private static Point _dragStartPoint;
+    /// <summary>The draggable element the left button went down on, or null when the press began on a control
+    /// (button, check box, text box, scroll bar) or outside any draggable element.</summary>
+    private static FrameworkElement? _pressSource;
     private static bool _isDragging;
     private static DragGhostAdorner? _activeGhostAdorner;
     private static DropInsertionAdorner? _activeInsertionAdorner;
@@ -70,28 +74,41 @@ public static class ProjectDragDrop
         if ((bool)e.NewValue)
         {
             fe.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+            fe.PreviewMouseLeftButtonUp += OnPreviewMouseLeftButtonUp;
             fe.PreviewMouseMove += OnPreviewMouseMove;
         }
         else
         {
             fe.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
+            fe.PreviewMouseLeftButtonUp -= OnPreviewMouseLeftButtonUp;
             fe.PreviewMouseMove -= OnPreviewMouseMove;
         }
     }
 
     private static void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement fe) return;
-        // Don't start drag if clicking a button, checkbox or text box inside the row
-        if (e.OriginalSource is DependencyObject dep && FindAncestor<Button>(dep) != null) return;
-        if (e.OriginalSource is DependencyObject dep2 && FindAncestor<CheckBox>(dep2) != null) return;
-
+        // A press on a control inside the card (launch, folder, "…", star, batch check box) belongs to that
+        // control: it must never become a drag. The old code only skipped recording the start point, so the
+        // next mouse move compared against a stale point (often 0,0), started DoDragDrop, and the drag's mouse
+        // capture swallowed the button's Click — card buttons "did nothing" whenever the hand moved a pixel.
+        _pressSource = null;
+        if (sender is not FrameworkElement fe || IsOnControl(e.OriginalSource as DependencyObject, fe)) return;
+        _pressSource = fe;
         _dragStartPoint = e.GetPosition(null);
     }
 
+    private static void OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) => _pressSource = null;
+
     private static void OnPreviewMouseMove(object sender, MouseEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed || _isDragging) return;
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            _pressSource = null;
+            return;
+        }
+        // only the element the press began on drags, and only when the press began on it (not on a button,
+        // and not outside it with the button held down while moving in)
+        if (_isDragging || !ReferenceEquals(sender, _pressSource)) return;
         if (sender is not FrameworkElement fe || fe.DataContext is not ProjectItem project) return;
 
         Point current = e.GetPosition(null);
@@ -100,8 +117,20 @@ public static class ProjectDragDrop
         if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
             Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
         {
+            _pressSource = null;
             StartDrag(fe, project);
         }
+    }
+
+    /// <summary>True when <paramref name="node"/> lies in an interactive control inside <paramref name="root"/>.</summary>
+    private static bool IsOnControl(DependencyObject? node, FrameworkElement root)
+    {
+        while (node != null && !ReferenceEquals(node, root))
+        {
+            if (node is ButtonBase or TextBoxBase or PasswordBox or ComboBox or Thumb or ScrollBar or Slider) return true;
+            node = node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node);
+        }
+        return false;
     }
 
     private static void StartDrag(FrameworkElement sourceElement, ProjectItem project)

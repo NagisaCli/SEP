@@ -53,57 +53,17 @@
 
     <!-- The project card: category stripe, badge, title, meta pills, actions. Expects DataContext.Actions on the hosting Page. -->
     <DataTemplate x:Key="ProjectCardTemplate" DataType="{x:Type models:ProjectItem}">
-        <Border Width="312" Margin="0,0,12,12" BorderThickness="1" CornerRadius="12" Padding="0"
-                RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" ContextMenu="{StaticResource ProjectCardMenu}"
+        <!-- The host never moves: it is the hit target, drag source and context-menu owner. Only the inner card
+             lifts on hover; when the whole card lifted, its hit area moved with it and a pointer near the bottom
+             edge made it bounce in and out of hover. -->
+        <Border x:Name="CardHost" Width="312" Margin="0,0,12,12" Background="Transparent" ContextMenu="{StaticResource ProjectCardMenu}"
                 Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
                 beh:ProjectDragDrop.IsDraggable="True">
+        <Border x:Name="Card" BorderThickness="1" CornerRadius="12" Padding="0" SnapsToDevicePixels="True"
+                BorderBrush="{DynamicResource SepBorderBrush}" Background="{DynamicResource SepSurfaceBrush}">
             <Border.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
-                    <TranslateTransform x:Name="CardSlide" Y="0" />
-                </TransformGroup>
+                <TranslateTransform x:Name="CardSlide" Y="0" />
             </Border.RenderTransform>
-            <Border.Style>
-                <Style TargetType="Border">
-                    <!-- brushes stay DynamicResource setters: a storyboard cannot animate to a theme colour (it must freeze) -->
-                    <Setter Property="BorderBrush" Value="{DynamicResource SepBorderBrush}" />
-                    <Setter Property="Background" Value="{DynamicResource SepSurfaceBrush}" />
-                    <Style.Triggers>
-                        <EventTrigger RoutedEvent="Loaded">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" From="6" To="0" Duration="0:0:0.16">
-                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                    </DoubleAnimation>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource SepAccentStrongBrush}" />
-                            <Setter Property="Background" Value="{DynamicResource SepSurfaceHoverBrush}" />
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="-3" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="0" Duration="0:0:0.15">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -225,5 +185,41 @@
                 </Grid>
             </Grid>
         </Border>
+        </Border>
+        <DataTemplate.Triggers>
+            <EventTrigger SourceName="CardHost" RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="Card" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
+                        <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" From="6" To="0" Duration="0:0:0.16">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+            <!-- brushes stay DynamicResource setters: a storyboard cannot animate to a theme colour (it must freeze) -->
+            <Trigger SourceName="CardHost" Property="IsMouseOver" Value="True">
+                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SepAccentStrongBrush}" />
+                <Setter TargetName="Card" Property="Background" Value="{DynamicResource SepSurfaceHoverBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" To="-3" Duration="0:0:0.12">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.15">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 </ResourceDictionary>

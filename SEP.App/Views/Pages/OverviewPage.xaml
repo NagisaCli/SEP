@@ -22,6 +22,7 @@
                 <Setter Property="Margin" Value="0,0,12,12" />
                 <Setter Property="MinWidth" Value="140" />
                 <Setter Property="Cursor" Value="Hand" />
+                <EventSetter Event="MouseLeftButtonDown" Handler="OnTilePressed" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="BorderBrush" Value="{DynamicResource SepAccentBrush}" />
