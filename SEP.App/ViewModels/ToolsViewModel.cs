@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -75,14 +76,10 @@ public partial class ToolsViewModel : ObservableObject
         UserDataDir = tools.UserDataDir;
         InstallDir = tools.InstallDir;
         CustomEvarsPath = tools.CustomEvarsPath;
-        _catalog.Changed += (_, _) => OnUiThread(RefreshLibraries);
+        // a scan raises Changed once per library: refill the picker once per burst, not once per event
+        var refreshLibraries = new CoalescedUiAction(RefreshLibraries);
+        _catalog.Changed += (_, _) => refreshLibraries.Request();
         RefreshLibraries();
-    }
-
-    private static void OnUiThread(Action action)
-    {
-        var d = Application.Current?.Dispatcher;
-        if (d == null || d.CheckAccess()) action(); else d.BeginInvoke(action);
     }
 
     private void RefreshLibraries()
@@ -208,9 +205,20 @@ public partial class ToolsViewModel : ObservableObject
         var checks = new List<DiagCheck>();
         var fixes = new List<DiagFix>();
         int problems = 0;
-        foreach (var lib in _catalog.Libraries)
+        // Libraries are diagnosed side by side (an offline share no longer holds up the rest for its whole
+        // timeout), at most four at a time so a long list does not flood the network; reports keep list order.
+        var libs = _catalog.Libraries.ToList();
+        using var gate = new SemaphoreSlim(4);
+        var reports = await Task.WhenAll(libs.Select(async lib =>
         {
-            var report = await _tools.DiagnoseLibraryAsync(lib.Path);
+            await gate.WaitAsync();
+            try { return await _tools.DiagnoseLibraryAsync(lib.Path); }
+            finally { gate.Release(); }
+        }));
+        for (int i = 0; i < libs.Count; i++)
+        {
+            var lib = libs[i];
+            var report = reports[i];
             problems += report.Problems;
             checks.Add(new DiagCheck
             {

@@ -30,7 +30,21 @@ public static class ClickMenu
         menu.PlacementTarget = fe;
         menu.Placement = PlacementMode.Bottom;
         menu.HorizontalOffset = 0;
+        menu.Closed -= OnMenuClosed;
+        menu.Closed += OnMenuClosed;
         menu.IsOpen = true;
         e.Handled = true;
+    }
+
+    // One menu serves every card of a page: once closed it must not keep pointing at (and holding on to) the last
+    // card, nor hand its under-the-button placement to the next right-click. Closed comes after the clicked item's
+    // command has run, so the command still sees its project.
+    private static void OnMenuClosed(object sender, RoutedEventArgs e)
+    {
+        var menu = (ContextMenu)sender;
+        menu.Closed -= OnMenuClosed;
+        menu.ClearValue(ContextMenu.PlacementTargetProperty);
+        menu.ClearValue(ContextMenu.PlacementProperty);
+        menu.ClearValue(ContextMenu.HorizontalOffsetProperty);
     }
 }

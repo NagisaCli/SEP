@@ -90,13 +90,22 @@ public partial class CategoriesDialog : FluentWindow
 
     private async void OnDelete(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement fe || fe.Tag is not CategoryRow row) return;
-        var dialogs = (IDialogService)App.Services.GetService(typeof(IDialogService))!;
-        bool ok = await dialogs.ConfirmAsync(Strings.Category_Delete, string.Format(Strings.Category_DeleteBody, row.Name), Strings.Category_Delete, danger: true);
-        if (!ok) return;
-        _catalog.RemoveCategory(row.Id);
-        Status.Text = string.Format(Strings.Category_Deleted, row.Name);
-        Reload();
+        // async void: an exception escaping here would reach the dispatcher and take the app down
+        try
+        {
+            if (sender is not FrameworkElement fe || fe.Tag is not CategoryRow row) return;
+            var dialogs = (IDialogService)App.Services.GetService(typeof(IDialogService))!;
+            bool ok = await dialogs.ConfirmAsync(Strings.Category_Delete, string.Format(Strings.Category_DeleteBody, row.Name), Strings.Category_Delete, danger: true);
+            if (!ok) return;
+            _catalog.RemoveCategory(row.Id);
+            Status.Text = string.Format(Strings.Category_Deleted, row.Name);
+            Reload();
+        }
+        catch (Exception ex)
+        {
+            App.Log($"category delete failed: {ex}");
+            Status.Text = ex.Message;
+        }
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();

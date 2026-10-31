@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -11,8 +12,11 @@ using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
 
-/// <summary>Represents a custom or default group of projects in "My Projects".</summary>
-public partial class MyProjectGroupViewModel : ObservableObject
+/// <summary>
+/// Represents a custom or default group of projects in "My Projects". Disposed by <see cref="MyProjectsViewModel"/>
+/// when a rebuild drops it, so the shared <see cref="ProjectActions"/> does not keep it alive.
+/// </summary>
+public partial class MyProjectGroupViewModel : ObservableObject, IDisposable
 {
     private readonly IProjectCatalog _catalog;
     private readonly IDialogService _dialogs;
@@ -37,6 +41,9 @@ public partial class MyProjectGroupViewModel : ObservableObject
 
     public bool CanLaunchGroup => HasItems && _actions.CanLaunch();
 
+    // true while SyncItems reconciles the rows: the counts are refreshed once afterwards, not once per row
+    private bool _syncing;
+
     public MyProjectGroupViewModel(
         string? id,
         string name,
@@ -60,8 +67,19 @@ public partial class MyProjectGroupViewModel : ObservableObject
 
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (!_syncing) RefreshCounts();
+    }
+
+    /// <summary>Brings the rows in line with <paramref name="wanted"/>; rows that stay keep their containers.</summary>
+    public void SyncItems(IReadOnlyList<ProjectItem> wanted)
+    {
+        _syncing = true;
+        try { CollectionSync.Sync(Items, wanted); }
+        finally { _syncing = false; }
         RefreshCounts();
     }
+
+    public void Dispose() => _actions.PropertyChanged -= OnActionsPropertyChanged;
 
     private void OnActionsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

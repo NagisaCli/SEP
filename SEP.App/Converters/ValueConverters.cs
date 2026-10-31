@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -174,7 +175,7 @@ public class PaletteConverter : IValueConverter
     {
         if (string.IsNullOrEmpty(name)) return Palette[0];
         int hash = 0;
-        foreach (char c in name.ToUpperInvariant()) hash = (hash * 31 + c) & 0x7FFFFFFF;
+        foreach (char c in name) hash = (hash * 31 + char.ToUpperInvariant(c)) & 0x7FFFFFFF;
         return Palette[hash % Palette.Length];
     }
 
@@ -201,19 +202,30 @@ public class StatusLabelConverter : IMultiValueConverter
 /// <summary>A hex colour string ("#4F8CFF") to a frozen brush; anything unparsable gives the neutral text colour.</summary>
 public class HexToBrushConverter : IValueConverter
 {
+    // Every card asks twice (stripe and badge) for one of a handful of category colours: parse each once.
+    // Null marks a string that does not parse, so it is not retried; the cap only guards against free-typed input.
+    private static readonly ConcurrentDictionary<string, SolidColorBrush?> Cache = new(StringComparer.Ordinal);
+    private const int MaxCached = 256;
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is string s && s.Length > 0)
-        {
-            try
-            {
-                var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(s));
-                brush.Freeze();
-                return brush;
-            }
-            catch (FormatException) { }
-        }
+        if (value is string s && s.Length > 0 && Parse(s) is { } brush) return brush;
         return Application.Current?.TryFindResource("SepText2Brush") ?? Brushes.Gray;
+    }
+
+    private static SolidColorBrush? Parse(string hex)
+    {
+        if (Cache.TryGetValue(hex, out var cached)) return cached;
+        SolidColorBrush? brush = null;
+        try
+        {
+            brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            brush.Freeze();
+        }
+        catch (FormatException) { }
+        if (Cache.Count >= MaxCached) Cache.Clear();
+        Cache[hex] = brush;
+        return brush;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
@@ -222,13 +234,14 @@ public class HexToBrushConverter : IValueConverter
 /// <summary>Bytes to a short human size ("12.4 KB").</summary>
 public class FileSizeConverter : IValueConverter
 {
+    private static readonly string[] Units = { "B", "KB", "MB", "GB" };
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         double bytes = value switch { long l => l, int i => i, double d => d, _ => 0 };
-        string[] units = { "B", "KB", "MB", "GB" };
         int u = 0;
-        while (bytes >= 1024 && u < units.Length - 1) { bytes /= 1024; u++; }
-        return u == 0 ? $"{bytes:0} {units[u]}" : $"{bytes:0.#} {units[u]}";
+        while (bytes >= 1024 && u < Units.Length - 1) { bytes /= 1024; u++; }
+        return u == 0 ? $"{bytes:0} {Units[u]}" : $"{bytes:0.#} {Units[u]}";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();

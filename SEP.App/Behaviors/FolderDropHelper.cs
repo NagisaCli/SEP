@@ -89,10 +89,25 @@ public static class FolderDropHelper
         if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
         var files = e.Data.GetData(DataFormats.FileDrop) as string[];
         if (files == null || files.Length == 0) return;
+        // must be set before the first await: once this handler yields, the drop has finished routing
+        e.Handled = true;
 
-        string? mode = GetDropMode(fe)?.ToLowerInvariant();
-        var toasts = App.Services.GetService<ToastService>();
+        ToastService? toasts = null;
+        // async void: an exception escaping here would reach the dispatcher and take the app down
+        try
+        {
+            toasts = App.Services.GetService<ToastService>();
+            await ImportDroppedAsync(GetDropMode(fe)?.ToLowerInvariant(), files, toasts);
+        }
+        catch (Exception ex)
+        {
+            App.Log($"folder drop failed: {ex}");
+            toasts?.Error(ex.Message);
+        }
+    }
 
+    private static async Task ImportDroppedAsync(string? mode, string[] files, ToastService? toasts)
+    {
         if (mode == "library")
         {
             var catalog = App.Services.GetService<IProjectCatalog>();
@@ -149,8 +164,6 @@ public static class FolderDropHelper
                 }
             }
         }
-
-        e.Handled = true;
     }
 
     private static void ShowOverlay(FrameworkElement fe)

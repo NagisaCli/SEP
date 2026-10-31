@@ -59,11 +59,7 @@ public partial class MyProjectsViewModel : ObservableObject
     private void Rebuild()
     {
         var wanted = _catalog.MyProjects.ToList();
-        if (!wanted.SequenceEqual(Items))
-        {
-            Items.Clear();
-            foreach (var p in wanted) Items.Add(p);
-        }
+        CollectionSync.Sync(Items, wanted);
         Count = Items.Count;
         OfflineCount = Items.Count(p => p.IsCached);
 
@@ -87,13 +83,7 @@ public partial class MyProjectsViewModel : ObservableObject
                 vm.IsExpanded = rec.IsExpanded;
             }
 
-            var groupItems = projectsByGroup.TryGetValue(rec.Id, out var list) ? list : new List<ProjectItem>();
-            if (!groupItems.SequenceEqual(vm.Items))
-            {
-                vm.Items.Clear();
-                foreach (var it in groupItems) vm.Items.Add(it);
-            }
-            vm.RefreshCounts();
+            vm.SyncItems(projectsByGroup.TryGetValue(rec.Id, out var list) ? list : new List<ProjectItem>());
             newGroupsList.Add(vm);
         }
 
@@ -110,21 +100,14 @@ public partial class MyProjectsViewModel : ObservableObject
                 defaultVm.Name = Strings.My_Ungrouped;
             }
 
-            if (!ungroupedItems.SequenceEqual(defaultVm.Items))
-            {
-                defaultVm.Items.Clear();
-                foreach (var it in ungroupedItems) defaultVm.Items.Add(it);
-            }
-            defaultVm.RefreshCounts();
+            defaultVm.SyncItems(ungroupedItems);
             newGroupsList.Add(defaultVm);
         }
 
-        // Reconcile Groups collection
-        if (!newGroupsList.SequenceEqual(Groups))
-        {
-            Groups.Clear();
-            foreach (var g in newGroupsList) Groups.Add(g);
-        }
+        // Adding or removing one group leaves the other groups' rows (and their containers) in place.
+        CollectionSync.Sync(Groups, newGroupsList);
+        foreach (var dropped in existingById.Values)
+            if (!newGroupsList.Contains(dropped)) dropped.Dispose();
     }
 
     [RelayCommand]

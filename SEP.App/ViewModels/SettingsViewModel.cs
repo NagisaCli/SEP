@@ -54,6 +54,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ChoiceOption _darkTheme = new(ThemeService.Dark, Strings.Settings_ThemeDark);
     private readonly ChoiceOption _lightTheme = new(ThemeService.Light, Strings.Settings_ThemeLight);
     private readonly bool _initialized;
+    private int _devicePathsSerial;
 
     [ObservableProperty] private string _installDir = string.Empty;
     [ObservableProperty] private string _projectsDir = string.Empty;
@@ -251,27 +252,58 @@ public partial class SettingsViewModel : ObservableObject
 
     /// <summary>Same probe the web UI's "device paths" panel did: which of the usual folders exist on this machine.</summary>
     [RelayCommand]
-    private void RefreshDevicePaths()
+    private void RefreshDevicePaths() => _ = RefreshDevicePathsAsync();
+
+    /// <summary>
+    /// Probes off the UI thread and in parallel: the shortcut or the plug-ins folder may sit on a share that is
+    /// offline, and one SMB timeout used to freeze the whole page. The newest refresh wins.
+    /// </summary>
+    private async Task RefreshDevicePathsAsync()
     {
+        int serial = ++_devicePathsSerial;
+        string lnk = E3dLnk;
+        string driveLabel = Strings.Settings_DriveLabel;
+        // the getters themselves look for folders on disk, so they run on the pool as well
+        var wanted = new (string Label, Func<string?> Path)[]
+        {
+            (Strings.Settings_InstallDirLabel, () => _tools.InstallDir),
+            (Strings.Settings_EvarsLabel, () => _tools.EvarsBatPath),
+            ("evars.init", () => _tools.EvarsInitPath),
+            (Strings.Settings_LocalProjectsDirLabel, () => _catalog.LocalProjectsDir),
+            ("custom_evars.bat", () => _tools.CustomEvarsPath),
+            (Strings.Settings_PluginsDirLabel, () => _plugins.PluginsDir),
+            ("USERDATA", () => _tools.UserDataDir),
+            (Strings.Settings_LnkLabel, () => string.IsNullOrWhiteSpace(lnk) ? null : lnk),
+        };
+
+        DevicePath?[] found;
+        List<DevicePath> drives;
+        try
+        {
+            var probes = wanted.Select(w => Task.Run(() =>
+            {
+                string? path = w.Path();
+                return string.IsNullOrWhiteSpace(path) ? null : new DevicePath(w.Label, path, Directory.Exists(path) || File.Exists(path));
+            })).ToList();
+            var driveProbe = Task.Run(() => DriveInfo.GetDrives()
+                .Where(d => d.DriveType == DriveType.Fixed && d.IsReady)
+                .Select(d => (d.Name, Aveva: Path.Combine(d.RootDirectory.FullName, "AVEVA")))
+                .Where(d => Directory.Exists(d.Aveva))
+                .Select(d => new DevicePath(string.Format(driveLabel, d.Name.TrimEnd('\\')), d.Aveva, true))
+                .ToList());
+            found = await Task.WhenAll(probes);
+            drives = await driveProbe;
+        }
+        catch (Exception ex)
+        {
+            App.Log($"device paths: {ex.Message}");
+            return;
+        }
+
+        if (serial != _devicePathsSerial) return;
         DevicePaths.Clear();
-        void Add(string label, string? path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return;
-            DevicePaths.Add(new DevicePath(label, path, Directory.Exists(path) || File.Exists(path)));
-        }
-        Add(Strings.Settings_InstallDirLabel, _tools.InstallDir);
-        Add(Strings.Settings_EvarsLabel, _tools.EvarsBatPath);
-        Add("evars.init", _tools.EvarsInitPath);
-        Add(Strings.Settings_LocalProjectsDirLabel, _catalog.LocalProjectsDir);
-        Add("custom_evars.bat", _tools.CustomEvarsPath);
-        Add(Strings.Settings_PluginsDirLabel, _plugins.PluginsDir);
-        Add("USERDATA", _tools.UserDataDir);
-        Add(Strings.Settings_LnkLabel, string.IsNullOrWhiteSpace(E3dLnk) ? null : E3dLnk);
-        foreach (var d in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.IsReady))
-        {
-            string aveva = Path.Combine(d.RootDirectory.FullName, "AVEVA");
-            if (Directory.Exists(aveva)) Add(string.Format(Strings.Settings_DriveLabel, d.Name.TrimEnd('\\')), aveva);
-        }
+        foreach (var p in found) if (p != null) DevicePaths.Add(p);
+        foreach (var p in drives) DevicePaths.Add(p);
     }
 
     // ── config bundle export / import ────────────────────────────────────────────

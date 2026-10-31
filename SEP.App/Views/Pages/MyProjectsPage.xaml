@@ -196,7 +196,8 @@
                                         <ItemsControl ItemsSource="{Binding Items}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type models:ProjectItem}">
-                                                    <Border Style="{StaticResource SepRow}" Margin="4,2" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    <!-- Tag is the page's ProjectActions, looked up once per row; the action buttons reach it by name -->
+                                                    <Border x:Name="RowHost" Style="{StaticResource SepRow}" Margin="4,2" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
                                                             beh:ProjectDragDrop.IsDraggable="True"
                                                             beh:ProjectDragDrop.IsDropTargetItem="True"
                                                             beh:ProjectDragDrop.GroupId="{Binding MyGroupId}">
@@ -266,15 +267,15 @@
                                                             </StackPanel>
                                                             <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" Padding="10,5" Margin="0,0,6,0"
-                                                                           Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                                           Command="{Binding Tag.LaunchCommand, ElementName=RowHost}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Folder24}" ToolTip="{loc:Tr My_MoveToGroup}" AutomationProperties.Name="{loc:Tr My_MoveToGroup}"
                                                                            Command="{Binding DataContext.MoveToGroupCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Edit24}" ToolTip="{loc:Tr Project_MenuEdit}" AutomationProperties.Name="{loc:Tr Project_MenuEdit}"
-                                                                           Command="{Binding DataContext.Actions.EditCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                                           Command="{Binding Tag.EditCommand, ElementName=RowHost}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" ToolTip="{loc:Tr Projects_OpenFolderTooltip}" AutomationProperties.Name="{loc:Tr Projects_OpenFolderTooltip}"
-                                                                           Command="{Binding DataContext.Actions.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                                                           Command="{Binding Tag.OpenFolderCommand, ElementName=RowHost}" CommandParameter="{Binding}" />
                                                                 <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}" ToolTip="{loc:Tr Projects_MoreTooltip}" AutomationProperties.Name="{loc:Tr Projects_MoreTooltip}"
-                                                                           beh:ClickMenu.IsEnabled="True" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                                                           beh:ClickMenu.IsEnabled="True" ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding Tag, ElementName=RowHost}" />
                                                                 <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=StarOff24}" ToolTip="{loc:Tr Project_RemoveFromMine}" AutomationProperties.Name="{loc:Tr Project_RemoveFromMine}"
                                                                            Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                             </StackPanel>

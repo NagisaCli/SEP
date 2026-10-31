@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using E3dAdmin.Models;
@@ -51,6 +51,8 @@ public partial class UserAdminViewModel : ObservableObject
     private List<TeamRow> _allTeams = new();
     private int _loadSerial;
     private bool _suppressReload;
+    private readonly DispatcherTimer _userFilterDebounce;
+    private readonly DispatcherTimer _teamFilterDebounce;
 
     // ── project ──────────────────────────────────────────────────────────────────
 
@@ -92,11 +94,9 @@ public partial class UserAdminViewModel : ObservableObject
 
     // ── listing ──────────────────────────────────────────────────────────────────
 
-    [ObservableProperty]
-    private ObservableCollection<UserRow> _users = new();
-
-    [ObservableProperty]
-    private ObservableCollection<TeamRow> _teams = new();
+    // filled in place (see ApplyUserFilter): rows that still match keep their containers while the user types
+    public ObservableCollection<UserRow> Users { get; } = new();
+    public ObservableCollection<TeamRow> Teams { get; } = new();
 
     [ObservableProperty]
     private string _userFilter = string.Empty;
@@ -144,13 +144,20 @@ public partial class UserAdminViewModel : ObservableObject
         _credentials = credentials;
         _cache = cache;
         _dialogs = dialogs;
+        _userFilterDebounce = NewFilterDebounce(ApplyUserFilter);
+        _teamFilterDebounce = NewFilterDebounce(ApplyTeamFilter);
 
         LoadProjectList();
-        _catalog.Changed += (_, _) =>
-        {
-            var d = Application.Current?.Dispatcher;
-            if (d == null || d.CheckAccess()) LoadProjectList(); else d.BeginInvoke(LoadProjectList);
-        };
+        // a scan raises Changed once per library: rebuild the picker once per burst, not once per event
+        var reloadProjects = new CoalescedUiAction(LoadProjectList);
+        _catalog.Changed += (_, _) => reloadProjects.Request();
+    }
+
+    private static DispatcherTimer NewFilterDebounce(Action apply)
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        timer.Tick += (_, _) => { timer.Stop(); apply(); };
+        return timer;
     }
 
     // ── projects ─────────────────────────────────────────────────────────────────
@@ -361,13 +368,27 @@ public partial class UserAdminViewModel : ObservableObject
 
     private static string FormatWhen(DateTime? at) => at == null ? "?" : at.Value.ToString("g");
 
-    partial void OnUserFilterChanged(string value) => ApplyFilters();
-    partial void OnTeamFilterChanged(string value) => ApplyFilters();
+    partial void OnUserFilterChanged(string value) => DebounceFilter(_userFilterDebounce, value, ApplyUserFilter);
+    partial void OnTeamFilterChanged(string value) => DebounceFilter(_teamFilterDebounce, value, ApplyTeamFilter);
 
+    // typing re-filters once the user pauses, not on every key stroke; clearing the box applies at once
+    private static void DebounceFilter(DispatcherTimer timer, string value, Action apply)
+    {
+        timer.Stop();
+        if (value.Length == 0) apply();
+        else timer.Start();
+    }
+
+    private void ApplyUserFilter() => CollectionSync.Sync(Users, _allUsers.Where(u => u.Matches(UserFilter)).ToList());
+    private void ApplyTeamFilter() => CollectionSync.Sync(Teams, _allTeams.Where(t => t.Matches(TeamFilter)).ToList());
+
+    /// <summary>New listing (or none): both lists and the counts follow at once, any pending filter is folded in.</summary>
     private void ApplyFilters()
     {
-        Users = new ObservableCollection<UserRow>(_allUsers.Where(u => u.Matches(UserFilter)));
-        Teams = new ObservableCollection<TeamRow>(_allTeams.Where(t => t.Matches(TeamFilter)));
+        _userFilterDebounce.Stop();
+        _teamFilterDebounce.Stop();
+        ApplyUserFilter();
+        ApplyTeamFilter();
         IsEmpty = HasLoaded && _allUsers.Count == 0 && _allTeams.Count == 0;
         OnPropertyChanged(nameof(UserCount));
         OnPropertyChanged(nameof(TeamCount));

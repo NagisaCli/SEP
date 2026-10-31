@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -124,7 +125,8 @@ public partial class ProjectsViewModel : ObservableObject
     public bool BatchBarVisible => BatchMode;
     public string SelectedCountText => string.Format(Strings.Batch_Selected, SelectedCount);
 
-    // projects whose IsSelected we already watch (instances survive rebuilds, see ProjectCatalog.RebuildModels)
+    // projects whose IsSelected we already watch (instances survive rebuilds, see ProjectCatalog.RebuildModels);
+    // pruned when a project leaves the catalog, so a removed library's projects are not kept alive by our handler
     private readonly HashSet<ProjectItem> _watched = new();
 
     public ProjectsViewModel(IProjectCatalog catalog, IE3dLauncherService launcherService, IE3dProjectService projectService,
@@ -171,15 +173,31 @@ public partial class ProjectsViewModel : ObservableObject
         // Keep the existing group objects (and so their cards) wherever the library is unchanged.
         var wantedGroups = libs.Select(lib =>
             byId.TryGetValue(lib.Id, out var old) && ReferenceEquals(old.Library, lib) ? old : new LibraryGroup(lib)).ToList();
-        SyncCollection(Groups, wantedGroups);
+        CollectionSync.Sync(Groups, wantedGroups);
         HasLibraries = Groups.Count > 0;
-        foreach (var p in _catalog.Projects)
-        {
-            if (_watched.Add(p)) p.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(ProjectItem.IsSelected)) OnSelectionChanged(); };
-        }
+        WatchSelection(_catalog.Projects);
         RebuildFilters();
         ApplyFilter();
         UpdateSummary();
+    }
+
+    private void WatchSelection(IReadOnlyList<ProjectItem> projects)
+    {
+        foreach (var p in projects)
+            if (_watched.Add(p)) p.PropertyChanged += OnProjectPropertyChanged;
+        if (_watched.Count <= projects.Count) return;
+
+        var alive = new HashSet<ProjectItem>(projects);
+        foreach (var gone in _watched.Where(p => !alive.Contains(p)).ToList())
+        {
+            gone.PropertyChanged -= OnProjectPropertyChanged;
+            _watched.Remove(gone);
+        }
+    }
+
+    private void OnProjectPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ProjectItem.IsSelected)) OnSelectionChanged();
     }
 
     // true while the picker lists are being refilled, so re-selecting the same value does not re-filter three times
@@ -242,35 +260,12 @@ public partial class ProjectsViewModel : ObservableObject
 
             var wanted = q.OrderByDescending(p => p.IsFavorite).ThenByDescending(p => p.IsActive)
                           .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList();
-            SyncCollection(group.Projects, wanted);
+            CollectionSync.Sync(group.Projects, wanted);
             group.HiddenCount = all.Count - wanted.Count;
             group.EmptyText = all.Count == 0 ? Strings.Lib_NoProjects : string.Format(Strings.Lib_NoVisibleProjects, group.HiddenCount);
             visible += wanted.Count;
         }
         VisibleCount = visible;
-    }
-
-    /// <summary>
-    /// Makes <paramref name="target"/> equal to <paramref name="wanted"/> with removes, moves and inserts only, so
-    /// items that stay keep their generated containers (no flicker, no re-templating of every card).
-    /// </summary>
-    private static void SyncCollection<T>(ObservableCollection<T> target, IReadOnlyList<T> wanted) where T : class
-    {
-        if (target.SequenceEqual(wanted)) return;
-        var keep = new HashSet<T>(wanted, ReferenceEqualityComparer.Instance as IEqualityComparer<T> ?? EqualityComparer<T>.Default);
-        for (int i = target.Count - 1; i >= 0; i--)
-            if (!keep.Contains(target[i])) target.RemoveAt(i);
-        for (int i = 0; i < wanted.Count; i++)
-        {
-            var item = wanted[i];
-            if (i < target.Count && ReferenceEquals(target[i], item)) continue;
-            int at = -1;
-            for (int j = i + 1; j < target.Count; j++)
-                if (ReferenceEquals(target[j], item)) { at = j; break; }
-            if (at >= 0) target.Move(at, i);
-            else target.Insert(i, item);
-        }
-        while (target.Count > wanted.Count) target.RemoveAt(target.Count - 1);
     }
 
     private void UpdateSummary()

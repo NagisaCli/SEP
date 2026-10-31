@@ -6,8 +6,10 @@
                     xmlns:beh="clr-namespace:SEP.App.Behaviors"
                     xmlns:models="clr-namespace:SEP.App.Models">
 
-    <!-- Context menu shared by every card. PlacementTarget.Tag carries the page's ProjectActions, PlacementTarget.DataContext the project. -->
-    <ContextMenu x:Key="ProjectCardMenu" x:Shared="False">
+    <!-- Context menu shared by every card and row of a page (one instance, not two per card): every binding goes
+         through PlacementTarget, which WPF points at the element the menu opens for. PlacementTarget.Tag carries
+         the page's ProjectActions, PlacementTarget.DataContext the project. -->
+    <ContextMenu x:Key="ProjectCardMenu">
         <MenuItem Header="{loc:Tr Projects_SwitchAndLaunch}" Icon="{ui:SymbolIcon Symbol=Rocket24}"
                   Command="{Binding PlacementTarget.Tag.LaunchCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                   CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -55,10 +57,11 @@
     <DataTemplate x:Key="ProjectCardTemplate" DataType="{x:Type models:ProjectItem}">
         <!-- The host never moves: it is the hit target, drag source and context-menu owner. Only the inner card
              lifts on hover; when the whole card lifted, its hit area moved with it and a pointer near the bottom
-             edge made it bounce in and out of hover. -->
+             edge made it bounce in and out of hover. Its Tag is the page's ProjectActions, looked up once per card;
+             the buttons below reach it by name instead of each walking up to the Page again. -->
         <Border x:Name="CardHost" Width="312" Margin="0,0,12,12" Background="Transparent" ContextMenu="{StaticResource ProjectCardMenu}"
                 Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
-                beh:ProjectDragDrop.IsDraggable="True">
+                beh:ProjectDragDrop.IsDraggable="True" beh:CardEntrance.IsEnabled="True">
         <Border x:Name="Card" BorderThickness="1" CornerRadius="12" Padding="0" SnapsToDevicePixels="True"
                 BorderBrush="{DynamicResource SepBorderBrush}" Background="{DynamicResource SepSurfaceBrush}">
             <Border.RenderTransform>
@@ -118,7 +121,7 @@
                             </TextBlock>
                         </StackPanel>
                         <ui:Button Grid.Column="3" Style="{StaticResource SepIconButton}" Padding="4" MinWidth="28" MinHeight="28"
-                                   Command="{Binding DataContext.Actions.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}">
+                                   Command="{Binding Tag.ToggleFavoriteCommand, ElementName=CardHost}" CommandParameter="{Binding}">
                             <ui:Button.ToolTip>
                                 <MultiBinding Converter="{StaticResource SwitchConverter}">
                                     <Binding Path="IsFavorite" />
@@ -175,28 +178,31 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" HorizontalAlignment="Stretch" Padding="10,5"
-                                   Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                   Command="{Binding Tag.LaunchCommand, ElementName=CardHost}" CommandParameter="{Binding}" />
                         <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_OpenFolderTooltip}"
-                                   Command="{Binding DataContext.Actions.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                   Command="{Binding Tag.OpenFolderCommand, ElementName=CardHost}" CommandParameter="{Binding}" />
                         <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=MoreHorizontal20}" Margin="6,0,0,0" Padding="8,5" ToolTip="{loc:Tr Projects_MoreTooltip}"
                                    AutomationProperties.Name="{loc:Tr Projects_MoreTooltip}" beh:ClickMenu.IsEnabled="True" ContextMenu="{StaticResource ProjectCardMenu}"
-                                   Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                   Tag="{Binding Tag, ElementName=CardHost}" />
                     </Grid>
                 </Grid>
             </Grid>
         </Border>
         </Border>
         <DataTemplate.Triggers>
-            <EventTrigger SourceName="CardHost" RoutedEvent="FrameworkElement.Loaded">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="Card" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
-                        <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" From="6" To="0" Duration="0:0:0.16">
-                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
+            <!-- entrance: only for the first fill of a list (see CardEntrance), not for every card a filter re-inserts -->
+            <Trigger SourceName="CardHost" Property="beh:CardEntrance.IsEntering" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Card" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
+                            <DoubleAnimation Storyboard.TargetName="CardSlide" Storyboard.TargetProperty="Y" From="6" To="0" Duration="0:0:0.16">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+            </Trigger>
             <!-- brushes stay DynamicResource setters: a storyboard cannot animate to a theme colour (it must freeze) -->
             <Trigger SourceName="CardHost" Property="IsMouseOver" Value="True">
                 <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SepAccentStrongBrush}" />

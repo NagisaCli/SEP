@@ -101,9 +101,10 @@ public partial class OverviewViewModel : ObservableObject
         E3dInstallOk = File.Exists(_tools.EvarsBatPath);
         E3dInstallText = E3dInstallOk ? install : Strings.Diag_InstallDirMissing;
 
-        Sync(QuickLaunch, _catalog.MyProjects.Take(8));
-        Sync(Recent, projects.Where(p => p.DiscoveredAt != null).OrderByDescending(p => p.DiscoveredAt).ThenBy(p => p.Name).Take(6));
-        Sync(Online, projects.Where(p => p.IsOnline).OrderByDescending(p => p.OnlineCount).Take(6));
+        // diffed, not refilled: a presence change must not re-create (and re-animate) every quick-launch card
+        CollectionSync.Sync(QuickLaunch, _catalog.MyProjects.Take(8).ToList());
+        CollectionSync.Sync(Recent, projects.Where(p => p.DiscoveredAt != null).OrderByDescending(p => p.DiscoveredAt).ThenBy(p => p.Name).Take(6).ToList());
+        CollectionSync.Sync(Online, projects.Where(p => p.IsOnline).OrderByDescending(p => p.OnlineCount).Take(6).ToList());
 
         Categories.Clear();
         int total = Math.Max(1, projects.Count);
@@ -132,13 +133,6 @@ public partial class OverviewViewModel : ObservableObject
         HasNotifications = Notifications.Count > 0;
     }
 
-    private static void Sync(ObservableCollection<ProjectItem> target, System.Collections.Generic.IEnumerable<ProjectItem> wanted)
-    {
-        var list = wanted.ToList();
-        if (list.SequenceEqual(target)) return;
-        target.Clear();
-        foreach (var p in list) target.Add(p);
-    }
 
     /// <summary>Session probe for the projects on the dashboard (my projects first, then the rest).</summary>
     [RelayCommand]
