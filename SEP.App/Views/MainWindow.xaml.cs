@@ -95,7 +95,6 @@ public partial class MainWindow : FluentWindow
             {
                 case "projects": return typeof(ProjectsPage);
                 case "mine": case "my": return typeof(MyProjectsPage);
-                case "live": return typeof(LivePage);
                 case "plugins": return typeof(PluginsPage);
                 case "users": return typeof(UserAdminPage);
                 case "tools": case "health": return typeof(ToolsPage);

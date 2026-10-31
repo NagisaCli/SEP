@@ -155,7 +155,6 @@ public partial class App : Application
             services.AddSingleton<PluginDiscoveryService>();
             services.AddSingleton<ToastService>();
             services.AddSingleton<ProjectActions>();
-            services.AddSingleton<LiveEntryAdapter>();
 
             services.AddSingleton<MainWindowViewModel>();
             services.AddSingleton<OverviewViewModel>();
@@ -163,7 +162,6 @@ public partial class App : Application
             services.AddSingleton<MyProjectsViewModel>();
             services.AddSingleton<PluginsViewModel>();
             services.AddSingleton<ToolsViewModel>();
-            services.AddSingleton<LiveViewModel>();
             services.AddSingleton<UserAdminViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<CreateProjectDialogViewModel>();
@@ -174,7 +172,6 @@ public partial class App : Application
             services.AddSingleton<PluginsPage>();
             services.AddSingleton<UserAdminPage>();
             services.AddSingleton<ToolsPage>();
-            services.AddSingleton<LivePage>();
             services.AddSingleton<SettingsPage>();
 
             services.AddSingleton<MainWindow>();
