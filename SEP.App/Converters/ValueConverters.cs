@@ -407,3 +407,19 @@ public class EqualsConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
+
+/// <summary>
+/// A square's width to the corner radius of an Apple squircle-like tile (a quarter of the size, rounded): monograms
+/// keep their proportions at any size (32 px → 8, 44 px → 11). Parameter: an optional factor instead of 0.25.
+/// </summary>
+public class SquircleRadiusConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        double size = value is double d && !double.IsNaN(d) ? d : 0;
+        double factor = parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var f) ? f : 0.25;
+        return new CornerRadius(Math.Round(size * factor));
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}

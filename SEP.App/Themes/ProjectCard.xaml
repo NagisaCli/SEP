@@ -54,13 +54,17 @@
         </Border>
     </DataTemplate>
 
-    <!-- Glossy monogram of a project (its code on the item's colour, lit from above). Width/Height/CornerRadius may be
-         set by the caller; the gloss follows the corner radius. -->
+    <!-- Glossy monogram of a project (its code on the item's colour, lit from above). It fills whatever size the host
+         gives it (a ContentPresenter with Width/Height): the corner radius stays a quarter of the size and a long code
+         shrinks to fit. -->
     <DataTemplate x:Key="ProjectMonogram" DataType="{x:Type models:ProjectItem}">
-        <Border Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteGradientConverter}}">
+        <Border Style="{StaticResource SepAvatar}" Width="Auto" Height="Auto" Background="{Binding Badge, Converter={StaticResource PaletteGradientConverter}}"
+                CornerRadius="{Binding ActualWidth, RelativeSource={RelativeSource Self}, Converter={StaticResource SquircleRadiusConverter}}">
             <Grid>
                 <Border Style="{StaticResource SepAvatarGloss}" />
-                <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" />
+                <Viewbox Margin="5" StretchDirection="DownOnly">
+                    <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" FontSize="14" />
+                </Viewbox>
             </Grid>
         </Border>
     </DataTemplate>

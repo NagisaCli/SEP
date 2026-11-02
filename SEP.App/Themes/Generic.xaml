@@ -98,6 +98,10 @@
                 <Setter Property="Background" Value="{DynamicResource SepPurpleSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepPurpleBrush}" />
             </Trigger>
+            <!-- plain status reads as a line of text: one size up from the capsule -->
+            <Trigger Property="IsPlain" Value="True">
+                <Setter Property="FontSize" Value="12" />
+            </Trigger>
             <!-- a plain neutral status gets a grey dot -->
             <MultiTrigger>
                 <MultiTrigger.Conditions>
