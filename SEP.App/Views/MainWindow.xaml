@@ -6,9 +6,10 @@
         xmlns:loc="clr-namespace:SEP.App.Localization"
         xmlns:pages="clr-namespace:SEP.App.Views.Pages"
         xmlns:controls="clr-namespace:SEP.App.Controls"
+        xmlns:beh="clr-namespace:SEP.App.Behaviors"
         Title="{loc:Tr Main_Title}"
-        Width="1280" Height="840"
-        MinWidth="980" MinHeight="640"
+        Width="1320" Height="860"
+        MinWidth="1000" MinHeight="640"
         WindowStartupLocation="CenterScreen"
         WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
         ExtendsContentIntoTitleBar="True"
@@ -16,127 +17,246 @@
         FontFamily="{StaticResource SepTextFont}"
         Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid>
+    <!-- Shell: the sidebar sits on the window chrome; pages live on an inset, rounded canvas lit by an aurora glow
+         and a faint drafting grid. Everything decorative is static (no animation runs while idle). -->
+    <Grid Background="{DynamicResource SepChromeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="252" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="46" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="{loc:Tr Main_Title}" Height="48">
-            <ui:TitleBar.Icon>
-                <ui:ImageIcon Source="/SEP.ico" Width="18" Height="18" />
-            </ui:TitleBar.Icon>
-            <ui:TitleBar.Header>
-                <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <!-- what E3D is set up to load: presence dot (pulses while E3D runs), mode glyph, mono code, state -->
-                    <Border Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepCardBorderBrush}" BorderThickness="1"
-                            CornerRadius="{StaticResource SepRadiusPill}" Padding="10,4,14,4" VerticalAlignment="Center" SnapsToDevicePixels="True">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Ellipse Margin="0,0,9,0">
-                                <Ellipse.Style>
-                                    <Style TargetType="Ellipse" BasedOn="{StaticResource SepStatusDot}">
-                                        <Setter Property="ToolTip" Value="{loc:Tr Main_E3dNotRunning}" />
-                                        <Style.Triggers>
-                                            <!-- one cheap opacity loop, only while E3D runs -->
-                                            <DataTrigger Binding="{Binding IsE3dRunning}" Value="True">
-                                                <Setter Property="Fill" Value="{DynamicResource SepSuccessBrush}" />
-                                                <Setter Property="ToolTip" Value="{loc:Tr Main_E3dRunning}" />
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard x:Name="RunningPulse">
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.8"
-                                                                             AutoReverse="True" RepeatBehavior="Forever">
-                                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
-                                                            </DoubleAnimation>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <StopStoryboard BeginStoryboardName="RunningPulse" />
-                                                </DataTrigger.ExitActions>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Ellipse.Style>
-                            </Ellipse>
-                            <ui:SymbolIcon FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center">
-                                <ui:SymbolIcon.Style>
-                                    <Style TargetType="ui:SymbolIcon">
+        <!-- ── Sidebar ─────────────────────────────────────────────────────────────────────────────── -->
+        <DockPanel Grid.RowSpan="2" Margin="12,0,12,12">
+            <!-- product block; also a drag handle for the window (the title bar only spans the canvas column) -->
+            <Grid DockPanel.Dock="Top" Height="64" Margin="2,0,0,0" Background="Transparent" MouseLeftButtonDown="OnBrandMouseDown" ToolTip="{Binding E3dVersionLabel}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid Width="36" Height="36" VerticalAlignment="Center">
+                    <Border CornerRadius="11" Background="{DynamicResource SepAccentGradientBrush}" />
+                    <Border CornerRadius="11" BorderThickness="1" BorderBrush="#40FFFFFF">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#30FFFFFF" Offset="0" />
+                                <GradientStop Color="#00FFFFFF" Offset="0.55" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <!-- mark: an isometric cube, the 3D model SEP opens -->
+                    <Path Width="19" Height="19" Stretch="Uniform" Stroke="White" StrokeThickness="1.7" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M12,2 L21,7 L21,17 L12,22 L3,17 L3,7 Z M3,7 L12,12 L21,7 M12,12 L12,22" />
+                </Grid>
+                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:Tr Main_ProductName}" FontFamily="{StaticResource SepDisplayFont}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource SepTextBrush}" />
+                    <TextBlock Text="{Binding E3dVersionLabel}" Style="{StaticResource SepCaption}" Margin="0,0,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <!-- search: jumps to the workbench search (Ctrl+K anywhere) -->
+            <Button DockPanel.Dock="Top" Style="{StaticResource SepSearchFieldButton}" Margin="0,4,0,2" Click="OnSearchClick"
+                    AutomationProperties.Name="{loc:Tr Main_SearchPlaceholder}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Symbol="Search20" FontSize="15" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{loc:Tr Main_SearchPlaceholder}" FontSize="12.5" Margin="8,0,8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="2" Style="{StaticResource SepKbd}">
+                        <TextBlock Text="{loc:Tr Main_SearchShortcut}" Style="{StaticResource SepKbdText}" />
+                    </Border>
+                </Grid>
+            </Button>
+
+            <!-- E3D session: what E3D will load, whether it runs, and the launch action -->
+            <Border DockPanel.Dock="Bottom" Style="{StaticResource SepGlassPanel}" Padding="0" Margin="0,10,0,0">
+                <Grid>
+                    <Border Height="1" VerticalAlignment="Top" Margin="16,0" Background="{DynamicResource SepAuroraLineBrush}" />
+                    <StackPanel Margin="12,12,12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource SepNavSectionLabel}" Margin="0" VerticalAlignment="Center"
+                                       Text="{Binding [Main_SessionTitle], Source={x:Static loc:Loc.Instance}, Converter={StaticResource UpperConverter}}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="7" Height="7" Margin="0,0,6,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource SepStatusDot}">
+                                            <Setter Property="ToolTip" Value="{loc:Tr Main_E3dNotRunning}" />
+                                            <Style.Triggers>
+                                                <!-- one cheap opacity loop, only while E3D runs -->
+                                                <DataTrigger Binding="{Binding IsE3dRunning}" Value="True">
+                                                    <Setter Property="Fill" Value="{DynamicResource SepSuccessBrush}" />
+                                                    <Setter Property="ToolTip" Value="{loc:Tr Main_E3dRunning}" />
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard x:Name="RunningPulse">
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.8"
+                                                                                 AutoReverse="True" RepeatBehavior="Forever">
+                                                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <StopStoryboard BeginStoryboardName="RunningPulse" />
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsE3dRunning}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource SwitchConverter}">
+                                            <Binding Path="IsE3dRunning" />
+                                            <Binding Path="[Main_E3dRunningShort]" Source="{x:Static loc:Loc.Instance}" />
+                                            <Binding Path="[Main_E3dIdleShort]" Source="{x:Static loc:Loc.Instance}" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0" ToolTip="{Binding ActiveProjectCode}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconTile Size="Small" Width="34" Height="34" FontSize="16">
+                                <controls:IconTile.Style>
+                                    <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
                                         <Setter Property="Symbol" Value="Cube20" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+                                        <Setter Property="Tone" Value="Neutral" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding ActiveMode}" Value="single">
-                                                <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+                                                <Setter Property="Tone" Value="Accent" />
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding ActiveMode}" Value="all">
                                                 <Setter Property="Symbol" Value="Star20" />
-                                                <Setter Property="Foreground" Value="{DynamicResource SepWarningBrush}" />
+                                                <Setter Property="Tone" Value="Warning" />
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding ActiveMode}" Value="library">
                                                 <Setter Property="Symbol" Value="Library20" />
-                                                <Setter Property="Foreground" Value="{DynamicResource SepInfoBrush}" />
+                                                <Setter Property="Tone" Value="Info" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </ui:SymbolIcon.Style>
-                            </ui:SymbolIcon>
-                            <TextBlock Text="{loc:Tr Main_ActiveProjectLabel}" Foreground="{DynamicResource SepText3Brush}" FontSize="12" VerticalAlignment="Center" Margin="0,0,2,0" />
-                            <TextBlock Text="{Binding ActiveProjectCode}" FontFamily="{StaticResource SepMonoFont}" FontWeight="SemiBold" Foreground="{DynamicResource SepTextBrush}"
-                                       FontSize="12" VerticalAlignment="Center" MaxWidth="260" TextTrimming="CharacterEllipsis" ToolTip="{Binding ActiveProjectCode}" />
-                            <Ellipse Width="3" Height="3" Fill="{DynamicResource SepText3Brush}" Margin="8,1,8,0" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding ActiveProjectStatus}" Foreground="{DynamicResource SepText2Brush}" FontSize="12" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Border>
+                                </controls:IconTile.Style>
+                            </controls:IconTile>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ActiveProjectCode}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource SepTextBrush}" TextTrimming="CharacterEllipsis">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
+                                            <Style.Triggers>
+                                                <!-- "All my projects" is a phrase, not a code -->
+                                                <DataTrigger Binding="{Binding ActiveMode}" Value="all">
+                                                    <Setter Property="FontFamily" Value="{StaticResource SepTextFont}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding ActiveProjectStatus}" Style="{StaticResource SepCaption}" Margin="0,1,0,0" />
+                            </StackPanel>
+                        </Grid>
 
-                    <!-- launch: the hero action (accent gradient) + menu -->
-                    <ui:Button Style="{StaticResource SepAccentGradientButton}" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Main_LaunchButton}" Margin="12,0,0,0" Padding="12,5"
-                               Command="{Binding LaunchActiveProjectCommand}" ToolTip="{loc:Tr Main_LaunchTooltip}" />
-                    <ui:DropDownButton Appearance="Secondary" Margin="4,0,0,0" Padding="6,5" ToolTip="{loc:Tr Main_LaunchMenuTooltip}" AutomationProperties.Name="{loc:Tr Main_LaunchMenuTooltip}">
-                        <ui:DropDownButton.Flyout>
-                            <ContextMenu>
-                                <MenuItem Header="{loc:Tr Main_MenuLaunchAllMine}" Command="{Binding LaunchAllMineCommand}" Icon="{ui:SymbolIcon Symbol=Star24}" />
-                                <MenuItem Header="{loc:Tr Main_MenuLaunchOnly}" Command="{Binding LaunchE3dOnlyCommand}" Icon="{ui:SymbolIcon Symbol=Play24}" />
-                            </ContextMenu>
-                        </ui:DropDownButton.Flyout>
-                    </ui:DropDownButton>
-                    <ui:ProgressRing IsIndeterminate="True" Width="16" Height="16" Margin="10,0,0,0" VerticalAlignment="Center"
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:Button Style="{StaticResource SepAccentGradientButton}" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Main_LaunchButton}"
+                                       HorizontalAlignment="Stretch" Padding="10,8" Command="{Binding LaunchActiveProjectCommand}" ToolTip="{loc:Tr Main_LaunchTooltip}" />
+                            <ui:DropDownButton Grid.Column="1" Appearance="Secondary" Margin="6,0,0,0" Padding="8,7" ToolTip="{loc:Tr Main_LaunchMenuTooltip}"
+                                               AutomationProperties.Name="{loc:Tr Main_LaunchMenuTooltip}">
+                                <ui:DropDownButton.Flyout>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Tr Main_MenuLaunchAllMine}" Command="{Binding LaunchAllMineCommand}" Icon="{ui:SymbolIcon Symbol=Star24}" />
+                                        <MenuItem Header="{loc:Tr Main_MenuLaunchOnly}" Command="{Binding LaunchE3dOnlyCommand}" Icon="{ui:SymbolIcon Symbol=Play24}" />
+                                    </ContextMenu>
+                                </ui:DropDownButton.Flyout>
+                            </ui:DropDownButton>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <controls:NavItem x:Name="NavSettings" DockPanel.Dock="Bottom" Content="{loc:Tr Nav_Settings}" Symbol="Settings24" PageType="{x:Type pages:SettingsPage}" Click="OnNavClick" />
+
+            <StackPanel>
+                <TextBlock Style="{StaticResource SepNavSectionLabel}"
+                           Text="{Binding [Nav_SectionWorkspace], Source={x:Static loc:Loc.Instance}, Converter={StaticResource UpperConverter}}" />
+                <controls:NavItem x:Name="NavOverview" Content="{loc:Tr Nav_Overview}" Symbol="Home24" PageType="{x:Type pages:OverviewPage}" Click="OnNavClick" />
+                <controls:NavItem x:Name="NavProjects" Content="{loc:Tr Nav_Projects}" Symbol="Folder24" PageType="{x:Type pages:ProjectsPage}" Count="{Binding ProjectCount}" Click="OnNavClick" />
+                <controls:NavItem x:Name="NavMyProjects" Content="{loc:Tr Nav_MyProjects}" Symbol="Star24" PageType="{x:Type pages:MyProjectsPage}" Count="{Binding MyCount}" Click="OnNavClick"
+                                  AllowDrop="True" Drop="NavMyProjects_Drop" DragOver="NavMyProjects_DragOver" />
+                <TextBlock Style="{StaticResource SepNavSectionLabel}"
+                           Text="{Binding [Nav_SectionEnvironment], Source={x:Static loc:Loc.Instance}, Converter={StaticResource UpperConverter}}" />
+                <controls:NavItem x:Name="NavPlugins" Content="{loc:Tr Nav_Plugins}" Symbol="PuzzlePiece24" PageType="{x:Type pages:PluginsPage}" Click="OnNavClick" />
+                <controls:NavItem x:Name="NavUsers" Content="{loc:Tr Nav_UserAdmin}" Symbol="People24" PageType="{x:Type pages:UserAdminPage}" Click="OnNavClick" />
+                <controls:NavItem x:Name="NavTools" Content="{loc:Tr Nav_Tools}" Symbol="Toolbox24" PageType="{x:Type pages:ToolsPage}" Click="OnNavClick" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- ── Title bar over the canvas column: breadcrumb + busy ring, window buttons on the right ──────── -->
+        <ui:TitleBar Grid.Column="1" Grid.Row="0" Height="46" Title="">
+            <ui:TitleBar.Header>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                    <TextBlock Text="{loc:Tr Main_ProductName}" FontSize="12.5" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
+                    <ui:SymbolIcon Symbol="ChevronRight16" FontSize="12" Margin="6,1,6,0" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="CrumbText" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource SepTextBrush}" VerticalAlignment="Center" />
+                    <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="12,0,0,0" VerticalAlignment="Center"
                                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
             </ui:TitleBar.Header>
         </ui:TitleBar>
 
-        <ui:NavigationView Grid.Row="1" x:Name="RootNavigation" PaneDisplayMode="Left" IsBackButtonVisible="Collapsed" IsPaneOpen="True"
-                           OpenPaneLength="240" Transition="FadeInWithSlide" TransitionDuration="160">
-            <!-- product block: gradient monogram, name, the E3D version SEP is set up for -->
-            <ui:NavigationView.PaneHeader>
-                <Grid Margin="12,6,12,18" ToolTip="{Binding E3dVersionLabel}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource SepIconTile}" Background="{DynamicResource SepAccentGradientBrush}">
-                        <TextBlock Text="{loc:Tr Main_ProductName}" FontFamily="{StaticResource SepDisplayFont}" FontWeight="Bold" FontSize="12"
-                                   Foreground="{DynamicResource SepOnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="{loc:Tr Main_ProductName}" FontFamily="{StaticResource SepDisplayFont}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource SepTextBrush}" />
-                        <TextBlock Text="{Binding E3dVersionLabel}" Style="{StaticResource SepCaption}" Margin="0,1,0,0" />
-                    </StackPanel>
+        <!-- ── Canvas ─────────────────────────────────────────────────────────────────────────────────── -->
+        <Border Grid.Column="1" Grid.Row="1" Margin="0,0,10,10" CornerRadius="16" BorderThickness="1"
+                Background="{DynamicResource SepPageBrush}" BorderBrush="{DynamicResource SepCanvasBorderBrush}" SnapsToDevicePixels="True">
+            <Grid beh:RoundedClip.Radius="15">
+                <!-- aurora: two soft glows and the drafting grid fading out below the page header -->
+                <Grid VerticalAlignment="Top" Height="360" IsHitTestVisible="False">
+                    <Rectangle Fill="{DynamicResource SepGridBrush}">
+                        <Rectangle.OpacityMask>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#FF000000" Offset="0" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <Ellipse Width="820" Height="480" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-260,-300,0,0" Fill="{DynamicResource SepGlowPrimaryBrush}" />
+                    <Ellipse Width="680" Height="440" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-300,-180,0" Fill="{DynamicResource SepGlowSecondaryBrush}" />
                 </Grid>
-            </ui:NavigationView.PaneHeader>
-            <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="{loc:Tr Nav_Overview}" Icon="{ui:SymbolIcon Symbol=Home24}" TargetPageType="{x:Type pages:OverviewPage}" NavigationCacheMode="Required" />
-                <ui:NavigationViewItem Content="{loc:Tr Nav_Projects}" Icon="{ui:SymbolIcon Symbol=Folder24}" TargetPageType="{x:Type pages:ProjectsPage}" NavigationCacheMode="Required" />
-                <ui:NavigationViewItem x:Name="NavMyProjectsItem" Content="{loc:Tr Nav_MyProjects}" Icon="{ui:SymbolIcon Symbol=Star24}" TargetPageType="{x:Type pages:MyProjectsPage}" NavigationCacheMode="Required" AllowDrop="True" Drop="NavMyProjects_Drop" DragOver="NavMyProjects_DragOver" />
-                <ui:NavigationViewItem Content="{loc:Tr Nav_Plugins}" Icon="{ui:SymbolIcon Symbol=PuzzlePiece24}" TargetPageType="{x:Type pages:PluginsPage}" NavigationCacheMode="Required" />
-                <ui:NavigationViewItem Content="{loc:Tr Nav_UserAdmin}" Icon="{ui:SymbolIcon Symbol=People24}" TargetPageType="{x:Type pages:UserAdminPage}" NavigationCacheMode="Required" />
-                <ui:NavigationViewItem Content="{loc:Tr Nav_Tools}" Icon="{ui:SymbolIcon Symbol=Toolbox24}" TargetPageType="{x:Type pages:ToolsPage}" NavigationCacheMode="Required" />
-            </ui:NavigationView.MenuItems>
-            <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="{loc:Tr Nav_Settings}" Icon="{ui:SymbolIcon Symbol=Settings24}" TargetPageType="{x:Type pages:SettingsPage}" NavigationCacheMode="Required" />
-            </ui:NavigationView.FooterMenuItems>
-        </ui:NavigationView>
 
-        <ui:SnackbarPresenter x:Name="SnackbarHost" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,24,20" MaxWidth="520" />
+                <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Focusable="False" JournalOwnership="OwnsJournal">
+                    <Frame.RenderTransform>
+                        <TranslateTransform x:Name="FrameSlide" />
+                    </Frame.RenderTransform>
+                </Frame>
+
+                <ui:SnackbarPresenter x:Name="SnackbarHost" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,24,20" MaxWidth="520" />
+            </Grid>
+        </Border>
     </Grid>
 </ui:FluentWindow>

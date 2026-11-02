@@ -2498,4 +2498,25 @@ Save them anyway?</value>
   <data name="Category_Subtitle" xml:space="preserve">
     <value>Colour-code projects by business area. Click a swatch to change its colour.</value>
   </data>
+  <data name="Nav_SectionWorkspace" xml:space="preserve">
+    <value>Workspace</value>
+  </data>
+  <data name="Nav_SectionEnvironment" xml:space="preserve">
+    <value>E3D environment</value>
+  </data>
+  <data name="Main_SearchPlaceholder" xml:space="preserve">
+    <value>Search projects…</value>
+  </data>
+  <data name="Main_SearchShortcut" xml:space="preserve">
+    <value>Ctrl K</value>
+  </data>
+  <data name="Main_SessionTitle" xml:space="preserve">
+    <value>E3D session</value>
+  </data>
+  <data name="Main_E3dRunningShort" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Main_E3dIdleShort" xml:space="preserve">
+    <value>Idle</value>
+  </data>
 </root>

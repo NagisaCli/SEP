@@ -16,7 +16,7 @@
         <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Background" Value="{DynamicResource SepSurface2Brush}" />
         <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SepNeutralEdgeBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:Badge}">
@@ -43,33 +43,39 @@
             <Trigger Property="Tone" Value="Accent">
                 <Setter Property="Background" Value="{DynamicResource SepAccentSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepAccentEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Success">
                 <Setter Property="Background" Value="{DynamicResource SepSuccessSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepSuccessEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Warning">
                 <Setter Property="Background" Value="{DynamicResource SepWarningSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepWarningBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepWarningEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Danger">
                 <Setter Property="Background" Value="{DynamicResource SepDangerSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepDangerEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Info">
                 <Setter Property="Background" Value="{DynamicResource SepInfoSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepInfoBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepInfoEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Purple">
                 <Setter Property="Background" Value="{DynamicResource SepPurpleSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepPurpleBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepPurpleEdgeBrush}" />
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsSolid" Value="True" />
                     <Condition Property="Tone" Value="Accent" />
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="{DynamicResource SepAccentBrush}" />
+                <Setter Property="Background" Value="{DynamicResource SepAccentGradientBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepOnAccentBrush}" />
             </MultiTrigger>
             <MultiTrigger>
@@ -78,6 +84,7 @@
                     <Condition Property="Tone" Value="Success" />
                 </MultiTrigger.Conditions>
                 <Setter Property="Background" Value="{DynamicResource SepSuccessBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource SepOnAccentBrush}" />
             </MultiTrigger>
             <MultiTrigger>
@@ -86,6 +93,7 @@
                     <Condition Property="Tone" Value="Warning" />
                 </MultiTrigger.Conditions>
                 <Setter Property="Background" Value="{DynamicResource SepWarningBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource SepOnAccentBrush}" />
             </MultiTrigger>
             <MultiTrigger>
@@ -94,6 +102,7 @@
                     <Condition Property="Tone" Value="Danger" />
                 </MultiTrigger.Conditions>
                 <Setter Property="Background" Value="{DynamicResource SepDangerBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource SepOnAccentBrush}" />
             </MultiTrigger>
         </Style.Triggers>
@@ -107,20 +116,34 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Background" Value="{DynamicResource SepAccentSoftBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SepAccentEdgeBrush}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:IconTile}">
-                    <Border x:Name="Tile" Background="{TemplateBinding Background}" CornerRadius="10" SnapsToDevicePixels="True">
+                    <Grid>
+                        <Border x:Name="Tile" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                CornerRadius="10" SnapsToDevicePixels="True" />
+                        <!-- sheen: light from above, so the tile reads as a lit glass chip -->
+                        <Border x:Name="Sheen" CornerRadius="10" Margin="1" IsHitTestVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#1CFFFFFF" Offset="0" />
+                                    <GradientStop Color="#00FFFFFF" Offset="0.6" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
                         <ui:SymbolIcon Symbol="{TemplateBinding Symbol}" Filled="{TemplateBinding Filled}" FontSize="{TemplateBinding FontSize}"
                                        Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Size" Value="Small">
                             <Setter TargetName="Tile" Property="CornerRadius" Value="8" />
+                            <Setter TargetName="Sheen" Property="CornerRadius" Value="7" />
                         </Trigger>
                         <Trigger Property="Size" Value="Large">
-                            <Setter TargetName="Tile" Property="CornerRadius" Value="16" />
+                            <Setter TargetName="Tile" Property="CornerRadius" Value="18" />
+                            <Setter TargetName="Sheen" Property="CornerRadius" Value="17" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -140,26 +163,32 @@
             <Trigger Property="Tone" Value="Neutral">
                 <Setter Property="Background" Value="{DynamicResource SepSurface2Brush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepNeutralEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Success">
                 <Setter Property="Background" Value="{DynamicResource SepSuccessSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepSuccessEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Warning">
                 <Setter Property="Background" Value="{DynamicResource SepWarningSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepWarningBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepWarningEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Danger">
                 <Setter Property="Background" Value="{DynamicResource SepDangerSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepDangerEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Info">
                 <Setter Property="Background" Value="{DynamicResource SepInfoSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepInfoBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepInfoEdgeBrush}" />
             </Trigger>
             <Trigger Property="Tone" Value="Purple">
                 <Setter Property="Background" Value="{DynamicResource SepPurpleSoftBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource SepPurpleBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SepPurpleEdgeBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -179,7 +208,7 @@
                         </Grid.ColumnDefinitions>
                         <controls:IconTile x:Name="Tile" Size="Small" Symbol="{TemplateBinding Symbol}" Tone="{TemplateBinding Tone}" Margin="0,0,10,0" />
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TitleText" Text="{TemplateBinding Title}" FontFamily="{DynamicResource SepTextFont}" FontSize="16" FontWeight="SemiBold"
+                            <TextBlock x:Name="TitleText" Text="{TemplateBinding Title}" FontFamily="{DynamicResource SepDisplayFont}" FontSize="16" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SepTextBrush}" TextTrimming="CharacterEllipsis" />
                             <TextBlock x:Name="SubtitleText" Text="{TemplateBinding Subtitle}" FontFamily="{DynamicResource SepTextFont}" FontSize="11" Margin="0,1,0,0"
                                        Foreground="{DynamicResource SepText3Brush}" TextTrimming="CharacterEllipsis" />
@@ -263,7 +292,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:SettingCard}">
                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            CornerRadius="12" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -286,6 +315,77 @@
                         </Trigger>
                         <Trigger Property="Description" Value="">
                             <Setter TargetName="DescriptionText" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ── NavItem: sidebar entry. Checked = violet pill, aurora indicator, filled accent icon, semibold label. -->
+    <Style TargetType="{x:Type controls:NavItem}">
+        <Setter Property="GroupName" Value="SepNav" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="FontFamily" Value="{DynamicResource SepTextFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:NavItem}">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="Pill" CornerRadius="10" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" />
+                        <Border x:Name="Indicator" Width="3" Height="18" CornerRadius="1.5" HorizontalAlignment="Left" Margin="1,0,0,0"
+                                Background="{DynamicResource SepAuroraBarBrush}" Opacity="0" />
+                        <Grid Margin="13,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon x:Name="Icon" Symbol="{TemplateBinding Symbol}" FontSize="18" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                            <ContentPresenter x:Name="Label" Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center" RecognizesAccessKey="True"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" TextElement.FontWeight="Medium">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                            <Border x:Name="CountPill" Grid.Column="2" CornerRadius="999" Padding="7,1" VerticalAlignment="Center"
+                                    Background="{DynamicResource SepSurface2Brush}" BorderBrush="{DynamicResource SepNeutralEdgeBrush}" BorderThickness="1">
+                                <TextBlock x:Name="CountText" Text="{Binding Count, RelativeSource={RelativeSource TemplatedParent}}" FontSize="11" FontWeight="SemiBold"
+                                           Typography.NumeralAlignment="Tabular" Foreground="{DynamicResource SepText3Brush}" />
+                            </Border>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Count" Value="0">
+                            <Setter TargetName="CountPill" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Pill" Property="Background" Value="{DynamicResource SepNavHoverBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource SepTextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Pill" Property="Background" Value="{DynamicResource SepSurfacePressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Pill" Property="Background" Value="{DynamicResource SepNavActiveBrush}" />
+                            <Setter TargetName="Pill" Property="BorderBrush" Value="{DynamicResource SepNavActiveBorderBrush}" />
+                            <Setter TargetName="Indicator" Property="Opacity" Value="1" />
+                            <Setter TargetName="Icon" Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+                            <Setter TargetName="Icon" Property="Filled" Value="True" />
+                            <Setter TargetName="Label" Property="TextElement.Foreground" Value="{DynamicResource SepTextBrush}" />
+                            <Setter TargetName="Label" Property="TextElement.FontWeight" Value="SemiBold" />
+                            <Setter TargetName="CountPill" Property="Background" Value="{DynamicResource SepAccentSoftBrush}" />
+                            <Setter TargetName="CountPill" Property="BorderBrush" Value="{DynamicResource SepAccentEdgeBrush}" />
+                            <Setter TargetName="CountText" Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Pill" Property="BorderBrush" Value="{DynamicResource SepAccentBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

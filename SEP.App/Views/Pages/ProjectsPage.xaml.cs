@@ -28,8 +28,14 @@ public partial class ProjectsPage : Page
     // Ctrl+F (ApplicationCommands.Find) focuses the search box and selects what is typed there.
     private void OnFindExecuted(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
     {
+        FocusSearch();
+        e.Handled = true;
+    }
+
+    /// <summary>Puts the caret in the search box (the shell's sidebar search and Ctrl+K land here).</summary>
+    public void FocusSearch()
+    {
         SearchBox.Focus();
         SearchBox.SelectAll();
-        e.Handled = true;
     }
 }

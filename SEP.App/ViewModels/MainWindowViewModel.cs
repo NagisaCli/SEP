@@ -9,7 +9,7 @@ using SEP.App.Services;
 
 namespace SEP.App.ViewModels;
 
-/// <summary>Title-bar state: what E3D is currently set up to load, and the launch actions.</summary>
+/// <summary>Shell state: what E3D is currently set up to load, the launch actions and the sidebar counts.</summary>
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly IProjectCatalog _catalog;
@@ -33,6 +33,13 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>Caption under the product name in the navigation pane: the configured E3D version.</summary>
     [ObservableProperty]
     private string _e3dVersionLabel = string.Empty;
+
+    /// <summary>Counts next to the sidebar entries: every project in the workbench, and the starred ones.</summary>
+    [ObservableProperty]
+    private int _projectCount;
+
+    [ObservableProperty]
+    private int _myCount;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchActiveProjectCommand))]
@@ -77,6 +84,8 @@ public partial class MainWindowViewModel : ObservableObject
     {
         string? version = _catalog.Paths.E3dVersion;
         E3dVersionLabel = string.IsNullOrWhiteSpace(version) ? Strings.Main_E3dVersionUnknown : version.Trim();
+        ProjectCount = _catalog.Projects.Count;
+        MyCount = _catalog.MyProjects.Count;
 
         string last = _catalog.Data.Settings.LastLaunched;
         string mode = _catalog.Data.Settings.LastMode ?? string.Empty;

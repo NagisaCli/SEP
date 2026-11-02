@@ -2570,4 +2570,25 @@
   <data name="Category_Subtitle" xml:space="preserve">
     <value>按业务领域为工程设置颜色分类。点击色块可更换颜色。</value>
   </data>
+  <data name="Nav_SectionWorkspace" xml:space="preserve">
+    <value>工作区</value>
+  </data>
+  <data name="Nav_SectionEnvironment" xml:space="preserve">
+    <value>E3D 环境</value>
+  </data>
+  <data name="Main_SearchPlaceholder" xml:space="preserve">
+    <value>搜索工程…</value>
+  </data>
+  <data name="Main_SearchShortcut" xml:space="preserve">
+    <value>Ctrl K</value>
+  </data>
+  <data name="Main_SessionTitle" xml:space="preserve">
+    <value>E3D 会话</value>
+  </data>
+  <data name="Main_E3dRunningShort" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="Main_E3dIdleShort" xml:space="preserve">
+    <value>空闲</value>
+  </data>
 </root>

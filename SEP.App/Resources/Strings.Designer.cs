@@ -7480,5 +7480,68 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Category_Subtitle", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Workspace.
+        /// </summary>
+        public static string Nav_SectionWorkspace {
+            get {
+                return ResourceManager.GetString("Nav_SectionWorkspace", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D environment.
+        /// </summary>
+        public static string Nav_SectionEnvironment {
+            get {
+                return ResourceManager.GetString("Nav_SectionEnvironment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search projects….
+        /// </summary>
+        public static string Main_SearchPlaceholder {
+            get {
+                return ResourceManager.GetString("Main_SearchPlaceholder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ctrl K.
+        /// </summary>
+        public static string Main_SearchShortcut {
+            get {
+                return ResourceManager.GetString("Main_SearchShortcut", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to E3D session.
+        /// </summary>
+        public static string Main_SessionTitle {
+            get {
+                return ResourceManager.GetString("Main_SessionTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Running.
+        /// </summary>
+        public static string Main_E3dRunningShort {
+            get {
+                return ResourceManager.GetString("Main_E3dRunningShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Idle.
+        /// </summary>
+        public static string Main_E3dIdleShort {
+            get {
+                return ResourceManager.GetString("Main_E3dIdleShort", resourceCulture);
+            }
+        }
     }
 }

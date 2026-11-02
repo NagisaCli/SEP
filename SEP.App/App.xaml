@@ -27,6 +27,8 @@
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:PaletteConverter x:Key="PaletteConverter" />
+            <converters:PaletteGradientConverter x:Key="PaletteGradientConverter" />
+            <converters:UpperConverter x:Key="UpperConverter" />
             <converters:StatusLabelConverter x:Key="StatusLabelConverter" />
             <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
             <converters:FileSizeConverter x:Key="FileSizeConverter" />

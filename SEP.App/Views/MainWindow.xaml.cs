@@ -1,7 +1,15 @@
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media.Animation;
+using System.Windows.Navigation;
+using System.Windows.Threading;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using SEP.App.Controls;
 using SEP.App.Services;
 using SEP.App.ViewModels;
 using SEP.App.Views.Pages;
@@ -12,6 +20,7 @@ namespace SEP.App.Views;
 public partial class MainWindow : FluentWindow
 {
     private readonly MainWindowViewModel _viewModel;
+    private readonly NavItem[] _navItems;
 
     public MainWindow()
     {
@@ -21,10 +30,13 @@ public partial class MainWindow : FluentWindow
 
         _viewModel = App.Services.GetRequiredService<MainWindowViewModel>();
         DataContext = _viewModel;
+        _navItems = new[] { NavOverview, NavProjects, NavMyProjects, NavPlugins, NavUsers, NavTools, NavSettings };
 
-        RootNavigation.SetServiceProvider(App.Services);
         App.Services.GetRequiredService<ToastService>().Attach(SnackbarHost);
-        App.Services.GetRequiredService<ProjectActions>().NavigateRequested += (page, _) => Dispatcher.BeginInvoke(() => RootNavigation.Navigate(page));
+        App.Services.GetRequiredService<ProjectActions>().NavigateRequested += (page, _) => Dispatcher.BeginInvoke(() => Navigate(page));
+        ContentFrame.Navigated += OnNavigated;
+        // Ctrl+K: project search from anywhere
+        InputBindings.Add(new KeyBinding(new RelayCommand(OpenSearch), Key.K, ModifierKeys.Control));
 
         Loaded += MainWindow_Loaded;
     }
@@ -34,27 +46,10 @@ public partial class MainWindow : FluentWindow
         App.Log("MainWindow_Loaded enter");
         try
         {
-            // WPF-UI hosts pages in a ScrollViewer that measures them with unlimited height, so a page's own
-            // ScrollViewer never gets to scroll and long lists just run off the window with jumpy, invisible
-            // scrolling. Give pages the real viewport instead; they scroll themselves (see Behaviors/SmoothScroll).
-            if (RootNavigation.Template?.FindName("PART_NavigationViewContentPresenter", RootNavigation) is NavigationViewContentPresenter presenter)
-            {
-                void ConstrainPages()
-                {
-                    var host = FindDescendant<ScrollViewer>(presenter);
-                    if (host == null) return;
-                    host.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
-                    host.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
-                }
-                presenter.ApplyTemplate();
-                ConstrainPages();
-                presenter.Loaded += (_, _) => ConstrainPages();
-            }
-
             var page = StartPageFromArgs();
-            App.Log($"RootNavigation navigating to {page.Name}");
-            bool ok = RootNavigation.Navigate(page);
-            App.Log($"RootNavigation.Navigate result: {ok}");
+            App.Log($"Navigating to {page.Name}");
+            bool ok = Navigate(page);
+            App.Log($"Navigate result: {ok}");
 
             string? panelArg = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--plugin-panel=", StringComparison.OrdinalIgnoreCase));
             if (!string.IsNullOrEmpty(panelArg))
@@ -69,17 +64,53 @@ public partial class MainWindow : FluentWindow
         }
     }
 
-    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    /// <summary>
+    /// Shows a page. Pages are DI singletons hosted in the canvas Frame; the Frame keeps no history (there is no back
+    /// button), and the sidebar entry of the page on screen is checked once the navigation has happened.
+    /// </summary>
+    public bool Navigate(Type pageType)
     {
-        int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
-        for (int i = 0; i < count; i++)
-        {
-            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
-            if (child is T hit) return hit;
-            var deeper = FindDescendant<T>(child);
-            if (deeper != null) return deeper;
-        }
-        return null;
+        if (App.Services.GetService(pageType) is not Page page) return false;
+        if (ReferenceEquals(ContentFrame.Content, page)) return true;
+        return ContentFrame.Navigate(page);
+    }
+
+    private void OnNavigated(object sender, NavigationEventArgs e)
+    {
+        while (ContentFrame.CanGoBack) ContentFrame.RemoveBackEntry();
+        if (e.Content is not Page page) return;
+
+        var type = page.GetType();
+        foreach (var item in _navItems) item.IsChecked = item.PageType == type;
+        CrumbText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding(nameof(Page.Title)) { Source = page });
+
+        // page transition: fade in and settle 10 px upward
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        ContentFrame.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)) { EasingFunction = ease });
+        FrameSlide.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(240)) { EasingFunction = ease });
+    }
+
+    private void OnNavClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is NavItem { PageType: { } type }) Navigate(type);
+    }
+
+    private void OnSearchClick(object sender, RoutedEventArgs e) => OpenSearch();
+
+    private void OpenSearch()
+    {
+        Navigate(typeof(ProjectsPage));
+        var projects = App.Services.GetRequiredService<ProjectsPage>();
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, projects.FocusSearch);
+    }
+
+    // The title bar spans only the canvas column, so the product block is the sidebar's drag handle.
+    private void OnBrandMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        else if (e.ButtonState == MouseButtonState.Pressed)
+            DragMove();
     }
 
     /// <summary>

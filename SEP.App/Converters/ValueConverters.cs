@@ -364,3 +364,34 @@ public class OverflowCountConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+/// <summary>
+/// The <see cref="PaletteConverter"/> colour of a name as a lit diagonal gradient (lighter top left, deeper bottom
+/// right): monograms read as glossy tiles. Brushes are built once per palette entry and frozen.
+/// </summary>
+public class PaletteGradientConverter : IValueConverter
+{
+    private static readonly ConcurrentDictionary<Color, LinearGradientBrush> Cache = new();
+
+    public static LinearGradientBrush ForName(string? name) => Cache.GetOrAdd(PaletteConverter.ForName(name).Color, color =>
+    {
+        var brush = new LinearGradientBrush(Mix(color, Colors.White, 0.22), Mix(color, Colors.Black, 0.12), new Point(0, 0), new Point(1, 1));
+        brush.Freeze();
+        return brush;
+    });
+
+    private static Color Mix(Color a, Color b, double t) => Color.FromRgb(
+        (byte)(a.R + (b.R - a.R) * t), (byte)(a.G + (b.G - a.G) * t), (byte)(a.B + (b.B - a.B) * t));
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => ForName(value?.ToString());
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+/// <summary>Upper-cases a caption ("Workspace" → "WORKSPACE"); scripts without case pass through unchanged.</summary>
+public class UpperConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value?.ToString()?.ToUpper(culture) ?? string.Empty;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+}

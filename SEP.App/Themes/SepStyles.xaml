@@ -13,10 +13,11 @@
     <FontFamily x:Key="SepMonoFont">Cascadia Code, Cascadia Mono, Consolas</FontFamily>
 
     <!-- ── Radius & spacing tokens ───────────────────────────────────────────────────────────────────── -->
-    <CornerRadius x:Key="SepRadiusL">12</CornerRadius>        <!-- cards -->
+    <CornerRadius x:Key="SepRadiusXL">18</CornerRadius>       <!-- the hero of a page -->
+    <CornerRadius x:Key="SepRadiusL">14</CornerRadius>        <!-- cards -->
     <CornerRadius x:Key="SepRadiusM">10</CornerRadius>        <!-- inner surfaces, rows, tiles -->
     <CornerRadius x:Key="SepRadiusS">8</CornerRadius>         <!-- inputs, buttons, segments -->
-    <CornerRadius x:Key="SepRadiusXS">5</CornerRadius>        <!-- tag chips -->
+    <CornerRadius x:Key="SepRadiusXS">6</CornerRadius>        <!-- tag chips -->
     <CornerRadius x:Key="SepRadiusPill">999</CornerRadius>    <!-- badges, status pills -->
     <sys:Double x:Key="SepSpace1">4</sys:Double>
     <sys:Double x:Key="SepSpace2">8</sys:Double>
@@ -24,10 +25,10 @@
     <sys:Double x:Key="SepSpace4">16</sys:Double>
     <sys:Double x:Key="SepSpace5">24</sys:Double>
     <sys:Double x:Key="SepSpace6">32</sys:Double>
-    <!-- page frame: the header and the scrolling content share the 32 px side gutters; the scroll bar sits outside them -->
-    <Thickness x:Key="SepPageHeaderMargin">32,24,32,20</Thickness>
-    <Thickness x:Key="SepPageContentMargin">32,0,32,32</Thickness>
-    <Thickness x:Key="SepPageStatusMargin">32,0,32,12</Thickness>
+    <!-- page frame: the header and the scrolling content share the 36 px side gutters; the scroll bar sits outside them -->
+    <Thickness x:Key="SepPageHeaderMargin">36,30,36,22</Thickness>
+    <Thickness x:Key="SepPageContentMargin">36,0,36,36</Thickness>
+    <Thickness x:Key="SepPageStatusMargin">36,0,36,12</Thickness>
     <Thickness x:Key="SepCardPadding">16</Thickness>
     <Thickness x:Key="SepSectionGap">0,0,0,24</Thickness>
 
@@ -44,19 +45,19 @@
         <Setter Property="FontFamily" Value="{StaticResource SepTextFont}" />
         <Setter Property="Foreground" Value="{DynamicResource SepTextBrush}" />
     </Style>
-    <!-- 30: the one big number or code of a screen (the overview hero) -->
+    <!-- 36: the one big number or code of a screen (the overview hero) -->
     <Style x:Key="SepDisplay" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
         <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
-        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontSize" Value="36" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="LineHeight" Value="36" />
+        <Setter Property="LineHeight" Value="44" />
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
-    <!-- 24: page titles -->
+    <!-- 28: page titles -->
     <Style x:Key="SepPageTitle" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
         <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -70,6 +71,7 @@
     </Style>
     <!-- 16: section headers between cards -->
     <Style x:Key="SepSubtitle" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
+        <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -118,13 +120,20 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
     </Style>
+    <!-- sidebar group caption ("WORKSPACE"); the caller upper-cases the text through UpperConverter -->
+    <Style x:Key="SepNavSectionLabel" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+        <Setter Property="Margin" Value="12,18,0,6" />
+    </Style>
     <Style x:Key="SepMono" TargetType="TextBlock" BasedOn="{StaticResource SepCaption}">
         <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
     </Style>
     <!-- compared numbers: tabular figures so a column of counts lines up -->
     <Style x:Key="SepKpiValue" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
         <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="32" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -163,14 +172,15 @@
     <Style x:Key="SepHeroCard" TargetType="Border" BasedOn="{StaticResource SepCard}">
         <Setter Property="Background" Value="{DynamicResource SepHeroBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource SepHeroBorderBrush}" />
-        <Setter Property="Padding" Value="24,20" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusXL}" />
+        <Setter Property="Padding" Value="28,24" />
     </Style>
     <!-- A list row that lights up on hover (rows sit on a page or inside a card). -->
     <Style x:Key="SepRow" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SepSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource SepCardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusM}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusL}" />
         <Setter Property="Padding" Value="14,10" />
         <Setter Property="Margin" Value="0,0,0,8" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -210,15 +220,17 @@
         <Setter Property="Background" Value="{DynamicResource SepSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource SepCardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusM}" />
-        <Setter Property="Padding" Value="6" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusL}" />
+        <Setter Property="Padding" Value="8" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
     <!-- track behind a segmented control or an icon-button group -->
     <Style x:Key="SepTrack" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SepTrackBrush}" />
-        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusS}" />
-        <Setter Property="Padding" Value="2" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SepBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusM}" />
+        <Setter Property="Padding" Value="3" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
@@ -243,6 +255,9 @@
         <Setter Property="Width" Value="38" />
         <Setter Property="Height" Value="38" />
         <Setter Property="CornerRadius" Value="{StaticResource SepRadiusM}" />
+        <!-- a light inner rim, so the palette colour reads as a lit tile, not a flat sticker -->
+        <Setter Property="BorderBrush" Value="#30FFFFFF" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
@@ -262,7 +277,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource SepBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource SepRadiusXS}" />
-        <Setter Property="Padding" Value="6,1" />
+        <Setter Property="Padding" Value="7,1" />
         <Setter Property="Margin" Value="0,2,4,2" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -298,7 +313,7 @@
         <Setter Property="Padding" Value="6" />
         <Setter Property="MinWidth" Value="32" />
         <Setter Property="MinHeight" Value="32" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
@@ -350,7 +365,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ui:Button">
-                    <Border x:Name="Segment" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="6" SnapsToDevicePixels="True">
+                    <Border x:Name="Segment" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="7" SnapsToDevicePixels="True">
                         <ContentPresenter x:Name="Label" Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
                                           TextElement.Foreground="{DynamicResource SepText2Brush}" TextElement.FontWeight="Medium" />
                     </Border>
@@ -360,8 +375,9 @@
                         </Trigger>
                         <Trigger Property="Appearance" Value="Primary">
                             <Setter TargetName="Segment" Property="Background" Value="{DynamicResource SepSegmentBrush}" />
-                            <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource SepCardBorderBrush}" />
+                            <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
                             <Setter TargetName="Label" Property="TextElement.Foreground" Value="{DynamicResource SepTextBrush}" />
+                            <Setter TargetName="Label" Property="TextElement.FontWeight" Value="SemiBold" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource SepAccentBrush}" />
@@ -378,8 +394,8 @@
     <Style x:Key="SepAccentGradientButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
         <Setter Property="Appearance" Value="Primary" />
         <Setter Property="Foreground" Value="{DynamicResource SepOnAccentBrush}" />
-        <Setter Property="Padding" Value="14,6" />
-        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusS}" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusM}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -390,7 +406,7 @@
                         <Grid.RenderTransform>
                             <ScaleTransform ScaleX="1" ScaleY="1" />
                         </Grid.RenderTransform>
-                        <Border CornerRadius="{TemplateBinding CornerRadius}" Background="{DynamicResource SepAccentGradientBrush}" />
+                        <Border x:Name="Fill" CornerRadius="{TemplateBinding CornerRadius}" Background="{DynamicResource SepAccentGradientBrush}" />
                         <Border x:Name="Overlay" CornerRadius="{TemplateBinding CornerRadius}" Background="#FFFFFF" Opacity="0" />
                         <!-- top highlight stroke: lifts the gradient off the surface without a shadow -->
                         <Border CornerRadius="{TemplateBinding CornerRadius}" BorderThickness="1">
@@ -413,10 +429,10 @@
                             <Setter TargetName="IconPresenter" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Overlay" Property="Opacity" Value="0.14" />
+                            <Setter TargetName="Fill" Property="Background" Value="{DynamicResource SepAccentGradientHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Overlay" Property="Opacity" Value="0.06" />
+                            <Setter TargetName="Fill" Property="Background" Value="{DynamicResource SepAccentGradientPressedBrush}" />
                             <Setter TargetName="Root" Property="RenderTransform">
                                 <Setter.Value>
                                     <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
@@ -450,14 +466,19 @@
                             <Border.RenderTransform>
                                 <TranslateTransform x:Name="Lift" Y="0" />
                             </Border.RenderTransform>
-                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <Grid>
+                                <!-- aurora hairline along the top edge, lit on hover -->
+                                <Border x:Name="Shine" Height="1" VerticalAlignment="Top" Margin="18,0" Background="{DynamicResource SepAuroraLineBrush}" Opacity="0" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Grid>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SepAccentStrongBrush}" />
+                            <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SepAccentEdgeBrush}" />
                             <Setter TargetName="Card" Property="Background" Value="{DynamicResource SepSurfaceHoverBrush}" />
+                            <Setter TargetName="Shine" Property="Opacity" Value="1" />
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -510,7 +531,7 @@
                         </Grid.RowDefinitions>
                         <Border x:Name="Hover" Grid.RowSpan="2" Margin="0,2,0,5" CornerRadius="6" Background="Transparent" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        <Border x:Name="Indicator" Grid.Row="1" Background="{DynamicResource SepAccentBrush}" CornerRadius="1.5" Opacity="0" Margin="14,0" />
+                        <Border x:Name="Indicator" Grid.Row="1" Background="{DynamicResource SepAccentGradientBrush}" CornerRadius="1.5" Opacity="0" Margin="10,0" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -528,5 +549,59 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- Keycap ("Ctrl K") -->
+    <Style x:Key="SepKbd" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SepSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SepBorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="5,0,5,1" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+    <Style x:Key="SepKbdText" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+    </Style>
+
+    <!-- Sidebar search field: looks like a search box, opens the project search (Ctrl+K) -->
+    <Style x:Key="SepSearchFieldButton" TargetType="Button">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource SepFocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Field" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepCardBorderBrush}" BorderThickness="1"
+                            CornerRadius="{StaticResource SepRadiusM}" Padding="10,0,6,0" SnapsToDevicePixels="True">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Field" Property="BorderBrush" Value="{DynamicResource SepAccentEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Field" Property="Background" Value="{DynamicResource SepSurfacePressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Glass panel used by the sidebar's E3D session card -->
+    <Style x:Key="SepGlassPanel" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SepSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SepCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource SepRadiusL}" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 </ResourceDictionary>
