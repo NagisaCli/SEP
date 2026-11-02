@@ -382,6 +382,7 @@
     <Style x:Key="SepChip" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SepFillBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource SepRadiusPill}" />
+        <Setter Property="beh:Capsule.IsEnabled" Value="True" />
         <Setter Property="Padding" Value="8,2" />
         <Setter Property="Margin" Value="0,2,5,2" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -477,6 +478,7 @@
     <Style x:Key="SepCapsuleButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
         <Setter Property="Appearance" Value="Primary" />
         <Setter Property="CornerRadius" Value="{StaticResource SepRadiusPill}" />
+        <Setter Property="beh:Capsule.IsEnabled" Value="True" />
         <Setter Property="Padding" Value="20,9" />
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -494,6 +496,7 @@
         <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
         <Setter Property="PressedForeground" Value="{DynamicResource SepAccentBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource SepRadiusPill}" />
+        <Setter Property="beh:Capsule.IsEnabled" Value="True" />
         <Setter Property="Padding" Value="14,6" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Cursor" Value="Hand" />

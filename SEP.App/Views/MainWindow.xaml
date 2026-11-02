@@ -229,7 +229,7 @@
                                         </Grid.ColumnDefinitions>
                                         <ui:Button Style="{StaticResource SepCapsuleButton}" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" Content="{loc:Tr Main_LaunchShort}"
                                                    HorizontalAlignment="Stretch" Padding="12,7" MinHeight="32" Command="{Binding LaunchActiveProjectCommand}" ToolTip="{loc:Tr Main_LaunchTooltip}" />
-                                        <ui:DropDownButton Grid.Column="1" Appearance="Secondary" Margin="6,0,0,0" Padding="9,7" CornerRadius="{StaticResource SepRadiusPill}"
+                                        <ui:DropDownButton Grid.Column="1" Appearance="Secondary" Margin="6,0,0,0" Padding="9,7" CornerRadius="{StaticResource SepRadiusPill}" beh:Capsule.IsEnabled="True"
                                                            ToolTip="{loc:Tr Main_LaunchMenuTooltip}" AutomationProperties.Name="{loc:Tr Main_LaunchMenuTooltip}">
                                             <ui:DropDownButton.Flyout>
                                                 <ContextMenu>

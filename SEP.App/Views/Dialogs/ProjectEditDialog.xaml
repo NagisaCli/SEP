@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sepsvc="clr-namespace:SEP.App.Services"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:beh="clr-namespace:SEP.App.Behaviors"
         xmlns:loc="clr-namespace:SEP.App.Localization"
         xmlns:controls="clr-namespace:SEP.App.Controls"
         xmlns:vm="clr-namespace:SEP.App.ViewModels"
@@ -161,7 +162,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <ui:Button Appearance="Secondary" Padding="9,3" Margin="0,2,6,2" FontSize="11.5" Content="{Binding}" CornerRadius="{StaticResource SepRadiusPill}"
+                                            <ui:Button Appearance="Secondary" Padding="9,3" Margin="0,2,6,2" FontSize="11.5" Content="{Binding}" CornerRadius="{StaticResource SepRadiusPill}" beh:Capsule.IsEnabled="True"
                                                        Icon="{ui:SymbolIcon Symbol=Add12}" Foreground="{DynamicResource SepText2Brush}"
                                                        Command="{Binding DataContext.AddTagCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
                                         </DataTemplate>
