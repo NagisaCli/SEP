@@ -7660,5 +7660,41 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Category_Empty", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string Settings_RefreshPaths {
+            get {
+                return ResourceManager.GetString("Settings_RefreshPaths", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to .NET 10 WPF client styled after macOS, built on WPF-UI controls with the Windows 11 Mica backdrop; it shares its data files with the SEP Python tool..
+        /// </summary>
+        public static string Settings_AboutArchApple {
+            get {
+                return ResourceManager.GetString("Settings_AboutArchApple", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No users to show..
+        /// </summary>
+        public static string Users_NoUsersShown {
+            get {
+                return ResourceManager.GetString("Users_NoUsersShown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No teams to show..
+        /// </summary>
+        public static string Users_NoTeamsShown {
+            get {
+                return ResourceManager.GetString("Users_NoTeamsShown", resourceCulture);
+            }
+        }
     }
 }

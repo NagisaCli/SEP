@@ -2558,4 +2558,16 @@ Save them anyway?</value>
   <data name="Category_Empty" xml:space="preserve">
     <value>No categories yet. Add the first one above.</value>
   </data>
+  <data name="Settings_RefreshPaths" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Settings_AboutArchApple" xml:space="preserve">
+    <value>.NET 10 WPF client styled after macOS, built on WPF-UI controls with the Windows 11 Mica backdrop; it shares its data files with the SEP Python tool.</value>
+  </data>
+  <data name="Users_NoUsersShown" xml:space="preserve">
+    <value>No users to show.</value>
+  </data>
+  <data name="Users_NoTeamsShown" xml:space="preserve">
+    <value>No teams to show.</value>
+  </data>
 </root>

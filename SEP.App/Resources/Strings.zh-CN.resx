@@ -2630,4 +2630,16 @@
   <data name="Category_Empty" xml:space="preserve">
     <value>还没有分类，请在上方添加第一个。</value>
   </data>
+  <data name="Settings_RefreshPaths" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="Settings_AboutArchApple" xml:space="preserve">
+    <value>.NET 10 WPF 客户端，macOS 风格界面，基于 WPF-UI 控件与 Windows 11 Mica 背景；与 SEP Python 工具共用数据文件。</value>
+  </data>
+  <data name="Users_NoUsersShown" xml:space="preserve">
+    <value>没有可显示的用户。</value>
+  </data>
+  <data name="Users_NoTeamsShown" xml:space="preserve">
+    <value>没有可显示的团队。</value>
+  </data>
 </root>

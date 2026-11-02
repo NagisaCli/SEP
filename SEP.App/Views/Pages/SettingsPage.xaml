@@ -10,24 +10,39 @@
       Style="{StaticResource SepPage}">
 
     <Page.Resources>
-        <!-- a group of settings starts with a section header; groups are 24 px apart -->
-        <Style x:Key="GroupHeader" TargetType="controls:SectionHeader" BasedOn="{StaticResource {x:Type controls:SectionHeader}}">
-            <Setter Property="Margin" Value="0,0,0,10" />
+        <!-- one block of the page: grey caption, the inset grouped list, an explanation under it; blocks are 28 px apart -->
+        <Style x:Key="GroupBlock" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,28" />
         </Style>
-        <!-- one labelled path inside the paths card: label | path box | browse -->
-        <Style x:Key="PathRow" TargetType="Grid">
-            <Setter Property="Margin" Value="16,10" />
+        <!-- caption row above a group when it carries something on the right (a badge, a link) -->
+        <Style x:Key="GroupHeaderRow" TargetType="Grid">
+            <Setter Property="Margin" Value="0,0,0,8" />
         </Style>
+        <Style x:Key="GroupHeaderText" TargetType="TextBlock" BasedOn="{StaticResource SepGroupHeader}">
+            <Setter Property="Margin" Value="14,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- one labelled path of the paths group: label | path field | browse -->
         <Style x:Key="PathLabel" TargetType="TextBlock" BasedOn="{StaticResource SepBody}">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextTrimming" Value="None" />
             <Setter Property="Margin" Value="0,0,16,0" />
         </Style>
-        <Style x:Key="RowDivider" TargetType="Border">
-            <Setter Property="Height" Value="1" />
-            <Setter Property="Background" Value="{DynamicResource SepDividerBrush}" />
-            <Setter Property="Margin" Value="16,0" />
+        <Style x:Key="PathField" TargetType="ui:TextBox" BasedOn="{StaticResource {x:Type ui:TextBox}}">
+            <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="BrowseButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+            <Setter Property="Appearance" Value="Secondary" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="Padding" Value="9,7" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="PreferenceBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Width" Value="220" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Page.Resources>
 
@@ -37,7 +52,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Header: large title, what the page is for, then save -->
         <Grid Grid.Row="0" Margin="{StaticResource SepPageHeaderMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -48,180 +63,251 @@
                 <TextBlock Text="{loc:Tr Settings_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource SepStatusText}" Margin="0,0,12,0" MaxWidth="320" />
+                <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource SepStatusText}" Margin="0,0,14,0" MaxWidth="320" ToolTip="{Binding StatusMessage}" />
                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Save20}" Content="{loc:Tr Settings_SaveButton}" Command="{Binding SaveSettingsCommand}" />
             </StackPanel>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
-            <StackPanel Margin="{StaticResource SepPageContentMargin}" MaxWidth="940" HorizontalAlignment="Left">
+            <StackPanel Margin="{StaticResource SepPageContentMargin}" MaxWidth="{StaticResource SepFormMaxWidth}" HorizontalAlignment="Left">
 
                 <!-- ── Appearance ─────────────────────────────────────────── -->
-                <controls:SectionHeader Style="{StaticResource GroupHeader}" Title="{loc:Tr Settings_PreferencesHeader}" Subtitle="{loc:Tr Settings_PreferencesHint}" Symbol="PaintBrush20" Tone="Purple" />
-                <controls:SettingCard Header="{loc:Tr Settings_LanguageLabel}" Symbol="LocalLanguage20">
-                    <ComboBox x:Name="LanguageBox" Width="240" ItemsSource="{Binding LanguageOptions}" DisplayMemberPath="Display" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
-                </controls:SettingCard>
-                <controls:SettingCard Header="{loc:Tr Settings_ThemeLabel}" Symbol="DarkTheme20">
-                    <ComboBox x:Name="ThemeBox" Width="240" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Display" SelectedValuePath="Code" SelectedValue="{Binding Theme}" />
-                </controls:SettingCard>
-                <controls:SettingCard Header="{loc:Tr Settings_StartupHeader}" Description="{loc:Tr Settings_AutoStartHint}" Symbol="Power20">
-                    <ui:ToggleSwitch x:Name="AutoStartBox" IsChecked="{Binding AutoStart}" ToolTip="{loc:Tr Settings_AutoStart}" AutomationProperties.Name="{loc:Tr Settings_AutoStart}" />
-                </controls:SettingCard>
+                <StackPanel Style="{StaticResource GroupBlock}">
+                    <TextBlock Text="{loc:Tr Settings_PreferencesHeader}" Style="{StaticResource SepGroupHeader}" />
+                    <Border Style="{StaticResource SepGroup}">
+                        <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}">
+                            <controls:SettingCard Header="{loc:Tr Settings_LanguageLabel}" Symbol="LocalLanguage20" Tone="Accent">
+                                <ComboBox x:Name="LanguageBox" Style="{StaticResource PreferenceBox}" ItemsSource="{Binding LanguageOptions}" DisplayMemberPath="Display"
+                                          SelectedValuePath="Code" SelectedValue="{Binding Language}" />
+                            </controls:SettingCard>
+                            <controls:SettingCard Header="{loc:Tr Settings_ThemeLabel}" Symbol="DarkTheme20" Tone="Neutral">
+                                <ComboBox x:Name="ThemeBox" Style="{StaticResource PreferenceBox}" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Display"
+                                          SelectedValuePath="Code" SelectedValue="{Binding Theme}" />
+                            </controls:SettingCard>
+                            <controls:SettingCard Header="{loc:Tr Settings_StartupHeader}" Description="{loc:Tr Settings_AutoStartHint}" Symbol="Power20" Tone="Success">
+                                <ui:ToggleSwitch x:Name="AutoStartBox" IsChecked="{Binding AutoStart}" ToolTip="{loc:Tr Settings_AutoStart}" AutomationProperties.Name="{loc:Tr Settings_AutoStart}" />
+                            </controls:SettingCard>
+                        </controls:SeparatedStackPanel>
+                    </Border>
+                    <TextBlock Text="{loc:Tr Settings_PreferencesHint}" Style="{StaticResource SepGroupFooter}" />
+                </StackPanel>
 
-                <!-- ── E3D paths ──────────────────────────────────────────── -->
-                <controls:SectionHeader Style="{StaticResource GroupHeader}" Margin="0,24,0,10" Title="{loc:Tr Settings_PathsHeader}" Subtitle="{loc:Tr Settings_PathsHint}" Symbol="Folder20" Tone="Accent" />
-                <Border Style="{StaticResource SepCard}" Padding="0,6">
-                    <StackPanel>
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_InstallDirLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="InstallDirBox" Grid.Column="1" Text="{Binding InstallDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_InstallDirPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseInstallDirCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_EvarsLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="EvarsBox" Grid.Column="1" Text="{Binding EvarsBat, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_EvarsPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=DocumentSearch20}" Command="{Binding BrowseEvarsBatCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_ProjectsDirLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="ProjectsDirBox" Grid.Column="1" Text="{Binding ProjectsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseProjectsDirCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_LocalProjectsDirLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="LocalProjectsDirBox" Grid.Column="1" Text="{Binding LocalProjectsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseLocalProjectsDirCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{loc:Tr Settings_LocalProjectsDirHint}" Style="{StaticResource SepCaption}" Margin="2,6,0,0" TextWrapping="Wrap" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_PluginsDirLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="PluginsDirBox" Grid.Column="1" Text="{Binding PluginsDir, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_PluginsDirPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowsePluginsDirCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_LnkLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="LnkBox" Grid.Column="1" Text="{Binding E3dLnk, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_LnkPlaceholder}" FontFamily="{StaticResource SepMonoFont}" />
-                            <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=DocumentSearch20}" Command="{Binding BrowseLnkCommand}" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-                        </Grid>
-                        <Border Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource PathRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{loc:Tr Settings_VersionLabel}" Style="{StaticResource PathLabel}" />
-                            <ui:TextBox x:Name="VersionBox" Grid.Column="1" Text="{Binding E3dVersion, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_VersionPlaceholder}" />
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- ── Data ───────────────────────────────────────────────── -->
-                <controls:SectionHeader Style="{StaticResource GroupHeader}" Margin="0,24,0,10" Title="{loc:Tr Settings_DataHeader}" Subtitle="{loc:Tr Settings_DataHint}" Symbol="Database20" Tone="Success">
-                    <controls:Badge Content="{loc:Tr Settings_PortableBadge}" Tone="Info" HasDot="True" Visibility="{Binding IsPortable, Converter={StaticResource BoolToVisibilityConverter}}" />
-                </controls:SectionHeader>
-                <controls:SettingCard Header="{loc:Tr Settings_DataFolderHeader}" Description="{Binding DataDir}" Symbol="FolderOpen20" ToolTip="{Binding DataDir}">
-                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Open20}" Content="{loc:Tr Lib_OpenFolder}" Command="{Binding OpenDataDirCommand}" />
-                </controls:SettingCard>
-                <controls:SettingCard Header="{loc:Tr Settings_BundleHeader}" Description="{loc:Tr Settings_BundleHint}" Symbol="ArrowSwap20">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowExportLtr20}" Content="{loc:Tr Settings_Export}" Command="{Binding ExportBundleCommand}" Margin="0,0,8,0" ToolTip="{loc:Tr Settings_ExportTooltip}" />
-                        <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowImport20}" Content="{loc:Tr Settings_Import}" Command="{Binding ImportBundleCommand}" ToolTip="{loc:Tr Settings_ImportTooltip}" />
-                    </StackPanel>
-                </controls:SettingCard>
-
-                <!-- ── Paths on this PC ───────────────────────────────────── -->
-                <controls:SectionHeader Style="{StaticResource GroupHeader}" Margin="0,24,0,10" Title="{loc:Tr Settings_DevicePathsHeader}" Symbol="Desktop20" Tone="Info">
-                    <ui:Button Style="{StaticResource SepLinkButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync16}" Content="{loc:Tr Projects_RefreshTooltip}" Command="{Binding RefreshDevicePathsCommand}" />
-                </controls:SectionHeader>
-                <Border Style="{StaticResource SepCard}" Padding="16,6">
-                    <ItemsControl ItemsSource="{Binding DevicePaths}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:DevicePath}">
-                                <Border BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,0,0,1" Padding="0,9">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <controls:IconTile Size="Small" Margin="0,0,12,0">
-                                            <controls:IconTile.Style>
-                                                <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
-                                                    <Setter Property="Symbol" Value="DismissCircle20" />
-                                                    <Setter Property="Tone" Value="Danger" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Exists}" Value="True">
-                                                            <Setter Property="Symbol" Value="CheckmarkCircle20" />
-                                                            <Setter Property="Tone" Value="Success" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </controls:IconTile.Style>
-                                        </controls:IconTile>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Label}" Style="{StaticResource SepBody}" />
-                                            <TextBlock Text="{Binding Path}" Style="{StaticResource SepMono}" Margin="0,2,0,0" ToolTip="{Binding Path}" />
-                                        </StackPanel>
-                                        <controls:Badge Grid.Column="2" HasDot="True" Content="{Binding StatusText}" Margin="12,0,0,0">
-                                            <controls:Badge.Style>
-                                                <Style TargetType="controls:Badge" BasedOn="{StaticResource {x:Type controls:Badge}}">
-                                                    <Setter Property="Tone" Value="Danger" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Exists}" Value="True">
-                                                            <Setter Property="Tone" Value="Success" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </controls:Badge.Style>
-                                        </controls:Badge>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Border>
-
-                <!-- ── About ──────────────────────────────────────────────── -->
-                <controls:SectionHeader Style="{StaticResource GroupHeader}" Margin="0,24,0,10" Title="{loc:Tr Settings_AboutHeader}" Symbol="Info20" Tone="Neutral" />
-                <Border Style="{StaticResource SepCard}" Padding="20,18">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource SepIconTile}" Width="48" Height="48" CornerRadius="{StaticResource SepRadiusL}" Background="{DynamicResource SepAccentGradientBrush}" VerticalAlignment="Top">
-                            <TextBlock Text="{loc:Tr Main_ProductName}" FontFamily="{StaticResource SepDisplayFont}" FontWeight="Bold" FontSize="15"
-                                       Foreground="{DynamicResource SepOnAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="16,0,0,0">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{loc:Tr Settings_AboutTagline}" Style="{StaticResource SepSubtitle}" />
-                                <controls:Badge Content="{Binding VersionText}" Margin="10,0,0,0" FontFamily="{StaticResource SepMonoFont}" />
-                            </StackPanel>
-                            <TextBlock Text="{loc:Tr Settings_AboutArch}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,6,0,0" />
-                            <TextBlock Text="{loc:Tr Settings_AboutStyle}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
-                            <!-- per-user installation: Start menu / desktop shortcut, Apps & features entry -->
-                            <Border Style="{StaticResource SepCardInner}" Margin="0,14,0,0">
+                <!-- ── E3D paths: label | path | browse; the hairlines run full width (no row icons) ── -->
+                <StackPanel Style="{StaticResource GroupBlock}">
+                    <TextBlock Text="{loc:Tr Settings_PathsHeader}" Style="{StaticResource SepGroupHeader}" />
+                    <Border Style="{StaticResource SepGroup}">
+                        <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                            <Border Style="{StaticResource SepGroupRowStatic}">
                                 <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                    <controls:IconTile Size="Small" Symbol="ArrowDownload20" Tone="Accent" Margin="0,0,12,0" VerticalAlignment="Top" />
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="{loc:Tr Settings_InstallHeader}" Style="{StaticResource SepBodyStrong}" />
-                                        <TextBlock Text="{Binding InstallStatusText}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
-                                    </StackPanel>
-                                    <ui:Button Grid.Column="2" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=ArrowDownload20}" Content="{Binding InstallButtonText}" Margin="12,0,0,0" VerticalAlignment="Center"
-                                               Command="{Binding InstallOnThisPcCommand}" ToolTip="{loc:Tr Settings_InstallTooltip}"
-                                               Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_InstallDirLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="InstallDirBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding InstallDir, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_InstallDirPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseInstallDirCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
                                 </Grid>
                             </Border>
-                        </StackPanel>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_EvarsLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="EvarsBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding EvarsBat, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_EvarsPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=DocumentSearch20}" Command="{Binding BrowseEvarsBatCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_ProjectsDirLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="ProjectsDirBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding ProjectsDir, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseProjectsDirCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_LocalProjectsDirLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="LocalProjectsDirBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding LocalProjectsDir, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_ProjectsDirPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowseLocalProjectsDirCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{loc:Tr Settings_LocalProjectsDirHint}" Style="{StaticResource SepCaption}"
+                                               Margin="2,6,0,0" TextWrapping="Wrap" TextTrimming="None" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_PluginsDirLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="PluginsDirBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding PluginsDir, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_PluginsDirPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Command="{Binding BrowsePluginsDirCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_LnkLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="LnkBox" Grid.Column="1" Style="{StaticResource PathField}" Text="{Binding E3dLnk, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{loc:Tr Settings_LnkPlaceholder}" />
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=DocumentSearch20}" Command="{Binding BrowseLnkCommand}"
+                                               ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource SepGroupRowStatic}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Tr Settings_VersionLabel}" Style="{StaticResource PathLabel}" />
+                                    <ui:TextBox x:Name="VersionBox" Grid.Column="1" Text="{Binding E3dVersion, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Settings_VersionPlaceholder}"
+                                                VerticalAlignment="Center" />
+                                    <!-- nothing to browse for: a hidden twin of the browse buttons keeps this field in line with the others -->
+                                    <ui:Button Grid.Column="2" Style="{StaticResource BrowseButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Visibility="Hidden" Focusable="False" IsTabStop="False" />
+                                </Grid>
+                            </Border>
+                        </controls:SeparatedStackPanel>
+                    </Border>
+                    <TextBlock Text="{loc:Tr Settings_PathsHint}" Style="{StaticResource SepGroupFooter}" />
+                </StackPanel>
+
+                <!-- ── Data ───────────────────────────────────────────────── -->
+                <StackPanel Style="{StaticResource GroupBlock}">
+                    <Grid Style="{StaticResource GroupHeaderRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{loc:Tr Settings_DataHeader}" Style="{StaticResource GroupHeaderText}" />
+                        <controls:Badge Grid.Column="1" Content="{loc:Tr Settings_PortableBadge}" Tone="Info" IsPlain="True" Margin="0,0,14,0"
+                                        Visibility="{Binding IsPortable, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Grid>
-                </Border>
+                    <Border Style="{StaticResource SepGroup}">
+                        <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}">
+                            <controls:SettingCard Header="{loc:Tr Settings_DataFolderHeader}" Description="{Binding DataDir}" Symbol="FolderOpen20" Tone="Accent" ToolTip="{Binding DataDir}">
+                                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Open20}" Content="{loc:Tr Lib_OpenFolder}" Command="{Binding OpenDataDirCommand}" />
+                            </controls:SettingCard>
+                            <controls:SettingCard Header="{loc:Tr Settings_BundleHeader}" Description="{loc:Tr Settings_BundleHint}" Symbol="ArrowSwap20" Tone="Purple">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowExportLtr20}" Content="{loc:Tr Settings_Export}" Command="{Binding ExportBundleCommand}"
+                                               Margin="0,0,8,0" ToolTip="{loc:Tr Settings_ExportTooltip}" />
+                                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=ArrowImport20}" Content="{loc:Tr Settings_Import}" Command="{Binding ImportBundleCommand}"
+                                               ToolTip="{loc:Tr Settings_ImportTooltip}" />
+                                </StackPanel>
+                            </controls:SettingCard>
+                        </controls:SeparatedStackPanel>
+                    </Border>
+                    <TextBlock Text="{loc:Tr Settings_DataHint}" Style="{StaticResource SepGroupFooter}" />
+                </StackPanel>
+
+                <!-- ── Paths on this PC: one row per probed drive / folder ── -->
+                <StackPanel Style="{StaticResource GroupBlock}">
+                    <Grid Style="{StaticResource GroupHeaderRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{loc:Tr Settings_DevicePathsHeader}" Style="{StaticResource GroupHeaderText}" />
+                        <ui:Button Grid.Column="1" Style="{StaticResource SepLinkButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync16}" Content="{loc:Tr Settings_RefreshPaths}"
+                                   Command="{Binding RefreshDevicePathsCommand}" Margin="0,-4,6,-4" />
+                    </Grid>
+                    <Border Style="{StaticResource SepGroup}" Visibility="{Binding DevicePaths.Count, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding DevicePaths}" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:DevicePath}">
+                                    <Border Style="{StaticResource SepGroupRowStatic}" ToolTip="{Binding Path}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                            <!-- the tile carries the state: a green tick or a red cross -->
+                                            <controls:IconTile Size="Small" Margin="0,0,14,0">
+                                                <controls:IconTile.Style>
+                                                    <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                                                        <Setter Property="Symbol" Value="Dismiss20" />
+                                                        <Setter Property="Tone" Value="Danger" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Exists}" Value="True">
+                                                                <Setter Property="Symbol" Value="Checkmark20" />
+                                                                <Setter Property="Tone" Value="Success" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </controls:IconTile.Style>
+                                            </controls:IconTile>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Label}" Style="{StaticResource SepBody}" />
+                                                <TextBlock Text="{Binding Path}" Style="{StaticResource SepMono}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <!-- trailing value, as in the Settings app: the word in the tone colour -->
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
+                                                        <Setter Property="Foreground" Value="{DynamicResource SepDangerBrush}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Exists}" Value="True">
+                                                                <Setter Property="Foreground" Value="{DynamicResource SepSuccessBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </StackPanel>
+
+                <!-- ── About: the app mark, what SEP is, and installing it on this PC ── -->
+                <StackPanel Margin="0">
+                    <TextBlock Text="{loc:Tr Settings_AboutHeader}" Style="{StaticResource SepGroupHeader}" />
+                    <controls:Card Padding="22,20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- the sidebar's mark, larger: an isometric cube on a glossy blue squircle -->
+                            <Grid Width="60" Height="60" VerticalAlignment="Top">
+                                <Border CornerRadius="14" Background="{DynamicResource SepTileBlueBrush}" />
+                                <Border CornerRadius="14" Background="{StaticResource SepGlossBrush}" BorderBrush="#33FFFFFF" BorderThickness="0.75" />
+                                <Path Width="30" Height="30" Stretch="Uniform" Stroke="White" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Data="M12,2 L21,7 L21,17 L12,22 L3,17 L3,7 Z M3,7 L12,12 L21,7 M12,12 L12,22" />
+                            </Grid>
+                            <StackPanel Grid.Column="1" Margin="18,0,0,0">
+                                <WrapPanel>
+                                    <TextBlock Text="{loc:Tr Settings_AboutTagline}" Style="{StaticResource SepSectionTitle}" Margin="0,2,10,2" TextWrapping="Wrap" TextTrimming="None" />
+                                    <controls:Badge Content="{Binding VersionText}" FontFamily="{StaticResource SepMonoFont}" FontWeight="Medium" Margin="0,2,0,2" />
+                                </WrapPanel>
+                                <TextBlock Text="{loc:Tr Settings_AboutArchApple}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,6,0,0" />
+                                <TextBlock Text="{loc:Tr Settings_AboutStyle}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
+                                <!-- per-user installation: Start menu / desktop shortcut, Apps & features entry -->
+                                <Border Style="{StaticResource SepCardInner}" Margin="0,16,0,0" Padding="14,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <controls:IconTile Size="Small" Symbol="ArrowDownload20" Tone="Accent" Margin="0,0,12,0" VerticalAlignment="Top" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{loc:Tr Settings_InstallHeader}" Style="{StaticResource SepBodyStrong}" />
+                                            <TextBlock Text="{Binding InstallStatusText}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <ui:Button Grid.Column="2" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=ArrowDownload20}" Content="{Binding InstallButtonText}" Margin="14,0,0,0"
+                                                   VerticalAlignment="Center" Command="{Binding InstallOnThisPcCommand}" ToolTip="{loc:Tr Settings_InstallTooltip}"
+                                                   Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </controls:Card>
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>

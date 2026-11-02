@@ -221,7 +221,8 @@ Frame stops inherited text properties.
   - Grouped form rows on `SepSheetGroup`.
   - Errors in a soft danger-tinted row.
   - Buttons bottom-right: Cancel, then the primary (destructive = `Danger`).
-  - Widths: 480 (prompt), 560 (standard), 640 (wide).
+  - Widths: 480 (prompt), 560 (standard), 640 (wide). Long forms cap their height at the screen and scroll, so the
+    buttons stay on screen.
 * **Toasts**: rounded popover banners (radius 16) whose symbol is tinted by the outcome: green, orange, red, or blue
   for information.
 * **Title bar**: the native Windows caption buttons (no traffic lights), a quiet breadcrumb and the busy ring.
