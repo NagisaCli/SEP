@@ -7579,5 +7579,86 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Project_CachedShort", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reachable.
+        /// </summary>
+        public static string Lib_ReachableShort {
+            get {
+                return ResourceManager.GetString("Lib_ReachableShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unreachable.
+        /// </summary>
+        public static string Lib_UnreachableShort {
+            get {
+                return ResourceManager.GetString("Lib_UnreachableShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enabled.
+        /// </summary>
+        public static string Plugins_EnabledShort {
+            get {
+                return ResourceManager.GetString("Plugins_EnabledShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Disabled.
+        /// </summary>
+        public static string Plugins_DisabledShort {
+            get {
+                return ResourceManager.GetString("Plugins_DisabledShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Index needs rebuild.
+        /// </summary>
+        public static string Plugins_IndexStaleShort {
+            get {
+                return ResourceManager.GetString("Plugins_IndexStaleShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Offline.
+        /// </summary>
+        public static string My_OfflineShort {
+            get {
+                return ResourceManager.GetString("My_OfflineShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Template project.
+        /// </summary>
+        public static string Create_TemplateLabel {
+            get {
+                return ResourceManager.GetString("Create_TemplateLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Archive folder.
+        /// </summary>
+        public static string Decommission_ArchiveDirRow {
+            get {
+                return ResourceManager.GetString("Decommission_ArchiveDirRow", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No categories yet. Add the first one above..
+        /// </summary>
+        public static string Category_Empty {
+            get {
+                return ResourceManager.GetString("Category_Empty", resourceCulture);
+            }
+        }
     }
 }

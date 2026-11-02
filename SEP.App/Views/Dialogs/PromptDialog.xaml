@@ -11,82 +11,128 @@
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
         FontFamily="{StaticResource SepTextFont}"
-        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+        Background="{DynamicResource SepSheetBrush}" Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid>
+    <ui:FluentWindow.Resources>
+        <!-- grouped form on the sheet: a rounded container per group, 48 px rows, hairlines inset to the text -->
+        <Style x:Key="SheetGroup" TargetType="Border" BasedOn="{StaticResource SepGroup}">
+            <Setter Property="Background" Value="{DynamicResource SepSheetGroupBrush}" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style x:Key="SheetRow" TargetType="Grid">
+            <Setter Property="Margin" Value="16,8" />
+            <Setter Property="MinHeight" Value="32" />
+        </Style>
+        <Style x:Key="SheetRowLabel" TargetType="TextBlock" BasedOn="{StaticResource SepBody}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextTrimming" Value="None" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <!-- Apple sheet: opaque sheet colour (whatever the backdrop), centred header, grouped form, buttons bottom-right -->
+    <Grid Background="{DynamicResource SepSheetBrush}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,0,24,20">
-            <!-- dialog header: tile + title + message -->
-            <Grid Margin="0,0,0,18">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <controls:IconTile VerticalAlignment="Top">
-                    <controls:IconTile.Style>
-                        <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
-                            <Setter Property="Symbol" Value="Edit20" />
-                            <Setter Property="Tone" Value="Accent" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Request.Danger}" Value="True">
-                                    <Setter Property="Symbol" Value="Warning20" />
-                                    <Setter Property="Tone" Value="Danger" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </controls:IconTile.Style>
-                </controls:IconTile>
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Request.Title}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding Request.Message}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0"
-                               Visibility="{Binding HasMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
-                </StackPanel>
-            </Grid>
+        <!-- header: tile, title, message, centred -->
+        <StackPanel Grid.Row="1" Margin="28,0,28,20">
+            <controls:IconTile Size="Large" HorizontalAlignment="Center" Margin="0,0,0,14">
+                <controls:IconTile.Style>
+                    <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                        <Setter Property="Symbol" Value="Edit20" />
+                        <Setter Property="Tone" Value="Accent" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Request.Danger}" Value="True">
+                                <Setter Property="Symbol" Value="Warning20" />
+                                <Setter Property="Tone" Value="Danger" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:IconTile.Style>
+            </controls:IconTile>
+            <TextBlock Text="{Binding Request.Title}" Style="{StaticResource SepSheetTitle}" />
+            <TextBlock Text="{Binding Request.Message}" Style="{StaticResource SepSheetSubtitle}" Margin="0,6,0,0"
+                       Visibility="{Binding HasMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </StackPanel>
 
+        <StackPanel Grid.Row="2" Margin="24,0,24,0">
             <!-- choice -->
-            <StackPanel Visibility="{Binding HasChoices, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,14">
-                <TextBlock Text="{Binding Request.ChoiceLabel}" Style="{StaticResource SepLabel}" />
-                <ComboBox x:Name="ChoiceBox" ItemsSource="{Binding Request.Choices}" SelectedItem="{Binding Choice, Mode=TwoWay}" HorizontalAlignment="Stretch" />
-            </StackPanel>
+            <Border Style="{StaticResource SheetGroup}" Visibility="{Binding HasChoices, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid Style="{StaticResource SheetRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Request.ChoiceLabel}" Style="{StaticResource SheetRowLabel}" />
+                    <ComboBox x:Name="ChoiceBox" Grid.Column="1" ItemsSource="{Binding Request.Choices}" SelectedItem="{Binding Choice, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
 
             <!-- text -->
-            <StackPanel Visibility="{Binding HasText, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,14">
-                <TextBlock Text="{Binding Request.TextLabel}" Style="{StaticResource SepLabel}" />
-                <ui:TextBox x:Name="TextField" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Request.TextPlaceholder}"
-                            MaxLength="{Binding Request.TextMaxLength}" CharacterCasing="{Binding Casing}" />
+            <Border Style="{StaticResource SheetGroup}" Visibility="{Binding HasText, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid Style="{StaticResource SheetRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Request.TextLabel}" Style="{StaticResource SheetRowLabel}" />
+                    <ui:TextBox x:Name="TextField" Grid.Column="1" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Request.TextPlaceholder}"
+                                MaxLength="{Binding Request.TextMaxLength}" CharacterCasing="{Binding Casing}" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- password + confirmation, the rules under the group -->
+            <StackPanel Margin="0,0,0,16" Visibility="{Binding HasPassword, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border Style="{StaticResource SheetGroup}" Margin="0">
+                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Request.PasswordLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ui:PasswordBox x:Name="PasswordField" Grid.Column="1" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32"
+                                            VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Tr Users_PasswordRepeatLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ui:PasswordBox x:Name="PasswordRepeatField" Grid.Column="1" Password="{Binding PasswordRepeat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32"
+                                            VerticalAlignment="Center" />
+                        </Grid>
+                    </controls:SeparatedStackPanel>
+                </Border>
+                <TextBlock Text="{loc:Tr Users_PasswordRules}" Style="{StaticResource SepGroupFooter}" />
             </StackPanel>
 
-            <!-- password + confirmation -->
-            <StackPanel Visibility="{Binding HasPassword, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,6">
-                <TextBlock Text="{Binding Request.PasswordLabel}" Style="{StaticResource SepLabel}" />
-                <ui:PasswordBox x:Name="PasswordField" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" Margin="0,0,0,10" />
-                <TextBlock Text="{loc:Tr Users_PasswordRepeatLabel}" Style="{StaticResource SepLabel}" />
-                <ui:PasswordBox x:Name="PasswordRepeatField" Password="{Binding PasswordRepeat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" />
-                <TextBlock Text="{loc:Tr Users_PasswordRules}" Style="{StaticResource SepCaption}" Margin="0,6,0,0" TextWrapping="Wrap" />
-            </StackPanel>
-
-            <!-- error -->
-            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,4,0,0"
+            <!-- error: a soft danger row -->
+            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="12" Padding="12,9" Margin="0,0,0,16"
                     Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
-                    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="380" />
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Symbol="ErrorCircle16" Filled="True" FontSize="15" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                    <TextBlock Grid.Column="1" Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
             </Border>
         </StackPanel>
 
-        <!-- footer: actions right-aligned, the primary (or destructive) one last -->
-        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
-                <ui:Button x:Name="OkButton" Content="{Binding Request.OkLabel}" Appearance="{Binding OkAppearance}" Click="OnOk" MinWidth="110" IsDefault="True" />
-            </StackPanel>
-        </Border>
+        <!-- buttons bottom-right, the primary (or destructive) one last -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,4,24,22">
+            <ui:Button Content="{loc:Tr Common_Cancel}" Style="{StaticResource SepCapsuleSecondaryButton}" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
+            <ui:Button x:Name="OkButton" Content="{Binding Request.OkLabel}" Style="{StaticResource SepCapsuleButton}" Appearance="{Binding OkAppearance}" Click="OnOk" MinWidth="110" IsDefault="True" />
+        </StackPanel>
     </Grid>
 </ui:FluentWindow>

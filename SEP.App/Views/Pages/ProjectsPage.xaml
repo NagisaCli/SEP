@@ -19,15 +19,20 @@
             <sys:Boolean x:Key="True">True</sys:Boolean>
             <sys:Boolean x:Key="False">False</sys:Boolean>
 
-            <!-- placeholder card for a library that is scanning and has nothing to show yet -->
+            <!-- placeholder card for a library that is scanning and has nothing to show yet (a cell of a CardGridPanel,
+                 so it takes the column width like the real cards; the margin is the grid gap) -->
             <Style x:Key="SkeletonCard" TargetType="Border">
-                <Setter Property="Width" Value="312" />
-                <Setter Property="Height" Value="150" />
-                <Setter Property="Margin" Value="0,0,12,12" />
+                <Setter Property="Height" Value="172" />
+                <Setter Property="Margin" Value="0,0,16,16" />
                 <Setter Property="CornerRadius" Value="{StaticResource SepRadiusL}" />
                 <Setter Property="Background" Value="{DynamicResource SepSurface2Brush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource SepBorderBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <!-- a filter pop-up button in the filter row -->
+            <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                <Setter Property="MinWidth" Value="140" />
+                <Setter Property="Margin" Value="0,0,8,8" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
         </ResourceDictionary>
     </Page.Resources>
@@ -51,7 +56,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header: title + count, search, primary actions -->
+        <!-- Header: large title + count, then search and the two main actions -->
         <Grid Grid.Row="0" Margin="{StaticResource SepPageHeaderMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -59,8 +64,8 @@
             </Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{loc:Tr Nav_Projects}" Style="{StaticResource SepPageTitle}" />
-                    <controls:Badge Content="{Binding VisibleCount}" Tone="Accent" Margin="12,2,0,0" Padding="9,2">
+                    <TextBlock Text="{loc:Tr Nav_Projects}" Style="{StaticResource SepLargeTitle}" />
+                    <controls:Badge Content="{Binding VisibleCount}" Margin="12,4,0,0" Padding="9,2" FontSize="12">
                         <controls:Badge.ToolTip>
                             <MultiBinding Converter="{StaticResource FormatConverter}">
                                 <Binding Path="[Projects_VisibleCount]" Source="{x:Static loc:Loc.Instance}" />
@@ -68,90 +73,93 @@
                             </MultiBinding>
                         </controls:Badge.ToolTip>
                     </controls:Badge>
-                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center"
+                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,4,0,0" VerticalAlignment="Center"
                                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
-                <TextBlock Text="{loc:Tr Projects_PageSubtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
+                <TextBlock Text="{loc:Tr Projects_PageSubtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,6,0,0" />
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ui:TextBox x:Name="SearchBox" Width="300" PlaceholderText="{loc:Tr Projects_SearchHint}" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                <ui:TextBox x:Name="SearchBox" Width="280" PlaceholderText="{loc:Tr Projects_SearchHint}" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
                             Icon="{ui:SymbolIcon Symbol=Search20}" ClearButtonEnabled="True" Margin="0,0,12,0" VerticalAlignment="Center" />
                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add20}" Content="{loc:Tr Projects_CreateButton}" Command="{Binding Actions.CreateProjectCommand}" Margin="0,0,8,0" />
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderAdd20}" Content="{loc:Tr Lib_AddButton}" Command="{Binding ToggleAddLibraryCommand}" ToolTip="{loc:Tr Lib_AddTooltip}" />
             </StackPanel>
         </Grid>
 
-        <!-- One quiet bar: view segments, filters, then the rare tools -->
-        <Border Grid.Row="1" Style="{StaticResource SepToolbar}" Margin="32,0,32,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <WrapPanel VerticalAlignment="Center">
-                    <Border Style="{StaticResource SepTrack}" Margin="0,0,12,0">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:Button Style="{StaticResource SepSegment}" Content="{loc:Tr Projects_FilterAll}" Click="OnFilterAllClick"
-                                       Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=All}" />
-                            <ui:Button Style="{StaticResource SepSegment}" Content="{loc:Tr Projects_FilterMine}" Click="OnFilterMineClick"
-                                       Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Mine}" />
-                            <ui:Button Style="{StaticResource SepSegment}" Content="{loc:Tr Projects_FilterLocal}" Click="OnFilterLocalClick"
-                                       Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Local}" />
-                            <ui:Button Style="{StaticResource SepSegment}" Content="{loc:Tr Projects_FilterUnc}" Click="OnFilterUncClick"
-                                       Appearance="{Binding FilterTab, Converter={StaticResource SelectedToAppearanceConverter}, ConverterParameter=Unc}" />
-                        </StackPanel>
-                    </Border>
-                    <ComboBox x:Name="CategoryFilterBox" MinWidth="140" Margin="0,0,8,0" VerticalAlignment="Center" ItemsSource="{Binding CategoryFilters}" SelectedItem="{Binding CategoryFilter}" ToolTip="{loc:Tr Edit_Category}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:FilterOption}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Style="{StaticResource SepStatusDot}" Margin="0,0,8,0" Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
-                                             Visibility="{Binding Color, Converter={StaticResource StringToVisibilityConverter}}" />
-                                    <TextBlock Text="{Binding Label}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <ComboBox x:Name="StatusFilterBox" MinWidth="140" Margin="0,0,8,0" VerticalAlignment="Center" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" DisplayMemberPath="Label" ToolTip="{loc:Tr Edit_Status}" />
-                    <ComboBox x:Name="TagFilterBox" MinWidth="140" Margin="0,0,8,0" VerticalAlignment="Center" ItemsSource="{Binding TagFilters}" SelectedItem="{Binding TagFilter}" DisplayMemberPath="Label" ToolTip="{loc:Tr Edit_Tags}" />
-                    <ui:Button Style="{StaticResource SepLinkButton}" Icon="{ui:SymbolIcon Symbol=DismissCircle20}" Content="{loc:Tr Filter_Clear}" Command="{Binding ClearFiltersCommand}" />
-                </WrapPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                    <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowMaximizeVertical20}" ToolTip="{loc:Tr Lib_ExpandAll}" AutomationProperties.Name="{loc:Tr Lib_ExpandAll}"
-                               Command="{Binding ExpandAllCommand}" CommandParameter="{StaticResource True}" />
-                    <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowMinimizeVertical20}" ToolTip="{loc:Tr Lib_CollapseAll}" AutomationProperties.Name="{loc:Tr Lib_CollapseAll}"
-                               Command="{Binding ExpandAllCommand}" CommandParameter="{StaticResource False}" />
-                    <Border Style="{StaticResource SepToolSeparator}" />
-                    <!-- the rare actions, as one icon group -->
-                    <Border Style="{StaticResource SepTrack}" AutomationProperties.Name="{loc:Tr Projects_ToolsLabel}">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Tag20}" ToolTip="{loc:Tr Category_Manage}" AutomationProperties.Name="{loc:Tr Category_Manage}"
-                                       Command="{Binding Actions.ManageCategoriesCommand}" />
-                            <ui:Button Icon="{ui:SymbolIcon Symbol=CheckboxChecked20}" ToolTip="{loc:Tr Batch_Toggle}" AutomationProperties.Name="{loc:Tr Batch_Toggle}"
-                                       Command="{Binding ToggleBatchModeCommand}">
-                                <ui:Button.Style>
-                                    <Style TargetType="ui:Button" BasedOn="{StaticResource SepIconButton}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding BatchMode}" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ui:Button.Style>
-                            </ui:Button>
-                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" ToolTip="{loc:Tr Usage_CheckAllTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckAll}"
-                                       Command="{Binding Actions.CheckAllUsageCommand}" />
-                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync20}" ToolTip="{loc:Tr Projects_RefreshTooltip}" AutomationProperties.Name="{loc:Tr Projects_RefreshTooltip}"
-                                       Command="{Binding RescanAllCommand}" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-        </Border>
+        <!-- Filter row, no box of its own: view segments, pop-up filters, then the rare tools -->
+        <Grid Grid.Row="1" Margin="40,0,40,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <WrapPanel VerticalAlignment="Center">
+                <!-- the thumb slides to the checked segment; the Click handlers set the filter, the binding checks it -->
+                <controls:SegmentedPanel Margin="0,0,12,8">
+                    <RadioButton Style="{StaticResource SepSegmentItem}" GroupName="ProjectFilter" Content="{loc:Tr Projects_FilterAll}" Click="OnFilterAllClick"
+                                 IsChecked="{Binding FilterTab, Converter={StaticResource EqualsConverter}, ConverterParameter=All, Mode=OneWay}" />
+                    <RadioButton Style="{StaticResource SepSegmentItem}" GroupName="ProjectFilter" Content="{loc:Tr Projects_FilterMine}" Click="OnFilterMineClick"
+                                 IsChecked="{Binding FilterTab, Converter={StaticResource EqualsConverter}, ConverterParameter=Mine, Mode=OneWay}" />
+                    <RadioButton Style="{StaticResource SepSegmentItem}" GroupName="ProjectFilter" Content="{loc:Tr Projects_FilterLocal}" Click="OnFilterLocalClick"
+                                 IsChecked="{Binding FilterTab, Converter={StaticResource EqualsConverter}, ConverterParameter=Local, Mode=OneWay}" />
+                    <RadioButton Style="{StaticResource SepSegmentItem}" GroupName="ProjectFilter" Content="{loc:Tr Projects_FilterUnc}" Click="OnFilterUncClick"
+                                 IsChecked="{Binding FilterTab, Converter={StaticResource EqualsConverter}, ConverterParameter=Unc, Mode=OneWay}" />
+                </controls:SegmentedPanel>
+                <ComboBox x:Name="CategoryFilterBox" Style="{StaticResource FilterCombo}" ItemsSource="{Binding CategoryFilters}" SelectedItem="{Binding CategoryFilter}" ToolTip="{loc:Tr Edit_Category}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:FilterOption}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Style="{StaticResource SepStatusDot}" Margin="0,0,8,0" Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
+                                         Visibility="{Binding Color, Converter={StaticResource StringToVisibilityConverter}}" />
+                                <TextBlock Text="{Binding Label}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox x:Name="StatusFilterBox" Style="{StaticResource FilterCombo}" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" DisplayMemberPath="Label" ToolTip="{loc:Tr Edit_Status}" />
+                <ComboBox x:Name="TagFilterBox" Style="{StaticResource FilterCombo}" ItemsSource="{Binding TagFilters}" SelectedItem="{Binding TagFilter}" DisplayMemberPath="Label" ToolTip="{loc:Tr Edit_Tags}" />
+                <ui:Button Style="{StaticResource SepLinkButton}" Icon="{ui:SymbolIcon Symbol=DismissCircle20}" Content="{loc:Tr Filter_Clear}" Command="{Binding ClearFiltersCommand}" Margin="0,0,0,8" />
+            </WrapPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,0,0,8">
+                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowMaximizeVertical20}" ToolTip="{loc:Tr Lib_ExpandAll}" AutomationProperties.Name="{loc:Tr Lib_ExpandAll}"
+                           Command="{Binding ExpandAllCommand}" CommandParameter="{StaticResource True}" />
+                <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowMinimizeVertical20}" ToolTip="{loc:Tr Lib_CollapseAll}" AutomationProperties.Name="{loc:Tr Lib_CollapseAll}"
+                           Command="{Binding ExpandAllCommand}" CommandParameter="{StaticResource False}" />
+                <Border Style="{StaticResource SepToolSeparator}" />
+                <!-- the rare actions, as one toolbar capsule -->
+                <Border Style="{StaticResource SepTrack}" AutomationProperties.Name="{loc:Tr Projects_ToolsLabel}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Tag20}" ToolTip="{loc:Tr Category_Manage}" AutomationProperties.Name="{loc:Tr Category_Manage}"
+                                   Command="{Binding Actions.ManageCategoriesCommand}" />
+                        <ui:Button Icon="{ui:SymbolIcon Symbol=CheckboxChecked20}" ToolTip="{loc:Tr Batch_Toggle}" AutomationProperties.Name="{loc:Tr Batch_Toggle}"
+                                   Command="{Binding ToggleBatchModeCommand}">
+                            <ui:Button.Style>
+                                <Style TargetType="ui:Button" BasedOn="{StaticResource SepIconButton}">
+                                    <Style.Triggers>
+                                        <!-- batch mode on: the toggle shows as pressed in, like a macOS toolbar toggle -->
+                                        <DataTrigger Binding="{Binding BatchMode}" Value="True">
+                                            <Setter Property="Appearance" Value="Secondary" />
+                                            <Setter Property="Background" Value="{DynamicResource SepAccentSoftBrush}" />
+                                            <Setter Property="MouseOverBackground" Value="{DynamicResource SepAccentSoftHoverBrush}" />
+                                            <Setter Property="PressedBackground" Value="{DynamicResource SepAccentSoftHoverBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource SepAccentBrush}" />
+                                            <Setter Property="PressedForeground" Value="{DynamicResource SepAccentBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" ToolTip="{loc:Tr Usage_CheckAllTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckAll}"
+                                   Command="{Binding Actions.CheckAllUsageCommand}" />
+                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync20}" ToolTip="{loc:Tr Projects_RefreshTooltip}" AutomationProperties.Name="{loc:Tr Projects_RefreshTooltip}"
+                                   Command="{Binding RescanAllCommand}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
 
         <!-- Add library -->
-        <Border Grid.Row="2" Style="{StaticResource SepCard}" Margin="32,0,32,12"
-                Visibility="{Binding ShowAddLibrary, Converter={StaticResource BoolToVisibilityConverter}}">
+        <controls:Card Grid.Row="2" Margin="40,0,40,16" Padding="16,14"
+                       Visibility="{Binding ShowAddLibrary, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -163,7 +171,7 @@
                 </Grid.ColumnDefinitions>
                 <controls:IconTile Symbol="FolderAdd20" Tone="Accent" />
                 <StackPanel Grid.Column="1" Margin="12,0,16,0" VerticalAlignment="Center" MaxWidth="300">
-                    <TextBlock Text="{loc:Tr Lib_AddHeader}" Style="{StaticResource SepSectionTitle}" />
+                    <TextBlock Text="{loc:Tr Lib_AddHeader}" Style="{StaticResource SepBodyStrong}" />
                     <TextBlock Text="{loc:Tr Lib_AddHint}" Style="{StaticResource SepCaption}" Margin="0,2,0,0" TextWrapping="Wrap" />
                 </StackPanel>
                 <ui:TextBox x:Name="NewLibraryBox" Grid.Column="2" PlaceholderText="{loc:Tr Lib_AddPlaceholder}" Text="{Binding NewLibraryPath, UpdateSourceTrigger=PropertyChanged}"
@@ -173,11 +181,10 @@
                 <ui:Button Grid.Column="5" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Dismiss20}" Command="{Binding ToggleAddLibraryCommand}" Margin="4,0,0,0"
                            ToolTip="{loc:Tr Common_Close}" AutomationProperties.Name="{loc:Tr Common_Close}" />
             </Grid>
-        </Border>
+        </controls:Card>
 
-        <!-- Batch bar -->
-        <Border Grid.Row="3" CornerRadius="{StaticResource SepRadiusM}" Padding="12,8" Margin="32,0,32,12" Background="{DynamicResource SepAccentSoftBrush}"
-                BorderBrush="{DynamicResource SepAccentStrongBrush}" BorderThickness="1"
+        <!-- Batch bar: a soft accent wash while batch mode is on -->
+        <Border Grid.Row="3" CornerRadius="{StaticResource SepRadiusGroup}" Padding="14,10" Margin="40,0,40,16" Background="{DynamicResource SepAccentSoftBrush}"
                 Visibility="{Binding BatchBarVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -192,7 +199,7 @@
                     <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Batch_SelectNone}" Command="{Binding SelectVisibleCommand}" CommandParameter="{StaticResource False}" />
                 </StackPanel>
                 <WrapPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Batch_LaunchSelected}" Command="{Binding BatchLaunchCommand}" Margin="0,2,8,2" />
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" Content="{loc:Tr Batch_LaunchSelected}" Command="{Binding BatchLaunchCommand}" Margin="0,2,8,2" />
                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Star20}" Content="{loc:Tr Batch_AddToMine}" Command="{Binding BatchAddToMineCommand}" Margin="0,2,8,2" />
                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=StarOff20}" Content="{loc:Tr Batch_RemoveFromMine}" Command="{Binding BatchRemoveFromMineCommand}" Margin="0,2,8,2" />
                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Edit20}" Content="{loc:Tr Batch_Edit}" Command="{Binding BatchEditCommand}" Margin="0,2,8,2" />
@@ -201,13 +208,13 @@
             </Grid>
         </Border>
 
-        <!-- Libraries with their projects -->
+        <!-- Libraries with their projects: each library is a section of the page, its projects a responsive card grid -->
         <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                       CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
             <StackPanel Margin="{StaticResource SepPageContentMargin}">
                 <!-- empty state: a dashed drop zone (the page itself takes the drop) -->
-                <Grid Visibility="{Binding HasLibraries, Converter={StaticResource InverseBoolToVisibilityConverter}}" MinHeight="300">
-                    <Rectangle RadiusX="12" RadiusY="12" Stroke="{DynamicResource SepBorderStrongBrush}" StrokeThickness="1.5" StrokeDashArray="5 4"
+                <Grid Visibility="{Binding HasLibraries, Converter={StaticResource InverseBoolToVisibilityConverter}}" MinHeight="300" Margin="0,6,0,0">
+                    <Rectangle RadiusX="18" RadiusY="18" Stroke="{DynamicResource SepBorderStrongBrush}" StrokeThickness="1.5" StrokeDashArray="5 4"
                                Fill="{DynamicResource SepSurfaceBrush}" SnapsToDevicePixels="True" />
                     <controls:EmptyState Symbol="FolderArrowUp24" Tone="Accent" Title="{loc:Tr Lib_EmptyTitle}" Description="{loc:Tr Lib_DropHint}" VerticalAlignment="Center" Padding="32,40">
                         <StackPanel Orientation="Horizontal">
@@ -217,116 +224,118 @@
                     </controls:EmptyState>
                 </Grid>
 
-                <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl ItemsSource="{Binding Groups}" Margin="0,6,0,0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:LibraryGroup}">
-                            <Border Style="{StaticResource SepCard}" Padding="0" Margin="0,0,0,16">
-                                <StackPanel>
-                                    <!-- library header (expander-style): chevron, source tile, name + path, state pills, actions -->
-                                    <Grid Margin="10,12,12,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <ui:Button Style="{StaticResource SepIconButton}" Command="{Binding DataContext.ToggleExpandedCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
-                                                   ToolTip="{loc:Tr Lib_ToggleTooltip}" AutomationProperties.Name="{Binding Library.Name}">
-                                            <ui:SymbolIcon FontSize="16">
-                                                <ui:SymbolIcon.Style>
-                                                    <Style TargetType="ui:SymbolIcon">
-                                                        <Setter Property="Symbol" Value="ChevronRight20" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Library.IsExpanded}" Value="True">
-                                                                <Setter Property="Symbol" Value="ChevronDown20" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </ui:SymbolIcon.Style>
-                                            </ui:SymbolIcon>
-                                        </ui:Button>
-                                        <controls:IconTile Grid.Column="1" Margin="4,0,0,0">
-                                            <controls:IconTile.Style>
-                                                <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
-                                                    <Setter Property="Symbol" Value="HardDrive20" />
-                                                    <Setter Property="Tone" Value="Info" />
+                            <StackPanel Margin="0,0,0,24">
+                                <!-- library header: chevron, source tile, name + count, state and path, actions -->
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:Button Style="{StaticResource SepIconButton}" Margin="-8,0,2,0" VerticalAlignment="Center"
+                                               Command="{Binding DataContext.ToggleExpandedCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
+                                               ToolTip="{loc:Tr Lib_ToggleTooltip}" AutomationProperties.Name="{Binding Library.Name}">
+                                        <ui:SymbolIcon FontSize="14">
+                                            <ui:SymbolIcon.Style>
+                                                <Style TargetType="ui:SymbolIcon">
+                                                    <Setter Property="Symbol" Value="ChevronRight20" />
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Library.IsUnc}" Value="True">
-                                                            <Setter Property="Symbol" Value="Globe20" />
-                                                            <Setter Property="Tone" Value="Purple" />
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Library.IsReachable}" Value="False">
-                                                            <Setter Property="Symbol" Value="PlugDisconnected20" />
-                                                            <Setter Property="Tone" Value="Danger" />
+                                                        <DataTrigger Binding="{Binding Library.IsExpanded}" Value="True">
+                                                            <Setter Property="Symbol" Value="ChevronDown20" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </controls:IconTile.Style>
-                                        </controls:IconTile>
-                                        <StackPanel Grid.Column="2" Margin="12,0,12,0" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Library.Name}" Style="{StaticResource SepSubtitle}" ToolTip="{Binding Library.Name}" />
-                                                <controls:Badge Content="{Binding Projects.Count}" Margin="8,0,0,0" Padding="7,1" ToolTip="{loc:Tr Lib_ShownTooltip}" />
-                                                <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="10,0,0,0" Visibility="{Binding Library.IsScanning, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                            </StackPanel>
-                                            <TextBlock Text="{Binding Library.Path}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepText2Brush}" Margin="0,3,0,0" ToolTip="{Binding Library.Path}" />
-                                            <TextBlock Text="{Binding StatusText}" Style="{StaticResource SepCaption}" Margin="0,2,0,0" ToolTip="{Binding StatusText}" />
+                                            </ui:SymbolIcon.Style>
+                                        </ui:SymbolIcon>
+                                    </ui:Button>
+                                    <controls:IconTile Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <controls:IconTile.Style>
+                                            <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                                                <Setter Property="Symbol" Value="HardDrive20" />
+                                                <Setter Property="Tone" Value="Info" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Library.IsUnc}" Value="True">
+                                                        <Setter Property="Symbol" Value="Globe20" />
+                                                        <Setter Property="Tone" Value="Purple" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Library.IsReachable}" Value="False">
+                                                        <Setter Property="Symbol" Value="PlugDisconnected20" />
+                                                        <Setter Property="Tone" Value="Danger" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:IconTile.Style>
+                                    </controls:IconTile>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Library.Name}" Style="{StaticResource SepSubtitle}" MaxWidth="460" ToolTip="{Binding Library.Name}" />
+                                            <controls:Badge Content="{Binding Projects.Count}" Margin="10,2,0,0" Padding="8,1" ToolTip="{loc:Tr Lib_ShownTooltip}" />
+                                            <ui:ProgressRing IsIndeterminate="True" Width="14" Height="14" Margin="10,2,0,0" Visibility="{Binding Library.IsScanning, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <!-- state: source + reachability (dot + pill; the error is the tooltip) -->
-                                            <controls:Badge Margin="0,0,6,0" Content="{loc:Tr Project_SourceUnc}" Tone="Purple" Visibility="{Binding Library.IsUnc, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                            <controls:Badge Margin="0,0,6,0" Content="{loc:Tr Project_SourceLocal}" Tone="Info" Visibility="{Binding Library.IsUnc, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                                            <controls:Badge Margin="0,0,12,0" HasDot="True" Tone="Success" Content="{loc:Tr Lib_Reachable}" Visibility="{Binding Library.IsReachable, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                            <controls:Badge Margin="0,0,12,0" HasDot="True" Tone="Danger" Content="{loc:Tr Lib_Unreachable}" ToolTip="{Binding Library.LastError}"
+                                        <!-- state as dot + words (an unreachable library is a red capsule, the error its tooltip), then the path -->
+                                        <WrapPanel Margin="0,5,0,0">
+                                            <controls:Badge IsPlain="True" Tone="Purple" Content="{loc:Tr Project_SourceUnc}" Margin="0,0,12,0"
+                                                            Visibility="{Binding Library.IsUnc, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <controls:Badge IsPlain="True" Tone="Info" Content="{loc:Tr Project_SourceLocal}" Margin="0,0,12,0"
+                                                            Visibility="{Binding Library.IsUnc, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                            <controls:Badge IsPlain="True" Tone="Success" Content="{loc:Tr Lib_ReachableShort}" Margin="0,0,12,0"
+                                                            Visibility="{Binding Library.IsReachable, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <controls:Badge HasDot="True" Tone="Danger" Content="{loc:Tr Lib_UnreachableShort}" Margin="0,0,12,0" Padding="8,1" ToolTip="{Binding Library.LastError}"
                                                             Visibility="{Binding Library.IsReachable, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Layer20}" Content="{loc:Tr Lib_LoadWhole}" Margin="0,0,6,0" Padding="10,5"
-                                                       ToolTip="{loc:Tr Lib_LoadWholeTooltip}" Command="{Binding DataContext.LoadLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" ToolTip="{loc:Tr Usage_CheckLibraryTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckLibraryTooltip}"
-                                                       Command="{Binding DataContext.CheckLibraryUsageCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync20}" ToolTip="{loc:Tr Lib_Rescan}" AutomationProperties.Name="{loc:Tr Lib_Rescan}"
-                                                       Command="{Binding DataContext.RescanLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                            <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" ToolTip="{loc:Tr Lib_OpenFolder}" AutomationProperties.Name="{loc:Tr Lib_OpenFolder}"
-                                                       Command="{Binding DataContext.OpenLibraryFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                            <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete20}" ToolTip="{loc:Tr Lib_Remove}" AutomationProperties.Name="{loc:Tr Lib_Remove}"
-                                                       Command="{Binding DataContext.RemoveLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
-                                        </StackPanel>
-                                    </Grid>
+                                            <TextBlock Text="{Binding Library.Path}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepText2Brush}" MaxWidth="560"
+                                                       VerticalAlignment="Center" ToolTip="{Binding Library.Path}" />
+                                        </WrapPanel>
+                                        <TextBlock Text="{Binding StatusText}" Style="{StaticResource SepCaption}" Margin="0,4,0,0" ToolTip="{Binding StatusText}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ui:Button Style="{StaticResource SepTintedButton}" Icon="{ui:SymbolIcon Symbol=Layer20}" Content="{loc:Tr Lib_LoadWhole}" Margin="0,0,6,0" Padding="12,5"
+                                                   ToolTip="{loc:Tr Lib_LoadWholeTooltip}" Command="{Binding DataContext.LoadLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" ToolTip="{loc:Tr Usage_CheckLibraryTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckLibraryTooltip}"
+                                                   Command="{Binding DataContext.CheckLibraryUsageCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowSync20}" ToolTip="{loc:Tr Lib_Rescan}" AutomationProperties.Name="{loc:Tr Lib_Rescan}"
+                                                   Command="{Binding DataContext.RescanLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" ToolTip="{loc:Tr Lib_OpenFolder}" AutomationProperties.Name="{loc:Tr Lib_OpenFolder}"
+                                                   Command="{Binding DataContext.OpenLibraryFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                        <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete20}" ToolTip="{loc:Tr Lib_Remove}" AutomationProperties.Name="{loc:Tr Lib_Remove}"
+                                                   Command="{Binding DataContext.RemoveLibraryCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Grid>
 
-                                    <!-- projects -->
-                                    <Border BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Background="{DynamicResource SepTrayBrush}" CornerRadius="0,0,11,11"
-                                            Padding="16,16,4,4" Visibility="{Binding Library.IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <StackPanel>
-                                            <ItemsControl ItemsSource="{Binding Projects}" ItemTemplate="{StaticResource ProjectCardTemplate}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                            </ItemsControl>
-                                            <!-- skeleton: three placeholder cards pulse while a scan has nothing to show yet -->
-                                            <WrapPanel x:Name="Skeleton" Visibility="Collapsed" Opacity="1">
-                                                <Border Style="{StaticResource SkeletonCard}" />
-                                                <Border Style="{StaticResource SkeletonCard}" />
-                                                <Border Style="{StaticResource SkeletonCard}" />
-                                            </WrapPanel>
-                                            <TextBlock Text="{Binding EmptyText}" Margin="2,0,0,12">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource SepMuted}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding Projects.Count}" Value="0" />
-                                                                    <Condition Binding="{Binding Library.IsScanning}" Value="False" />
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </Border>
+                                <!-- projects: equal-width card columns (the cards' margin is the gap, hence the -16 on the right) -->
+                                <StackPanel Visibility="{Binding Library.IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <ItemsControl ItemsSource="{Binding Projects}" ItemTemplate="{StaticResource ProjectCardTemplate}" Margin="0,0,-16,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><controls:CardGridPanel MinItemWidth="300" /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                    <!-- skeleton: three placeholder cards pulse only while a scan has nothing to show yet -->
+                                    <controls:CardGridPanel x:Name="Skeleton" MinItemWidth="300" MaxColumns="3" Margin="0,0,-16,0" Visibility="Collapsed" Opacity="1">
+                                        <Border Style="{StaticResource SkeletonCard}" />
+                                        <Border Style="{StaticResource SkeletonCard}" />
+                                        <Border Style="{StaticResource SkeletonCard}" />
+                                    </controls:CardGridPanel>
+                                    <TextBlock Text="{Binding EmptyText}" Margin="2,0,0,8">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource SepMuted}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Projects.Count}" Value="0" />
+                                                            <Condition Binding="{Binding Library.IsScanning}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
-                            </Border>
+                            </StackPanel>
                             <DataTemplate.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>

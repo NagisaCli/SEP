@@ -16,46 +16,57 @@
                 <ResourceDictionary Source="pack://application:,,,/Themes/ProjectCard.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- KPI tile: a SepTileButton in an even UniformGrid row (equal heights) -->
+            <!-- widget tile: a SepTileButton in an even UniformGrid row (equal heights); its margin is the gap -->
             <Style x:Key="KpiTile" TargetType="Button" BasedOn="{StaticResource SepTileButton}">
-                <Setter Property="Margin" Value="0,0,12,12" />
+                <Setter Property="Margin" Value="0,0,16,16" />
                 <Setter Property="MinWidth" Value="150" />
             </Style>
-            <Style x:Key="KpiLabel" TargetType="TextBlock" BasedOn="{StaticResource SepLabel}">
-                <Setter Property="Margin" Value="10,0,0,0" />
+            <Style x:Key="KpiLabel" TargetType="TextBlock" BasedOn="{StaticResource SepTextBase}">
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource SepText2Brush}" />
+                <Setter Property="Margin" Value="9,0,0,0" />
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
             </Style>
+            <!-- header above a group or card in the side column, with room for a trailing link -->
+            <Style x:Key="SideHeader" TargetType="TextBlock" BasedOn="{StaticResource SepGroupHeader}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="14,0,0,0" />
+            </Style>
 
-            <!-- distribution bar -->
+            <!-- distribution bar (Screen Time style): label and count above a thin rounded bar -->
             <DataTemplate x:Key="BarTemplate" DataType="{x:Type vm:DistributionBar}">
-                <Grid Margin="0,0,0,10">
+                <Grid Margin="0,0,0,14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="108" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding Label}">
                         <Ellipse Style="{StaticResource SepStatusDot}" Width="7" Height="7" Margin="0,0,7,0" Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
-                        <TextBlock Text="{Binding Label}" Style="{StaticResource SepMuted}" MaxWidth="92" />
+                        <TextBlock Text="{Binding Label}" Style="{StaticResource SepBody}" FontSize="12.5" MaxWidth="190" />
                     </StackPanel>
-                    <Border Grid.Column="1" Height="6" CornerRadius="3" Background="{DynamicResource SepTrackBrush}" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="1" Text="{Binding Count}" Style="{StaticResource SepNumber}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource SepTextBrush}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    <Border Grid.Row="1" Grid.ColumnSpan="2" Height="6" CornerRadius="3" Margin="0,7,0,0" Background="{DynamicResource SepTrackBrush}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionToStarConverter}}" />
                                 <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionToStarConverter}, ConverterParameter=rest}" />
                             </Grid.ColumnDefinitions>
-                            <Border CornerRadius="3" MinWidth="3" Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                            <Border CornerRadius="3" MinWidth="6" Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
                         </Grid>
                     </Border>
-                    <TextBlock Grid.Column="2" Text="{Binding Count}" Style="{StaticResource SepNumber}" Foreground="{DynamicResource SepTextBrush}" FontWeight="SemiBold"
-                               HorizontalAlignment="Right" VerticalAlignment="Center" />
                 </Grid>
             </DataTemplate>
 
-            <!-- compact project row inside a card (recent / online) -->
+            <!-- compact project row of an inset grouped list (recent / online): glossy monogram, title, library, launch -->
             <DataTemplate x:Key="CompactProjectRow" DataType="{x:Type models:ProjectItem}">
-                <Border Style="{StaticResource SepInsetRow}" Margin="-8,0,-8,2" ContextMenu="{StaticResource ProjectCardMenu}"
+                <Border Style="{StaticResource SepGroupRow}" Padding="16,9,10,9" ContextMenu="{StaticResource ProjectCardMenu}"
                         Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -63,36 +74,30 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource SepAvatar}" Width="32" Height="32" CornerRadius="{StaticResource SepRadiusS}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
-                            <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" FontSize="10" />
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                        <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ProjectMonogram}" Width="32" Height="32" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" VerticalAlignment="Center" MaxWidth="200" ToolTip="{Binding Title}" />
-                                <controls:Badge Tone="Purple" HasDot="True" Margin="6,0,0,0" Padding="6,1" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
+                                <controls:Badge Tone="Purple" Margin="6,0,0,0" Padding="6,0" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
                                     <StackPanel Orientation="Horizontal">
-                                        <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
+                                        <ui:SymbolIcon Symbol="People12" Filled="True" Margin="0,0,3,0" FontSize="11" />
                                         <TextBlock Text="{Binding OnlineBadgeText}" />
                                     </StackPanel>
                                 </controls:Badge>
                             </StackPanel>
-                            <TextBlock Text="{Binding LibraryName}" Style="{StaticResource SepCaption}" Margin="0,1,0,0" />
+                            <TextBlock Text="{Binding LibraryName}" Style="{StaticResource SepCaption}" Margin="0,2,0,0" />
                         </StackPanel>
-                        <ui:Button Grid.Column="2" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Rocket20}" ToolTip="{loc:Tr Projects_SwitchAndLaunch}" AutomationProperties.Name="{loc:Tr Projects_SwitchAndLaunch}"
-                                   Foreground="{DynamicResource SepAccentBrush}" Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
+                        <ui:Button Grid.Column="2" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" ToolTip="{loc:Tr Projects_SwitchAndLaunch}"
+                                   AutomationProperties.Name="{loc:Tr Projects_SwitchAndLaunch}" Foreground="{DynamicResource SepAccentBrush}"
+                                   Command="{Binding DataContext.Actions.LaunchCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                     </Grid>
                 </Border>
             </DataTemplate>
 
-            <!-- shortcut row: tile, label, chevron -->
-            <Style x:Key="ShortcutButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                <Setter Property="Appearance" Value="Transparent" />
-                <Setter Property="HorizontalAlignment" Value="Stretch" />
-                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="Padding" Value="8,6" />
-                <Setter Property="Margin" Value="-8,0,-8,2" />
-                <Setter Property="CornerRadius" Value="{StaticResource SepRadiusS}" />
-            </Style>
+            <!-- the panel of a grouped list of compact rows: hairlines start at the row text (16 + 32 + 12) -->
+            <ItemsPanelTemplate x:Key="CompactRowsPanel">
+                <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" SeparatorInset="60" />
+            </ItemsPanelTemplate>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -102,161 +107,180 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Header: large title, subtitle, actions -->
         <Grid Grid.Row="0" Margin="{StaticResource SepPageHeaderMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <StackPanel>
+            <StackPanel VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{loc:Tr Overview_Title}" Style="{StaticResource SepPageTitle}" />
-                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="14,0,0,0" VerticalAlignment="Center"
+                    <TextBlock Text="{loc:Tr Overview_Title}" Style="{StaticResource SepLargeTitle}" />
+                    <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="14,4,0,0" VerticalAlignment="Center"
                                      Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
                 <TextBlock Text="{loc:Tr Overview_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=People20}" Content="{loc:Tr My_ProbeSessions}" Command="{Binding ProbeCommand}" ToolTip="{loc:Tr My_ProbeSessionsTooltip}" Margin="0,0,8,0" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" Content="{loc:Tr My_ProbeSessions}" Command="{Binding ProbeCommand}" ToolTip="{loc:Tr My_ProbeSessionsTooltip}" Margin="0,0,8,0" />
                 <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add20}" Content="{loc:Tr Projects_CreateButton}" Command="{Binding Actions.CreateProjectCommand}" />
             </StackPanel>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
             <StackPanel Margin="{StaticResource SepPageContentMargin}">
-                <!-- notifications: tone stripe + icon tile, not a full warning-yellow card -->
-                <Border Style="{StaticResource SepCard}" Padding="0" Margin="0,0,0,16" Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="4" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border CornerRadius="11,0,0,11" Background="{DynamicResource SepWarningBrush}" />
-                        <StackPanel Grid.Column="1" Margin="14,12,12,10">
-                            <controls:SectionHeader Title="{loc:Tr Overview_Notifications}" Symbol="Alert20" Tone="Warning" IsCompact="True" Margin="0,0,0,6">
-                                <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Overview_DismissAll}" Command="{Binding DismissAllCommand}" />
-                            </controls:SectionHeader>
-                            <ItemsControl ItemsSource="{Binding Notifications}" Margin="38,0,0,0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type models:NotificationRecord}">
-                                        <Grid Margin="0,4">
+                <!-- notifications: an inset grouped list, each with an orange tile and its own dismiss -->
+                <StackPanel Margin="0,0,0,28" Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="{loc:Tr Overview_Notifications}" Style="{StaticResource SideHeader}" />
+                        <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Overview_DismissAll}" Command="{Binding DismissAllCommand}" HorizontalAlignment="Right" Margin="0,-6,0,-6" />
+                    </Grid>
+                    <Border Style="{StaticResource SepGroup}">
+                        <ItemsControl ItemsSource="{Binding Notifications}" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" SeparatorInset="54" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:NotificationRecord}">
+                                    <Border Style="{StaticResource SepGroupRowStatic}" Padding="16,11,10,11">
+                                        <Grid>
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <StackPanel VerticalAlignment="Center">
+                                            <controls:IconTile Size="Small" Symbol="Alert20" Tone="Warning" VerticalAlignment="Top" Margin="0,1,12,0" />
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" />
-                                                <TextBlock Text="{Binding Message}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                                <TextBlock Text="{Binding Message}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" TextTrimming="None" Margin="0,2,0,0" />
                                             </StackPanel>
-                                            <ui:Button Grid.Column="1" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Dismiss16}" ToolTip="{loc:Tr Overview_Dismiss}" AutomationProperties.Name="{loc:Tr Overview_Dismiss}"
+                                            <ui:Button Grid.Column="2" Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Dismiss16}" ToolTip="{loc:Tr Overview_Dismiss}" AutomationProperties.Name="{loc:Tr Overview_Dismiss}"
+                                                       VerticalAlignment="Top" Margin="8,-2,0,0"
                                                        Command="{Binding DataContext.DismissCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                         </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Hero: what E3D will load, and the one big launch button. The page's only shadow sits on an empty
-                     border behind it (an effect on the hero itself would drop ClearType from its text). -->
-                <Grid Margin="0,0,0,16">
-                    <Border CornerRadius="{StaticResource SepRadiusL}" Background="{DynamicResource SepSurfaceBrush}" Margin="2,2,2,0">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.10" Color="#000000" RenderingBias="Performance" />
-                        </Border.Effect>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Border>
-                    <Border Style="{StaticResource SepHeroCard}">
-                        <Grid>
-                            <!-- set up -->
-                            <Grid Visibility="{Binding HasActiveProject, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
-                                    <TextBlock Text="{loc:Tr Overview_HeroEyebrow}" Style="{StaticResource SepEyebrow}" />
-                                    <TextBlock Text="{Binding ActiveLabel}" Margin="0,4,0,0" ToolTip="{Binding ActiveLabel}">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock" BasedOn="{StaticResource SepDisplay}">
-                                                <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
-                                                <Style.Triggers>
-                                                    <!-- "All my projects" is a phrase, not a code -->
-                                                    <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="all">
-                                                        <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                    <WrapPanel Margin="0,12,0,0">
-                                        <controls:Badge Tone="Accent" Margin="0,2,8,2" Padding="10,3">
-                                            <StackPanel Orientation="Horizontal">
-                                                <ui:SymbolIcon FontSize="12" Margin="0,0,5,0">
-                                                    <ui:SymbolIcon.Style>
-                                                        <Style TargetType="ui:SymbolIcon">
-                                                            <Setter Property="Symbol" Value="Cube20" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="all">
-                                                                    <Setter Property="Symbol" Value="Star20" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="library">
-                                                                    <Setter Property="Symbol" Value="Library20" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </ui:SymbolIcon.Style>
-                                                </ui:SymbolIcon>
-                                                <TextBlock Text="{Binding ActiveMode}" />
-                                            </StackPanel>
-                                        </controls:Badge>
-                                        <controls:Badge Margin="0,2,8,2" Padding="10,3" Visibility="{Binding ActiveLibrary, Converter={StaticResource StringToVisibilityConverter}}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <ui:SymbolIcon Symbol="Library20" FontSize="12" Margin="0,0,5,0" />
-                                                <TextBlock Text="{Binding ActiveLibrary}" MaxWidth="260" TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                        </controls:Badge>
-                                        <controls:Badge Tone="Success" HasDot="True" Margin="0,2,8,2" Padding="10,3" Content="{loc:Tr Main_E3dRunning}"
-                                                        Visibility="{Binding Shell.IsE3dRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    </WrapPanel>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="210">
-                                    <ui:Button Style="{StaticResource SepAccentGradientButton}" Icon="{ui:SymbolIcon Symbol=Rocket24}" Content="{loc:Tr Main_LaunchButton}"
-                                               HorizontalAlignment="Stretch" Padding="20,11" FontSize="14" CornerRadius="{StaticResource SepRadiusM}"
-                                               Command="{Binding Shell.LaunchActiveProjectCommand}" ToolTip="{loc:Tr Main_LaunchTooltip}" />
-                                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Star20}" Content="{loc:Tr Overview_HeroLaunchAll}" Margin="0,8,0,0" Padding="12,7"
-                                               HorizontalAlignment="Stretch" Command="{Binding Actions.LaunchAllMineCommand}" ToolTip="{loc:Tr Main_MenuLaunchAllMine}" />
-                                </StackPanel>
-                            </Grid>
+                </StackPanel>
 
-                            <!-- nothing set up yet -->
-                            <Grid Visibility="{Binding HasActiveProject, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <controls:IconTile Size="Large" Symbol="Rocket24" Tone="Accent" />
-                                <StackPanel Grid.Column="1" Margin="18,0,24,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{loc:Tr Overview_HeroEmptyTitle}" Style="{StaticResource SepTitle}" TextWrapping="Wrap" />
-                                    <TextBlock Text="{loc:Tr Overview_HeroEmptyBody}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
-                                </StackPanel>
-                                <ui:Button Grid.Column="2" Style="{StaticResource SepAccentGradientButton}" Icon="{ui:SymbolIcon Symbol=Folder20}" Content="{loc:Tr Overview_HeroOpenWorkbench}"
-                                           Padding="18,10" CornerRadius="{StaticResource SepRadiusM}" VerticalAlignment="Center" Command="{Binding GoProjectsCommand}" />
-                            </Grid>
+                <!-- Hero, like an App Store app header: the mode's large tile, what E3D will load as a large title, its state as
+                     quiet chips, and the one capsule launch button. The card draws its own soft shadow (no effect). -->
+                <controls:Card Style="{StaticResource SepHeroCard}" Margin="0,0,0,28">
+                    <Grid>
+                        <!-- set up -->
+                        <Grid Visibility="{Binding HasActiveProject, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconTile Size="Large" Width="64" Height="64" FontSize="30" VerticalAlignment="Center">
+                                <controls:IconTile.Style>
+                                    <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
+                                        <Setter Property="Symbol" Value="Cube24" />
+                                        <Setter Property="Tone" Value="Accent" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="all">
+                                                <Setter Property="Symbol" Value="Star24" />
+                                                <Setter Property="Tone" Value="Warning" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="library">
+                                                <Setter Property="Symbol" Value="Library24" />
+                                                <Setter Property="Tone" Value="Info" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </controls:IconTile.Style>
+                            </controls:IconTile>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0,28,0">
+                                <TextBlock Text="{loc:Tr Overview_HeroEyebrow}" Style="{StaticResource SepEyebrow}" />
+                                <TextBlock Text="{Binding ActiveLabel}" Margin="0,4,0,0" ToolTip="{Binding ActiveLabel}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SepDisplay}">
+                                            <Setter Property="FontFamily" Value="{StaticResource SepMonoFont}" />
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                            <Style.Triggers>
+                                                <!-- "All my projects" is a phrase, not a code -->
+                                                <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="all">
+                                                    <Setter Property="FontFamily" Value="{StaticResource SepDisplayFont}" />
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <!-- state: the mode as a soft capsule, the library and E3D's state as dot + words -->
+                                <WrapPanel Margin="0,12,0,0">
+                                    <controls:Badge Tone="Accent" Margin="0,2,12,2" Padding="9,2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon FontSize="12" Margin="0,0,5,0" Filled="True">
+                                                <ui:SymbolIcon.Style>
+                                                    <Style TargetType="ui:SymbolIcon">
+                                                        <Setter Property="Symbol" Value="Cube20" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="all">
+                                                                <Setter Property="Symbol" Value="Star20" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Shell.ActiveMode}" Value="library">
+                                                                <Setter Property="Symbol" Value="Library20" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ui:SymbolIcon.Style>
+                                            </ui:SymbolIcon>
+                                            <TextBlock Text="{Binding ActiveMode}" />
+                                        </StackPanel>
+                                    </controls:Badge>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,12,2" VerticalAlignment="Center"
+                                                Visibility="{Binding ActiveLibrary, Converter={StaticResource StringToVisibilityConverter}}">
+                                        <ui:SymbolIcon Symbol="Library16" FontSize="13" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding ActiveLibrary}" Style="{StaticResource SepMuted}" MaxWidth="260" VerticalAlignment="Center" ToolTip="{Binding ActiveLibrary}" />
+                                    </StackPanel>
+                                    <controls:Badge IsPlain="True" Tone="Success" Margin="0,2,12,2" Content="{loc:Tr Main_E3dRunning}"
+                                                    Visibility="{Binding Shell.IsE3dRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </WrapPanel>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="200">
+                                <ui:Button Style="{StaticResource SepCapsuleButton}" Icon="{ui:SymbolIcon Symbol=Play24, Filled=True}" Content="{loc:Tr Main_LaunchShort}"
+                                           HorizontalAlignment="Stretch" Padding="24,10" MinHeight="42" FontSize="14"
+                                           Command="{Binding Shell.LaunchActiveProjectCommand}" ToolTip="{loc:Tr Main_LaunchTooltip}" />
+                                <ui:Button Style="{StaticResource SepCapsuleSecondaryButton}" Icon="{ui:SymbolIcon Symbol=Star20}" Content="{loc:Tr Overview_HeroLaunchAll}" Margin="0,10,0,0"
+                                           HorizontalAlignment="Stretch" Padding="16,7" MinHeight="34" FontWeight="Medium"
+                                           Command="{Binding Actions.LaunchAllMineCommand}" ToolTip="{loc:Tr Main_MenuLaunchAllMine}" />
+                            </StackPanel>
                         </Grid>
-                    </Border>
-                </Grid>
 
-                <!-- KPI tiles: one even row on a wide window, two rows on a narrow one (see OverviewPage.xaml.cs) -->
-                <UniformGrid x:Name="KpiGrid" Rows="1" Margin="0,0,-12,12">
+                        <!-- nothing set up yet -->
+                        <Grid Visibility="{Binding HasActiveProject, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconTile Size="Large" Width="64" Height="64" FontSize="30" Symbol="Rocket24" Tone="Accent" />
+                            <StackPanel Grid.Column="1" Margin="20,0,28,0" VerticalAlignment="Center">
+                                <TextBlock Text="{loc:Tr Overview_HeroEmptyTitle}" Style="{StaticResource SepTitle}" TextWrapping="Wrap" />
+                                <TextBlock Text="{loc:Tr Overview_HeroEmptyBody}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <ui:Button Grid.Column="2" Style="{StaticResource SepCapsuleButton}" Icon="{ui:SymbolIcon Symbol=Folder20, Filled=True}" Content="{loc:Tr Overview_HeroOpenWorkbench}"
+                                       Padding="20,9" VerticalAlignment="Center" Command="{Binding GoProjectsCommand}" />
+                        </Grid>
+                    </Grid>
+                </controls:Card>
+
+                <!-- widgets: one even row on a wide window, two rows on a narrow one (see OverviewPage.xaml.cs) -->
+                <UniformGrid x:Name="KpiGrid" Rows="1" Margin="0,0,-16,12">
                     <Button Style="{StaticResource KpiTile}" Click="OnProjectsTile" AutomationProperties.Name="{loc:Tr Overview_Projects}">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <controls:IconTile Size="Small" Symbol="Folder20" Tone="Accent" />
                                 <TextBlock Text="{loc:Tr Overview_Projects}" Style="{StaticResource KpiLabel}" />
                             </StackPanel>
-                            <TextBlock Text="{Binding ProjectCount}" Style="{StaticResource SepKpiValue}" Margin="0,12,0,0" />
+                            <TextBlock Text="{Binding ProjectCount}" Style="{StaticResource SepKpiValue}" Margin="0,14,0,2" />
                             <TextBlock Style="{StaticResource SepCaption}">
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{StaticResource FormatConverter}">
@@ -273,7 +297,7 @@
                                 <controls:IconTile Size="Small" Symbol="Star20" Tone="Warning" />
                                 <TextBlock Text="{loc:Tr Nav_MyProjects}" Style="{StaticResource KpiLabel}" />
                             </StackPanel>
-                            <TextBlock Text="{Binding MyCount}" Style="{StaticResource SepKpiValue}" Margin="0,12,0,0" />
+                            <TextBlock Text="{Binding MyCount}" Style="{StaticResource SepKpiValue}" Margin="0,14,0,2" />
                             <TextBlock Text="{loc:Tr Overview_MyHint}" Style="{StaticResource SepCaption}" />
                         </StackPanel>
                     </Button>
@@ -283,7 +307,7 @@
                                 <controls:IconTile Size="Small" Symbol="People20" Tone="Purple" />
                                 <TextBlock Text="{loc:Tr Overview_Online}" Style="{StaticResource KpiLabel}" />
                             </StackPanel>
-                            <TextBlock Text="{Binding OnlineCount}" Style="{StaticResource SepKpiValue}" Margin="0,12,0,0" />
+                            <TextBlock Text="{Binding OnlineCount}" Style="{StaticResource SepKpiValue}" Margin="0,14,0,2" />
                             <TextBlock Style="{StaticResource SepCaption}">
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{StaticResource FormatConverter}">
@@ -313,7 +337,8 @@
                                 </controls:IconTile>
                                 <TextBlock Text="{loc:Tr Overview_Install}" Style="{StaticResource KpiLabel}" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource SepKpiValue}" FontSize="20" Margin="0,16,0,4">
+                            <!-- a word, not a number: one step smaller; the shared 40 px line box keeps it on the numbers' baseline -->
+                            <TextBlock Style="{StaticResource SepKpiValue}" FontSize="24" Margin="0,14,0,2">
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{StaticResource SwitchConverter}">
                                         <Binding Path="E3dInstallOk" />
@@ -332,32 +357,34 @@
                                 <controls:IconTile Size="Small" Symbol="PlugDisconnected20" Tone="Danger" />
                                 <TextBlock Text="{loc:Tr Overview_Unreachable}" Style="{StaticResource KpiLabel}" />
                             </StackPanel>
-                            <TextBlock Text="{Binding UnreachableLibraries}" Style="{StaticResource SepKpiValue}" Margin="0,12,0,0" Foreground="{DynamicResource SepDangerBrush}" />
+                            <TextBlock Text="{Binding UnreachableLibraries}" Style="{StaticResource SepKpiValue}" Margin="0,14,0,2" Foreground="{DynamicResource SepDangerBrush}" />
                             <TextBlock Text="{loc:Tr Overview_UnreachableHint}" Style="{StaticResource SepCaption}" />
                         </StackPanel>
                     </Button>
                 </UniformGrid>
 
-                <!-- two columns -->
+                <!-- two columns: what to open on the left, who and what on the right -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="340" />
-                        <ColumnDefinition Width="300" />
+                        <ColumnDefinition Width="320" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                        <!-- quick launch -->
-                        <controls:SectionHeader Title="{loc:Tr Overview_QuickLaunch}" Symbol="Rocket20" Tone="Accent">
+                    <StackPanel Grid.Column="0" Margin="0,0,28,0">
+                        <!-- quick launch: the starred projects as widget cards in a responsive grid -->
+                        <controls:SectionHeader Title="{loc:Tr Overview_QuickLaunch}">
                             <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Overview_SeeAll}" Command="{Binding GoMyProjectsCommand}" />
                         </controls:SectionHeader>
-                        <ItemsControl ItemsSource="{Binding QuickLaunch}" ItemTemplate="{StaticResource ProjectCardTemplate}" Margin="0,0,-12,0">
+                        <ItemsControl ItemsSource="{Binding QuickLaunch}" ItemTemplate="{StaticResource ProjectCardTemplate}" Margin="0,0,-16,0" Focusable="False">
                             <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                <ItemsPanelTemplate>
+                                    <controls:CardGridPanel MinItemWidth="300" />
+                                </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
-                        <Border Margin="0,0,0,12">
-                            <Border.Style>
-                                <Style TargetType="Border" BasedOn="{StaticResource SepCard}">
+                        <controls:Card Margin="0,0,0,16" Padding="0">
+                            <controls:Card.Style>
+                                <Style TargetType="controls:Card">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding MyCount}" Value="0">
@@ -365,17 +392,17 @@
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Border.Style>
-                            <controls:EmptyState Symbol="Star24" Tone="Warning" Title="{loc:Tr My_EmptyTitle}" Description="{loc:Tr My_EmptyBody}" Padding="16,20">
+                            </controls:Card.Style>
+                            <controls:EmptyState Symbol="Star24" Tone="Warning" Title="{loc:Tr My_EmptyTitle}" Description="{loc:Tr My_EmptyBody}" Padding="24,28">
                                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=Folder20}" Content="{loc:Tr Nav_Projects}" Command="{Binding GoProjectsCommand}" />
                             </controls:EmptyState>
-                        </Border>
+                        </controls:Card>
 
                         <!-- recently discovered -->
-                        <controls:SectionHeader Title="{loc:Tr Overview_Recent}" Symbol="Clock20" Tone="Info" Margin="0,10,0,12" />
-                        <Border Style="{StaticResource SepCard}" Padding="16,8">
+                        <controls:SectionHeader Title="{loc:Tr Overview_Recent}" Margin="0,16,0,14" />
+                        <Border Style="{StaticResource SepGroup}">
                             <Grid>
-                                <ItemsControl ItemsSource="{Binding Recent}" ItemTemplate="{StaticResource CompactProjectRow}" Margin="0,4" />
+                                <ItemsControl ItemsSource="{Binding Recent}" ItemTemplate="{StaticResource CompactProjectRow}" ItemsPanel="{StaticResource CompactRowsPanel}" Focusable="False" />
                                 <controls:EmptyState IsCompact="True" Symbol="Clock20" Tone="Neutral" Title="{loc:Tr Overview_RecentEmptyTitle}" Description="{loc:Tr Overview_RecentEmptyHint}"
                                                      Visibility="{Binding Recent.Count, Converter={StaticResource ZeroToVisibilityConverter}}" />
                             </Grid>
@@ -384,10 +411,10 @@
 
                     <StackPanel Grid.Column="1">
                         <!-- online now -->
-                        <Border Style="{StaticResource SepCard}" Margin="0,0,0,16">
+                        <TextBlock Text="{loc:Tr Overview_OnlineNow}" Style="{StaticResource SepGroupHeader}" />
+                        <Border Style="{StaticResource SepGroup}" Margin="0,0,0,24">
                             <StackPanel>
-                                <controls:SectionHeader Title="{loc:Tr Overview_OnlineNow}" Symbol="People20" Tone="Purple" IsCompact="True" Margin="0,0,0,8" />
-                                <ItemsControl ItemsSource="{Binding Online}" ItemTemplate="{StaticResource CompactProjectRow}" />
+                                <ItemsControl ItemsSource="{Binding Online}" ItemTemplate="{StaticResource CompactProjectRow}" ItemsPanel="{StaticResource CompactRowsPanel}" Focusable="False" />
                                 <controls:EmptyState IsCompact="True" Symbol="People20" Tone="Neutral" Title="{loc:Tr Overview_NobodyOnlineTitle}" Description="{loc:Tr Overview_NobodyOnline}"
                                                      Visibility="{Binding Online.Count, Converter={StaticResource ZeroToVisibilityConverter}}">
                                     <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}" Content="{loc:Tr My_ProbeSessions}" Command="{Binding ProbeCommand}" Padding="10,5" />
@@ -396,63 +423,63 @@
                         </Border>
 
                         <!-- categories -->
-                        <Border Style="{StaticResource SepCard}" Margin="0,0,0,16">
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="{loc:Tr Overview_ByCategory}" Style="{StaticResource SideHeader}" />
+                            <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Category_Manage}" Command="{Binding Actions.ManageCategoriesCommand}" HorizontalAlignment="Right" Margin="0,-6,0,-6" />
+                        </Grid>
+                        <controls:Card Margin="0,0,0,24" Padding="18,16,18,4">
                             <StackPanel>
-                                <controls:SectionHeader Title="{loc:Tr Overview_ByCategory}" Symbol="Tag20" Tone="Accent" IsCompact="True">
-                                    <ui:Button Style="{StaticResource SepLinkButton}" Content="{loc:Tr Category_Manage}" Command="{Binding Actions.ManageCategoriesCommand}" />
-                                </controls:SectionHeader>
-                                <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource BarTemplate}" />
-                                <TextBlock Text="{loc:Tr Overview_NoProjectsYet}" Style="{StaticResource SepMuted}" Margin="0,0,0,6"
+                                <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource BarTemplate}" Focusable="False" />
+                                <TextBlock Text="{loc:Tr Overview_NoProjectsYet}" Style="{StaticResource SepMuted}" Margin="0,0,0,12"
                                            Visibility="{Binding Categories.Count, Converter={StaticResource ZeroToVisibilityConverter}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Card>
 
                         <!-- status -->
-                        <Border Style="{StaticResource SepCard}" Margin="0,0,0,16">
+                        <TextBlock Text="{loc:Tr Overview_ByStatus}" Style="{StaticResource SepGroupHeader}" />
+                        <controls:Card Margin="0,0,0,24" Padding="18,16,18,4">
                             <StackPanel>
-                                <controls:SectionHeader Title="{loc:Tr Overview_ByStatus}" Symbol="DataPie20" Tone="Success" IsCompact="True" />
-                                <ItemsControl ItemsSource="{Binding Statuses}" ItemTemplate="{StaticResource BarTemplate}" />
-                                <TextBlock Text="{loc:Tr Overview_NoProjectsYet}" Style="{StaticResource SepMuted}" Margin="0,0,0,6"
+                                <ItemsControl ItemsSource="{Binding Statuses}" ItemTemplate="{StaticResource BarTemplate}" Focusable="False" />
+                                <TextBlock Text="{loc:Tr Overview_NoProjectsYet}" Style="{StaticResource SepMuted}" Margin="0,0,0,12"
                                            Visibility="{Binding Statuses.Count, Converter={StaticResource ZeroToVisibilityConverter}}" />
                             </StackPanel>
-                        </Border>
+                        </controls:Card>
 
-                        <!-- shortcuts -->
-                        <Border Style="{StaticResource SepCard}" Margin="0,0,0,16">
-                            <StackPanel>
-                                <controls:SectionHeader Title="{loc:Tr Overview_Shortcuts}" Symbol="Flash20" Tone="Neutral" IsCompact="True" Margin="0,0,0,8" />
-                                <ui:Button Style="{StaticResource ShortcutButton}" Command="{Binding GoPluginsCommand}">
+                        <!-- shortcuts: Settings-app rows with the sidebar's tile colours and a trailing chevron -->
+                        <TextBlock Text="{loc:Tr Overview_Shortcuts}" Style="{StaticResource SepGroupHeader}" />
+                        <Border Style="{StaticResource SepGroup}">
+                            <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" SeparatorInset="54">
+                                <Button Style="{StaticResource SepGroupRowButton}" Command="{Binding GoPluginsCommand}" AutomationProperties.Name="{loc:Tr Nav_Plugins}">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                         <controls:IconTile Size="Small" Symbol="PuzzlePiece20" Tone="Purple" />
-                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Plugins}" Style="{StaticResource SepBody}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="14" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Plugins}" Style="{StaticResource SepBody}" Margin="12,0,8,0" VerticalAlignment="Center" />
+                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="13" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
                                     </Grid>
-                                </ui:Button>
-                                <ui:Button Style="{StaticResource ShortcutButton}" Command="{Binding GoToolsCommand}">
+                                </Button>
+                                <Button Style="{StaticResource SepGroupRowButton}" Command="{Binding GoToolsCommand}" AutomationProperties.Name="{loc:Tr Nav_Tools}">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                         <controls:IconTile Size="Small" Symbol="Toolbox20" Tone="Info" />
-                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Tools}" Style="{StaticResource SepBody}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="14" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Tools}" Style="{StaticResource SepBody}" Margin="12,0,8,0" VerticalAlignment="Center" />
+                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="13" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
                                     </Grid>
-                                </ui:Button>
-                                <ui:Button Style="{StaticResource ShortcutButton}" Command="{Binding GoSettingsCommand}">
+                                </Button>
+                                <Button Style="{StaticResource SepGroupRowButton}" Command="{Binding GoSettingsCommand}" AutomationProperties.Name="{loc:Tr Nav_Settings}">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                         <controls:IconTile Size="Small" Symbol="Settings20" Tone="Neutral" />
-                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Settings}" Style="{StaticResource SepBody}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="14" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{loc:Tr Nav_Settings}" Style="{StaticResource SepBody}" Margin="12,0,8,0" VerticalAlignment="Center" />
+                                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight20" FontSize="13" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" />
                                     </Grid>
-                                </ui:Button>
-                                <Border BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,10,0,0">
-                                    <StackPanel>
-                                        <TextBlock Text="{loc:Tr Overview_DataFolder}" Style="{StaticResource SepCaption}" />
-                                        <TextBlock Text="{Binding DataDir}" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepText2Brush}" Margin="0,2,0,0" ToolTip="{Binding DataDir}" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
+                                </Button>
+                            </controls:SeparatedStackPanel>
                         </Border>
+                        <!-- where SEP keeps its data: a footer under the group -->
+                        <StackPanel Margin="14,10,14,0">
+                            <TextBlock Text="{loc:Tr Overview_DataFolder}" Style="{StaticResource SepCaption}" />
+                            <TextBlock Text="{Binding DataDir}" Style="{StaticResource SepMono}" Margin="0,2,0,0" ToolTip="{Binding DataDir}" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </StackPanel>

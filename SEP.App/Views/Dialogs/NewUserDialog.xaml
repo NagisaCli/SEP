@@ -6,96 +6,147 @@
         xmlns:loc="clr-namespace:SEP.App.Localization"
         xmlns:controls="clr-namespace:SEP.App.Controls"
         Title="{Binding Title}"
-        Width="560" SizeToContent="Height"
+        Width="560" SizeToContent="Height" MaxHeight="{x:Static SystemParameters.FullPrimaryScreenHeight}"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
         FontFamily="{StaticResource SepTextFont}"
-        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+        Background="{DynamicResource SepSheetBrush}" Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid>
+    <ui:FluentWindow.Resources>
+        <!-- grouped form on the sheet: a rounded container per group, 48 px rows, hairlines inset to the text -->
+        <Style x:Key="SheetGroup" TargetType="Border" BasedOn="{StaticResource SepGroup}">
+            <Setter Property="Background" Value="{DynamicResource SepSheetGroupBrush}" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style x:Key="SheetRow" TargetType="Grid">
+            <Setter Property="Margin" Value="16,8" />
+            <Setter Property="MinHeight" Value="32" />
+        </Style>
+        <Style x:Key="SheetRowLabel" TargetType="TextBlock" BasedOn="{StaticResource SepBody}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextTrimming" Value="None" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <!-- Apple sheet: opaque sheet colour (whatever the backdrop), centred header, grouped form, buttons bottom-right.
+         The form scrolls when the screen is too short for it; header and buttons stay put. -->
+    <Grid Background="{DynamicResource SepSheetBrush}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,0,24,20">
-            <!-- dialog header -->
-            <Grid Margin="0,0,0,18">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <controls:IconTile Symbol="PersonAdd20" Tone="Accent" VerticalAlignment="Top" />
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Title}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
-                    <TextBlock Text="{loc:Tr Users_NewIntro}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
-                </StackPanel>
-            </Grid>
-
-            <Grid Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="{loc:Tr Users_NewNameLabel}" Style="{StaticResource SepLabel}" />
-                    <ui:TextBox x:Name="NameField" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Users_NewNamePlaceholder}"
-                                CharacterCasing="Upper" MaxLength="32" FontFamily="{StaticResource SepMonoFont}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="{loc:Tr Users_NewSecurityLabel}" Style="{StaticResource SepLabel}" />
-                    <Border Style="{StaticResource SepWell}" Padding="6,5">
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="GeneralRadio" Content="{loc:Tr Users_SecurityGeneral}" IsChecked="{Binding IsGeneral}" Margin="2,0,14,0" />
-                            <RadioButton x:Name="FreeRadio" Content="{loc:Tr Users_SecurityFree}" IsChecked="{Binding IsFree}" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-            <TextBlock Text="{Binding SecurityHint}" Style="{StaticResource SepCaption}" TextWrapping="Wrap" Margin="0,-6,0,14" />
-
-            <Grid Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="{loc:Tr Users_NewPasswordLabel}" Style="{StaticResource SepLabel}" />
-                    <ui:PasswordBox x:Name="PasswordField" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="{loc:Tr Users_PasswordRepeatLabel}" Style="{StaticResource SepLabel}" />
-                    <ui:PasswordBox x:Name="PasswordRepeatField" Password="{Binding PasswordRepeat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32" />
-                </StackPanel>
-            </Grid>
-
-            <TextBlock Text="{loc:Tr Users_NewTeamLabel}" Style="{StaticResource SepLabel}" />
-            <ComboBox x:Name="TeamBox" ItemsSource="{Binding TeamChoices}" SelectedItem="{Binding Team}" HorizontalAlignment="Stretch" Margin="0,0,0,14" IsEditable="True" Text="{Binding TeamText, UpdateSourceTrigger=PropertyChanged}" />
-
-            <TextBlock Text="{loc:Tr Users_NewDescLabel}" Style="{StaticResource SepLabel}" />
-            <ui:TextBox x:Name="DescriptionField" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Users_NewDescPlaceholder}" MaxLength="120" />
-
-            <!-- error -->
-            <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,12,0,0"
-                    Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
-                    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="460" />
-                </StackPanel>
-            </Border>
+        <!-- header -->
+        <StackPanel Grid.Row="1" Margin="28,0,28,20">
+            <controls:IconTile Size="Large" Symbol="PersonAdd20" Tone="Accent" HorizontalAlignment="Center" Margin="0,0,0,14" />
+            <TextBlock Text="{Binding Title}" Style="{StaticResource SepSheetTitle}" />
+            <TextBlock Text="{loc:Tr Users_NewIntro}" Style="{StaticResource SepSheetSubtitle}" Margin="0,6,0,0" />
         </StackPanel>
 
-        <!-- footer -->
-        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ui:Button Content="{loc:Tr Common_Cancel}" Appearance="Secondary" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
-                <ui:Button Content="{loc:Tr Users_CreateButton}" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=PersonAdd20}" Click="OnOk" MinWidth="130" IsDefault="True" />
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <StackPanel Margin="24,0,24,0">
+                <!-- who: name and security level (a segmented control), the level explained under the group -->
+                <StackPanel Margin="0,0,0,16">
+                    <Border Style="{StaticResource SheetGroup}" Margin="0">
+                        <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                            <Grid Style="{StaticResource SheetRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Tr Users_NewNameLabel}" Style="{StaticResource SheetRowLabel}" />
+                                <ui:TextBox x:Name="NameField" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Users_NewNamePlaceholder}"
+                                            CharacterCasing="Upper" MaxLength="32" FontFamily="{StaticResource SepMonoFont}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Grid Style="{StaticResource SheetRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Tr Users_NewSecurityLabel}" Style="{StaticResource SheetRowLabel}" />
+                                <controls:SegmentedPanel Grid.Column="1">
+                                    <RadioButton x:Name="GeneralRadio" Style="{StaticResource SepSegmentItem}" Content="{loc:Tr Users_SecurityGeneral}" IsChecked="{Binding IsGeneral}" MinWidth="88" />
+                                    <RadioButton x:Name="FreeRadio" Style="{StaticResource SepSegmentItem}" Content="{loc:Tr Users_SecurityFree}" IsChecked="{Binding IsFree}" MinWidth="88" />
+                                </controls:SegmentedPanel>
+                            </Grid>
+                        </controls:SeparatedStackPanel>
+                    </Border>
+                    <TextBlock Text="{Binding SecurityHint}" Style="{StaticResource SepGroupFooter}" />
+                </StackPanel>
+
+                <!-- password (optional) and its confirmation -->
+                <Border Style="{StaticResource SheetGroup}">
+                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Tr Users_NewPasswordLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ui:PasswordBox x:Name="PasswordField" Grid.Column="1" Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32"
+                                            VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Tr Users_PasswordRepeatLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ui:PasswordBox x:Name="PasswordRepeatField" Grid.Column="1" Password="{Binding PasswordRepeat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" RevealButtonEnabled="True" MaxLength="32"
+                                            VerticalAlignment="Center" />
+                        </Grid>
+                    </controls:SeparatedStackPanel>
+                </Border>
+
+                <!-- team and description -->
+                <Border Style="{StaticResource SheetGroup}">
+                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Tr Users_NewTeamLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ComboBox x:Name="TeamBox" Grid.Column="1" ItemsSource="{Binding TeamChoices}" SelectedItem="{Binding Team}" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                      IsEditable="True" Text="{Binding TeamText, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Tr Users_NewDescLabel}" Style="{StaticResource SheetRowLabel}" />
+                            <ui:TextBox x:Name="DescriptionField" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{loc:Tr Users_NewDescPlaceholder}"
+                                        MaxLength="120" VerticalAlignment="Center" />
+                        </Grid>
+                    </controls:SeparatedStackPanel>
+                </Border>
+
+                <!-- error: a soft danger row -->
+                <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="12" Padding="12,9" Margin="0,0,0,16"
+                        Visibility="{Binding Error, Converter={StaticResource StringToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:SymbolIcon Symbol="ErrorCircle16" Filled="True" FontSize="15" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                        <TextBlock Grid.Column="1" Text="{Binding Error}" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
             </StackPanel>
-        </Border>
+        </ScrollViewer>
+
+        <!-- buttons bottom-right, the primary one last -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,4,24,22">
+            <ui:Button Content="{loc:Tr Common_Cancel}" Style="{StaticResource SepCapsuleSecondaryButton}" Click="OnCancel" MinWidth="96" Margin="0,0,8,0" IsCancel="True" />
+            <ui:Button Content="{loc:Tr Users_CreateButton}" Style="{StaticResource SepCapsuleButton}" Icon="{ui:SymbolIcon Symbol=PersonAdd20}" Click="OnOk" MinWidth="130" IsDefault="True" />
+        </StackPanel>
     </Grid>
 </ui:FluentWindow>

@@ -2603,4 +2603,31 @@
   <data name="Project_CachedShort" xml:space="preserve">
     <value>缓存</value>
   </data>
+  <data name="Lib_ReachableShort" xml:space="preserve">
+    <value>可访问</value>
+  </data>
+  <data name="Lib_UnreachableShort" xml:space="preserve">
+    <value>不可达</value>
+  </data>
+  <data name="Plugins_EnabledShort" xml:space="preserve">
+    <value>已启用</value>
+  </data>
+  <data name="Plugins_DisabledShort" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="Plugins_IndexStaleShort" xml:space="preserve">
+    <value>索引需重建</value>
+  </data>
+  <data name="My_OfflineShort" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="Create_TemplateLabel" xml:space="preserve">
+    <value>模板工程</value>
+  </data>
+  <data name="Decommission_ArchiveDirRow" xml:space="preserve">
+    <value>归档目录</value>
+  </data>
+  <data name="Category_Empty" xml:space="preserve">
+    <value>还没有分类，请在上方添加第一个。</value>
+  </data>
 </root>

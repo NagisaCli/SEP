@@ -6,87 +6,127 @@
         xmlns:loc="clr-namespace:SEP.App.Localization"
         xmlns:controls="clr-namespace:SEP.App.Controls"
         Title="{loc:Tr Decommission_Title}"
-        Width="560" SizeToContent="Height"
+        Width="560" SizeToContent="Height" MaxHeight="{x:Static SystemParameters.FullPrimaryScreenHeight}"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
         FontFamily="{StaticResource SepTextFont}"
-        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+        Background="{DynamicResource SepSheetBrush}" Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid>
+    <ui:FluentWindow.Resources>
+        <!-- grouped form on the sheet: a rounded container per group, 48 px rows, hairlines inset to the text -->
+        <Style x:Key="SheetGroup" TargetType="Border" BasedOn="{StaticResource SepGroup}">
+            <Setter Property="Background" Value="{DynamicResource SepSheetGroupBrush}" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style x:Key="SheetRow" TargetType="Grid">
+            <Setter Property="Margin" Value="16,8" />
+            <Setter Property="MinHeight" Value="32" />
+        </Style>
+        <Style x:Key="SheetRowLabel" TargetType="TextBlock" BasedOn="{StaticResource SepBody}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextTrimming" Value="None" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <!-- Apple sheet: opaque sheet colour (whatever the backdrop), centred header, grouped form, buttons bottom-right.
+         The form scrolls when the screen is too short for it; header and buttons stay put. -->
+    <Grid Background="{DynamicResource SepSheetBrush}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <StackPanel Grid.Row="1" Margin="24,0,24,20">
-            <!-- dialog header -->
-            <Grid Margin="0,0,0,18">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <controls:IconTile Symbol="ArchiveArrowBack20" Tone="Warning" VerticalAlignment="Top" />
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="{loc:Tr Decommission_Header}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
-                    <TextBlock Text="{loc:Tr Decommission_Hint}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
-                </StackPanel>
-            </Grid>
-
-            <!-- error -->
-            <Border x:Name="ErrorBorder" Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,7" Margin="0,0,0,14" Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal">
-                    <ui:SymbolIcon Symbol="ErrorCircle16" FontSize="14" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
-                    <TextBlock x:Name="ErrorText" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" MaxWidth="460" />
-                </StackPanel>
-            </Border>
-
-            <!-- the project -->
-            <Border Style="{StaticResource SepCard}" Padding="12" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border x:Name="Avatar" Style="{StaticResource SepAvatar}" Width="40" Height="40">
-                        <TextBlock x:Name="TxtCode" Style="{StaticResource SepAvatarText}" FontSize="12" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock x:Name="TxtName" Style="{StaticResource SepBodyStrong}" FontSize="14" />
-                        <TextBlock x:Name="TxtPath" Style="{StaticResource SepMono}" Margin="0,2,0,0" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- what happens -->
-            <StackPanel Margin="0,0,0,16">
-                <CheckBox x:Name="ChkArchive" Content="{loc:Tr Decommission_ArchiveCheckbox}" IsChecked="True" Margin="0,0,0,8" />
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                    <ui:SymbolIcon Symbol="CheckmarkCircle20" FontSize="18" Foreground="{DynamicResource SepSuccessBrush}" Margin="1,0,9,0" VerticalAlignment="Center" />
-                    <TextBlock Text="{loc:Tr Decommission_UnregisterCheckbox}" Style="{StaticResource SepBody}" VerticalAlignment="Center" />
-                </StackPanel>
-                <!-- the destructive option sits in a danger tint -->
-                <Border Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="{StaticResource SepRadiusS}" Padding="10,8">
-                    <CheckBox x:Name="ChkDelete" Content="{loc:Tr Decommission_DeleteCheckbox}" IsChecked="False" Foreground="{DynamicResource SepDangerBrush}" />
-                </Border>
-            </StackPanel>
-
-            <TextBlock Text="{loc:Tr Decommission_ArchiveDirLabel}" Style="{StaticResource SepLabel}" />
-            <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <ui:TextBox x:Name="TxtArchiveDir" FontFamily="{StaticResource SepMonoFont}" Icon="{ui:SymbolIcon Symbol=Folder20}" />
-                <ui:Button Grid.Column="1" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Click="OnBrowseClick" Margin="8,0,0,0" ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
-            </Grid>
+        <!-- header: a warning tile, this takes a project out of service -->
+        <StackPanel Grid.Row="1" Margin="28,0,28,20">
+            <controls:IconTile Size="Large" Symbol="ArchiveArrowBack20" Tone="Warning" HorizontalAlignment="Center" Margin="0,0,0,14" />
+            <TextBlock Text="{loc:Tr Decommission_Header}" Style="{StaticResource SepSheetTitle}" />
+            <TextBlock Text="{loc:Tr Decommission_Hint}" Style="{StaticResource SepSheetSubtitle}" Margin="0,6,0,0" />
         </StackPanel>
 
-        <!-- footer: the destructive action in danger styling -->
-        <Border Grid.Row="2" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,16">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ui:Button Appearance="Secondary" Content="{loc:Tr Common_Cancel}" Click="OnCancelClick" Margin="0,0,8,0" MinWidth="96" IsCancel="True" />
-                <ui:Button x:Name="ConfirmButton" Appearance="Danger" Icon="{ui:SymbolIcon Symbol=ArchiveArrowBack20}" Content="{loc:Tr Decommission_Button}" Click="OnConfirmDecommissionClick" MinWidth="120" />
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <StackPanel Margin="24,0,24,0">
+                <!-- error: a soft danger row (shown by code) -->
+                <Border x:Name="ErrorBorder" Background="{DynamicResource SepDangerSoftBrush}" CornerRadius="12" Padding="12,9" Margin="0,0,0,16" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:SymbolIcon Symbol="ErrorCircle16" Filled="True" FontSize="15" Foreground="{DynamicResource SepDangerBrush}" Margin="0,0,8,0" VerticalAlignment="Top" />
+                        <TextBlock x:Name="ErrorText" Grid.Column="1" Foreground="{DynamicResource SepDangerBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- the project: glossy monogram (its colour is set in code), name and folder -->
+                <Border Style="{StaticResource SheetGroup}">
+                    <Grid Margin="14,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="Avatar" Style="{StaticResource SepAvatar}" Width="44" Height="44" CornerRadius="12">
+                            <Grid>
+                                <Border Style="{StaticResource SepAvatarGloss}" />
+                                <TextBlock x:Name="TxtCode" Style="{StaticResource SepAvatarText}" />
+                            </Grid>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtName" Style="{StaticResource SepBodyStrong}" FontSize="15" />
+                            <TextBlock x:Name="TxtPath" Style="{StaticResource SepMono}" Foreground="{DynamicResource SepText2Brush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- what happens: archive (optional), unregister (always), delete (optional, in a danger tint) -->
+                <Border Style="{StaticResource SheetGroup}">
+                    <controls:SeparatedStackPanel Style="{StaticResource SepGroupStackPlain}">
+                        <Grid Style="{StaticResource SheetRow}">
+                            <CheckBox x:Name="ChkArchive" Content="{loc:Tr Decommission_ArchiveCheckbox}" IsChecked="True" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Style="{StaticResource SheetRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="CheckmarkCircle20" Filled="True" FontSize="19" Foreground="{DynamicResource SepSuccessBrush}" Margin="0,0,9,0" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{loc:Tr Decommission_UnregisterCheckbox}" Style="{StaticResource SheetRowLabel}" />
+                        </Grid>
+                        <Border Background="{DynamicResource SepDangerSoftBrush}">
+                            <Grid Style="{StaticResource SheetRow}">
+                                <CheckBox x:Name="ChkDelete" Content="{loc:Tr Decommission_DeleteCheckbox}" IsChecked="False" Foreground="{DynamicResource SepDangerBrush}" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                    </controls:SeparatedStackPanel>
+                </Border>
+
+                <!-- where the archive goes -->
+                <Border Style="{StaticResource SheetGroup}">
+                    <Grid Style="{StaticResource SheetRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{loc:Tr Decommission_ArchiveDirRow}" Style="{StaticResource SheetRowLabel}" />
+                        <ui:TextBox x:Name="TxtArchiveDir" Grid.Column="1" FontFamily="{StaticResource SepMonoFont}" Icon="{ui:SymbolIcon Symbol=Folder20}" VerticalAlignment="Center" />
+                        <ui:Button Grid.Column="2" Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderOpen20}" Click="OnBrowseClick" Margin="8,0,0,0" VerticalAlignment="Center"
+                                   ToolTip="{loc:Tr Common_Browse}" AutomationProperties.Name="{loc:Tr Common_Browse}" />
+                    </Grid>
+                </Border>
             </StackPanel>
-        </Border>
+        </ScrollViewer>
+
+        <!-- buttons bottom-right, the destructive one last in danger styling -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,4,24,22">
+            <ui:Button Style="{StaticResource SepCapsuleSecondaryButton}" Content="{loc:Tr Common_Cancel}" Click="OnCancelClick" Margin="0,0,8,0" MinWidth="96" IsCancel="True" />
+            <ui:Button x:Name="ConfirmButton" Style="{StaticResource SepCapsuleButton}" Appearance="Danger" Icon="{ui:SymbolIcon Symbol=ArchiveArrowBack20}" Content="{loc:Tr Decommission_Button}"
+                       Click="OnConfirmDecommissionClick" MinWidth="120" />
+        </StackPanel>
     </Grid>
 </ui:FluentWindow>

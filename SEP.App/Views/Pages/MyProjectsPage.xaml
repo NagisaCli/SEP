@@ -19,10 +19,38 @@
             <!-- small up / down order buttons beside the grip -->
             <Style x:Key="OrderButton" TargetType="ui:Button" BasedOn="{StaticResource SepIconButton}">
                 <Setter Property="MinWidth" Value="22" />
-                <Setter Property="MinHeight" Value="20" />
-                <Setter Property="Padding" Value="2" />
+                <Setter Property="MinHeight" Value="18" />
+                <Setter Property="Padding" Value="2,1" />
+                <Setter Property="CornerRadius" Value="5" />
                 <Setter Property="Foreground" Value="{DynamicResource SepText3Brush}" />
             </Style>
+
+            <!-- A whole group (header + list) is one group drop target. The ring stays transparent until the drag
+                 highlight sets a BorderBrush (and clears it back to this style's), so no local BorderBrush here. The
+                 negative margin cancels border + padding: the group lines up with the page header. -->
+            <Style x:Key="GroupDropZone" TargetType="Border">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="CornerRadius" Value="22" />
+                <Setter Property="Padding" Value="6,4,6,6" />
+                <Setter Property="Margin" Value="-8,-6,-8,20" />
+            </Style>
+
+            <!-- the empty-group hint inside the list: also a drop target, so the same transparent ring -->
+            <Style x:Key="EmptyGroupHint" TargetType="Border">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1.5" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Padding" Value="16,16" />
+                <Setter Property="Margin" Value="4" />
+            </Style>
+
+            <!-- rows of a group: hairlines start at the row text (padding 8 + grip 20 + order 32 + monogram 40 + gap 12) -->
+            <ItemsPanelTemplate x:Key="ProjectRowsPanel">
+                <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" SeparatorInset="112" />
+            </ItemsPanelTemplate>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -33,7 +61,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Header: large title with a quiet count, actions on the right -->
         <Grid Grid.Row="0" Margin="{StaticResource SepPageHeaderMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -41,16 +69,18 @@
             </Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{loc:Tr Nav_MyProjects}" Style="{StaticResource SepPageTitle}" />
-                    <controls:Badge Content="{Binding CountText}" Tone="Accent" Margin="12,2,0,0" Padding="9,2" />
+                    <TextBlock Text="{loc:Tr Nav_MyProjects}" Style="{StaticResource SepLargeTitle}" />
+                    <TextBlock Text="{Binding CountText}" Style="{StaticResource SepNumber}" FontSize="15" Foreground="{DynamicResource SepText3Brush}"
+                               Margin="12,0,0,4" VerticalAlignment="Bottom" />
                 </StackPanel>
                 <TextBlock Text="{loc:Tr My_PageSubtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr My_LaunchAll}" Command="{Binding Actions.LaunchAllMineCommand}"
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" Content="{loc:Tr My_LaunchAll}" Command="{Binding Actions.LaunchAllMineCommand}"
                            ToolTip="{loc:Tr My_LaunchAllTooltip}" IsEnabled="{Binding HasItems}" Margin="0,0,8,0" />
                 <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Symbol=FolderAdd20}" Content="{loc:Tr My_NewGroup}" Command="{Binding CreateGroupCommand}" Margin="0,0,12,0"
                            ToolTip="{loc:Tr My_NewGroupTitle}" />
+                <!-- the rare actions, as one toolbar capsule -->
                 <Border Style="{StaticResource SepTrack}">
                     <StackPanel Orientation="Horizontal">
                         <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=ArrowMaximizeVertical20}" ToolTip="{loc:Tr Lib_ExpandAll}" AutomationProperties.Name="{loc:Tr Lib_ExpandAll}"
@@ -61,7 +91,7 @@
                                    Command="{Binding ProbeSessionsCommand}" />
                         <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=Folder20}" ToolTip="{loc:Tr Nav_Projects}" AutomationProperties.Name="{loc:Tr Nav_Projects}"
                                    Command="{Binding GoProjectsCommand}" />
-                        <Border Style="{StaticResource SepToolSeparator}" Margin="4,6" />
+                        <Border Style="{StaticResource SepToolSeparator}" Margin="4,7" />
                         <ui:Button Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete20}" ToolTip="{loc:Tr My_ClearButton}" AutomationProperties.Name="{loc:Tr My_ClearButton}"
                                    Command="{Binding ClearCommand}" />
                     </StackPanel>
@@ -69,43 +99,36 @@
             </StackPanel>
         </Grid>
 
-        <!-- how it works -->
-        <Border Grid.Row="1" Style="{StaticResource SepCard}" Padding="12,10" Margin="32,0,32,16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <controls:IconTile Size="Small" Symbol="Info20" Tone="Info" Margin="0,0,12,0" />
-                <TextBlock Grid.Column="1" Text="{loc:Tr My_Hint}" Style="{StaticResource SepMuted}" TextWrapping="Wrap" VerticalAlignment="Center" TextTrimming="None" />
-            </Grid>
-        </Border>
+        <!-- how it works: a quiet note, not a card -->
+        <Grid Grid.Row="1" Margin="40,-8,40,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ui:SymbolIcon Symbol="Info16" FontSize="14" Foreground="{DynamicResource SepText3Brush}" Margin="0,1,8,0" VerticalAlignment="Top" />
+            <TextBlock Grid.Column="1" Text="{loc:Tr My_Hint}" Style="{StaticResource SepCaption}" FontSize="12" TextWrapping="Wrap" TextTrimming="None" MaxWidth="820" HorizontalAlignment="Left" />
+        </Grid>
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False" beh:SmoothScroll.IsEnabled="True" Focusable="True">
             <StackPanel Margin="{StaticResource SepPageContentMargin}">
                 <!-- empty -->
-                <Border Style="{StaticResource SepCard}" Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                    <controls:EmptyState Symbol="Star24" Tone="Warning" Title="{loc:Tr My_EmptyTitle}" Description="{loc:Tr My_EmptyBody}" Padding="32,40">
+                <controls:Card Padding="0" Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <controls:EmptyState Symbol="Star24" Tone="Warning" Title="{loc:Tr My_EmptyTitle}" Description="{loc:Tr My_EmptyBody}" Padding="32,44">
                         <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Folder20}" Content="{loc:Tr Nav_Projects}" Command="{Binding GoProjectsCommand}" />
                     </controls:EmptyState>
-                </Border>
+                </controls:Card>
 
-                <!-- Groups. Drag & drop (Behaviors/ProjectDragDrop) needs this nesting: the group card and the empty
-                     hint are group drop targets, each row is a draggable item drop target carrying its group id. -->
-                <ItemsControl ItemsSource="{Binding Groups}">
+                <!-- Groups. Drag & drop (Behaviors/ProjectDragDrop) needs this nesting: the group block and the empty hint are
+                     group drop targets, each row is a draggable item drop target carrying its group id. -->
+                <ItemsControl ItemsSource="{Binding Groups}" Focusable="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:MyProjectGroupViewModel}">
                             <!-- no local BorderBrush: the drag highlight sets one and clears it back to the style's -->
-                            <Border Style="{StaticResource SepCard}" Margin="0,0,0,16" Padding="0"
+                            <Border Style="{StaticResource GroupDropZone}"
                                     beh:ProjectDragDrop.IsDropTargetGroup="True" beh:ProjectDragDrop.GroupId="{Binding Id}">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <!-- group header -->
-                                    <Grid Grid.Row="0" Margin="10,10,12,10">
+                                <StackPanel>
+                                    <!-- group header on the page: chevron, tile, name + count, actions -->
+                                    <Grid Margin="0,0,0,10">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
@@ -113,9 +136,9 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <ui:Button Style="{StaticResource SepIconButton}" Command="{Binding ToggleExpandedCommand}"
+                                        <ui:Button Style="{StaticResource SepIconButton}" Command="{Binding ToggleExpandedCommand}" Margin="-6,0,0,0"
                                                    ToolTip="{loc:Tr Lib_ToggleTooltip}" AutomationProperties.Name="{Binding Name}">
-                                            <ui:SymbolIcon FontSize="16">
+                                            <ui:SymbolIcon FontSize="14">
                                                 <ui:SymbolIcon.Style>
                                                     <Style TargetType="ui:SymbolIcon">
                                                         <Setter Property="Symbol" Value="ChevronRight20" />
@@ -129,8 +152,8 @@
                                             </ui:SymbolIcon>
                                         </ui:Button>
 
-                                        <!-- custom group: folder; the default (ungrouped) list: star -->
-                                        <controls:IconTile Grid.Column="1" Size="Small" Margin="4,0,10,0">
+                                        <!-- custom group: blue folder; the default (ungrouped) list: orange star -->
+                                        <controls:IconTile Grid.Column="1" Size="Small" Margin="2,0,10,0">
                                             <controls:IconTile.Style>
                                                 <Style TargetType="controls:IconTile" BasedOn="{StaticResource {x:Type controls:IconTile}}">
                                                     <Setter Property="Symbol" Value="Folder20" />
@@ -146,15 +169,15 @@
                                         </controls:IconTile>
 
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" Style="{StaticResource SepSubtitle}" />
-                                            <controls:Badge Content="{Binding CountText}" Margin="10,0,0,0" />
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource SepSubtitle}" ToolTip="{Binding Name}" />
+                                            <TextBlock Text="{Binding CountText}" Style="{StaticResource SepNumber}" Foreground="{DynamicResource SepText3Brush}" Margin="10,2,0,0" VerticalAlignment="Center" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                                             <!-- writes all projects of this group to custom_evars.bat and launches E3D -->
-                                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr My_LaunchGroup}"
+                                            <ui:Button Style="{StaticResource SepTintedButton}" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" Content="{loc:Tr My_LaunchGroup}"
                                                        ToolTip="{loc:Tr My_LaunchGroupTooltip}" Command="{Binding LaunchGroupCommand}" IsEnabled="{Binding HasItems}"
-                                                       Padding="12,5" Margin="0,0,8,0" />
+                                                       Padding="12,5" Margin="0,0,6,0" />
                                             <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=PeopleSearch20}"
                                                        ToolTip="{loc:Tr Usage_CheckGroupTooltip}" AutomationProperties.Name="{loc:Tr Usage_CheckGroupTooltip}"
                                                        Command="{Binding CheckUsageCommand}" IsEnabled="{Binding HasItems}" />
@@ -167,32 +190,24 @@
                                         </StackPanel>
                                     </Grid>
 
-                                    <!-- group content (tray) -->
-                                    <Border Grid.Row="1" Background="{DynamicResource SepTrayBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0"
-                                            CornerRadius="0,0,11,11" Padding="12,12,12,6" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <!-- the projects of this group: an inset grouped list -->
+                                    <Border Style="{StaticResource SepGroup}" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <StackPanel>
                                             <!-- empty hint: also a drop target; the drag highlight lights its outline -->
-                                            <Border beh:ProjectDragDrop.IsDropTargetGroup="True" beh:ProjectDragDrop.GroupId="{Binding Id}"
-                                                    Background="Transparent" Padding="16,14" Margin="0,0,0,6" CornerRadius="{StaticResource SepRadiusM}"
+                                            <Border Style="{StaticResource EmptyGroupHint}" beh:ProjectDragDrop.IsDropTargetGroup="True" beh:ProjectDragDrop.GroupId="{Binding Id}"
                                                     Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource SepBorderStrongBrush}" />
-                                                        <Setter Property="BorderThickness" Value="1" />
-                                                    </Style>
-                                                </Border.Style>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="16" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,8,0" />
-                                                    <TextBlock Text="{loc:Tr My_GroupEmptyHint}" Style="{StaticResource SepMuted}" VerticalAlignment="Center" />
+                                                    <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="16" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{loc:Tr My_GroupEmptyHint}" Style="{StaticResource SepMuted}" VerticalAlignment="Center" TextWrapping="Wrap" TextTrimming="None" />
                                                 </StackPanel>
                                             </Border>
 
                                             <!-- projects of this group -->
-                                            <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl ItemsSource="{Binding Items}" ItemsPanel="{StaticResource ProjectRowsPanel}" Focusable="False">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate DataType="{x:Type models:ProjectItem}">
                                                         <!-- Tag is the page's ProjectActions, looked up once per row; the action buttons reach it by name -->
-                                                        <Border x:Name="RowHost" Style="{StaticResource SepRow}" Padding="8,10,12,10" Margin="0,0,0,6"
+                                                        <Border x:Name="RowHost" Style="{StaticResource SepGroupRow}" Padding="8,10,12,10"
                                                                 ContextMenu="{StaticResource ProjectCardMenu}" Tag="{Binding DataContext.Actions, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                 beh:ProjectDragDrop.IsDraggable="True"
                                                                 beh:ProjectDragDrop.IsDropTargetItem="True"
@@ -217,14 +232,14 @@
                                                                     <ui:Button Style="{StaticResource OrderButton}" Icon="{ui:SymbolIcon Symbol=ChevronDown16}" ToolTip="{loc:Tr My_MoveDown}" AutomationProperties.Name="{loc:Tr My_MoveDown}"
                                                                                Command="{Binding DataContext.MoveDownCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
                                                                 </StackPanel>
-                                                                <Border Grid.Column="2" Style="{StaticResource SepAvatar}" Background="{Binding Badge, Converter={StaticResource PaletteConverter}}">
-                                                                    <TextBlock Text="{Binding Badge}" Style="{StaticResource SepAvatarText}" FontSize="11" />
-                                                                </Border>
+                                                                <ContentPresenter Grid.Column="2" Content="{Binding}" ContentTemplate="{StaticResource ProjectMonogram}" Width="40" Height="40" VerticalAlignment="Center" />
                                                                 <StackPanel Grid.Column="3" Margin="12,0,12,0" VerticalAlignment="Center">
+                                                                    <!-- title, then status as dot + words; capsules only for what must stand out -->
                                                                     <WrapPanel>
-                                                                        <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="{Binding Title}" />
-                                                                        <controls:Badge Content="{loc:Tr Projects_ActiveBadge}" Tone="Success" IsSolid="True" Margin="0,1,6,1" Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                                        <controls:Badge HasDot="True" Tone="{Binding Status, Converter={StaticResource StatusToToneConverter}}" Margin="0,1,6,1"
+                                                                        <TextBlock Text="{Binding Title}" Style="{StaticResource SepBodyStrong}" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="{Binding Title}" />
+                                                                        <controls:Badge Content="{loc:Tr Projects_ActiveShort}" Tone="Accent" IsSolid="True" Padding="8,1" Margin="0,1,10,1"
+                                                                                        Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                                        <controls:Badge IsPlain="True" Tone="{Binding Status, Converter={StaticResource StatusToToneConverter}}" Margin="0,1,12,1"
                                                                                         Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                             <controls:Badge.Content>
                                                                                 <MultiBinding Converter="{StaticResource StatusLabelConverter}">
@@ -233,28 +248,35 @@
                                                                                 </MultiBinding>
                                                                             </controls:Badge.Content>
                                                                         </controls:Badge>
-                                                                        <controls:Badge HasDot="True" Margin="0,1,6,1" Visibility="{Binding HasCategory, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                        <controls:Badge IsPlain="True" Margin="0,1,12,1" Visibility="{Binding HasCategory, Converter={StaticResource BoolToVisibilityConverter}}"
                                                                                         Content="{Binding Category.Name}" DotBrush="{Binding Category.Color, Converter={StaticResource HexToBrushConverter}}" />
-                                                                        <controls:Badge Tone="Warning" Margin="0,1,6,1" Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                        <controls:Badge Tone="Warning" Padding="7,1" Margin="0,1,8,1" Visibility="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}">
                                                                             <StackPanel Orientation="Horizontal">
-                                                                                <ui:SymbolIcon Symbol="LockClosed12" Margin="0,0,3,0" FontSize="11" />
-                                                                                <TextBlock Text="{loc:Tr Project_LockActive}" />
+                                                                                <ui:SymbolIcon Symbol="LockClosed12" Filled="True" Margin="0,0,4,0" FontSize="11" />
+                                                                                <TextBlock Text="{loc:Tr Project_Locked}" />
                                                                             </StackPanel>
                                                                         </controls:Badge>
-                                                                        <controls:Badge Tone="Purple" HasDot="True" Margin="0,1,6,1" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
+                                                                        <controls:Badge Tone="Purple" Padding="7,1" Margin="0,1,8,1" Visibility="{Binding IsOnline, Converter={StaticResource BoolToVisibilityConverter}}" ToolTip="{Binding OnlineSummary}">
                                                                             <StackPanel Orientation="Horizontal">
-                                                                                <ui:SymbolIcon Symbol="People12" Margin="0,0,3,0" FontSize="11" />
+                                                                                <ui:SymbolIcon Symbol="People12" Filled="True" Margin="0,0,4,0" FontSize="11" />
                                                                                 <TextBlock Text="{Binding OnlineBadgeText}" />
                                                                             </StackPanel>
                                                                         </controls:Badge>
-                                                                        <controls:Badge Tone="Danger" HasDot="True" Margin="0,1,6,1" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                                                        Content="{loc:Tr My_Offline}" ToolTip="{loc:Tr My_OfflineTooltip}" />
-                                                                        <controls:Badge Margin="0,1,6,1" Visibility="{Binding HasOwner, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                                            <StackPanel Orientation="Horizontal">
-                                                                                <ui:SymbolIcon Symbol="Person12" Margin="0,0,3,0" FontSize="11" />
-                                                                                <TextBlock Text="{Binding Owner}" />
-                                                                            </StackPanel>
-                                                                        </controls:Badge>
+                                                                        <controls:Badge Tone="Danger" Padding="7,1" Margin="0,1,8,1" Visibility="{Binding IsCached, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                                        Content="{loc:Tr My_OfflineShort}" ToolTip="{loc:Tr My_OfflineTooltip}" />
+                                                                    </WrapPanel>
+                                                                    <!-- where it lives: library · evars path; then owner and tags -->
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                                        <ui:SymbolIcon Symbol="Library16" FontSize="12" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding LibraryName}" Style="{StaticResource SepCaption}" FontSize="11.5" VerticalAlignment="Center" />
+                                                                        <TextBlock Text="·" Style="{StaticResource SepCaption}" Margin="6,0" VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding BatPath}" Style="{StaticResource SepMono}" ToolTip="{Binding BatPath}" MaxWidth="560" VerticalAlignment="Center" />
+                                                                    </StackPanel>
+                                                                    <WrapPanel Margin="0,4,0,0">
+                                                                        <StackPanel Orientation="Horizontal" Margin="0,2,10,2" VerticalAlignment="Center" Visibility="{Binding HasOwner, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                            <ui:SymbolIcon Symbol="Person12" FontSize="12" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                                            <TextBlock Text="{Binding Owner}" Style="{StaticResource SepCaption}" FontSize="11.5" MaxWidth="180" VerticalAlignment="Center" />
+                                                                        </StackPanel>
                                                                         <ItemsControl ItemsSource="{Binding Tags, Converter={StaticResource TakeConverter}, ConverterParameter=3}" ItemTemplate="{StaticResource TagChip}"
                                                                                       VerticalAlignment="Center" Focusable="False" Visibility="{Binding HasTags, Converter={StaticResource BoolToVisibilityConverter}}"
                                                                                       ToolTip="{Binding Tags, Converter={StaticResource JoinConverter}}">
@@ -266,16 +288,11 @@
                                                                             <TextBlock Text="{Binding Tags, Converter={StaticResource OverflowCountConverter}, ConverterParameter=3}" Style="{StaticResource SepChipText}" />
                                                                         </Border>
                                                                     </WrapPanel>
-                                                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
-                                                                        <ui:SymbolIcon Symbol="Library20" FontSize="12" Foreground="{DynamicResource SepText3Brush}" Margin="0,0,4,0" VerticalAlignment="Center" />
-                                                                        <TextBlock Text="{Binding LibraryName}" Style="{StaticResource SepCaption}" VerticalAlignment="Center" />
-                                                                        <Ellipse Width="3" Height="3" Fill="{DynamicResource SepText3Brush}" Margin="7,1,7,0" VerticalAlignment="Center" />
-                                                                        <TextBlock Text="{Binding BatPath}" Style="{StaticResource SepMono}" ToolTip="{Binding BatPath}" MaxWidth="600" VerticalAlignment="Center" />
-                                                                    </StackPanel>
                                                                     <TextBlock Text="{Binding Description}" Style="{StaticResource SepMuted}" Margin="0,4,0,0" Visibility="{Binding HasDescription, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                                 </StackPanel>
+                                                                <!-- actions: one tinted capsule, the rest quiet icons -->
                                                                 <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Rocket20}" Content="{loc:Tr Projects_SwitchAndLaunch}" Padding="10,5" Margin="0,0,8,0"
+                                                                    <ui:Button Style="{StaticResource SepTintedButton}" Icon="{ui:SymbolIcon Symbol=Play20, Filled=True}" Content="{loc:Tr Projects_SwitchAndLaunch}" Padding="12,5" Margin="0,0,6,0"
                                                                                Command="{Binding Tag.LaunchCommand, ElementName=RowHost}" CommandParameter="{Binding}" />
                                                                     <ui:Button Style="{StaticResource SepIconButton}" Icon="{ui:SymbolIcon Symbol=FolderArrowRight20}" ToolTip="{loc:Tr My_MoveToGroup}" AutomationProperties.Name="{loc:Tr My_MoveToGroup}"
                                                                                Command="{Binding DataContext.MoveToGroupCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" />
@@ -295,7 +312,7 @@
                                             </ItemsControl>
                                         </StackPanel>
                                     </Border>
-                                </Grid>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

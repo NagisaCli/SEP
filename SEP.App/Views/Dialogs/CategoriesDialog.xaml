@@ -12,9 +12,24 @@
         ResizeMode="CanResize" ShowInTaskbar="False"
         ExtendsContentIntoTitleBar="True" WindowBackdropType="{x:Static sepsvc:ThemeService.Backdrop}"
         FontFamily="{StaticResource SepTextFont}"
-        Background="{DynamicResource SepPageBrush}" Foreground="{DynamicResource SepTextBrush}">
+        Background="{DynamicResource SepSheetBrush}" Foreground="{DynamicResource SepTextBrush}">
 
-    <Grid>
+    <ui:FluentWindow.Resources>
+        <!-- grouped list on the sheet: a rounded container, rows with inset hairlines -->
+        <Style x:Key="SheetGroup" TargetType="Border" BasedOn="{StaticResource SepGroup}">
+            <Setter Property="Background" Value="{DynamicResource SepSheetGroupBrush}" />
+        </Style>
+        <!-- the name of a category reads as text in its row and becomes a field on hover / focus -->
+        <Style x:Key="InlineNameBox" TargetType="ui:TextBox" BasedOn="{StaticResource {x:Type ui:TextBox}}">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <!-- Apple sheet: opaque sheet colour (whatever the backdrop), centred header, the add row and the list as grouped
+         lists, the status line and Close at the bottom. -->
+    <Grid Background="{DynamicResource SepSheetBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -24,68 +39,75 @@
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Title="" ShowMinimize="False" ShowMaximize="False" />
 
-        <!-- dialog header -->
-        <Grid Grid.Row="1" Margin="24,0,24,18">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <controls:IconTile Symbol="Tag20" Tone="Accent" VerticalAlignment="Top" />
-            <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                <TextBlock Text="{loc:Tr Category_Manage}" Style="{StaticResource SepTitle}" FontSize="18" TextWrapping="Wrap" />
-                <TextBlock Text="{loc:Tr Category_Subtitle}" Style="{StaticResource SepPageSubtitle}" Margin="0,4,0,0" />
-            </StackPanel>
-        </Grid>
+        <!-- header -->
+        <StackPanel Grid.Row="1" Margin="28,0,28,20">
+            <controls:IconTile Size="Large" Symbol="Tag20" Tone="Accent" HorizontalAlignment="Center" Margin="0,0,0,14" />
+            <TextBlock Text="{loc:Tr Category_Manage}" Style="{StaticResource SepSheetTitle}" />
+            <TextBlock Text="{loc:Tr Category_Subtitle}" Style="{StaticResource SepSheetSubtitle}" Margin="0,6,0,0" />
+        </StackPanel>
 
-        <!-- add -->
-        <Grid Grid.Row="2" Margin="24,0,24,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <ui:TextBox x:Name="NewName" PlaceholderText="{loc:Tr Category_NewPlaceholder}" MaxLength="30" KeyDown="OnNewNameKeyDown" Icon="{ui:SymbolIcon Symbol=Tag20}" />
-            <ui:Button Grid.Column="1" Appearance="Primary" Icon="{ui:SymbolIcon Symbol=Add20}" Content="{loc:Tr Category_Add}" Margin="8,0,0,0" Click="OnAdd" />
-        </Grid>
-
-        <!-- list -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="List" Margin="24,0,24,12">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type local:CategoryRow}">
-                        <Border Style="{StaticResource SepRow}" Padding="8,6,8,6" Margin="0,0,0,6">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <!-- colour swatch: click cycles through the palette -->
-                                <ui:Button Appearance="Transparent" Width="32" Height="32" MinWidth="0" MinHeight="0" Padding="0" Click="OnCycleColor" Tag="{Binding}"
-                                           ToolTip="{loc:Tr Category_ColorTooltip}" AutomationProperties.Name="{loc:Tr Category_ColorTooltip}">
-                                    <Border Width="18" Height="18" CornerRadius="9" Background="{Binding Color}" BorderBrush="{DynamicResource SepBorderStrongBrush}" BorderThickness="1" />
-                                </ui:Button>
-                                <ui:TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" MaxLength="30" LostFocus="OnNameLostFocus" Tag="{Binding}" />
-                                <TextBlock Grid.Column="2" Text="{Binding UsageText}" Style="{StaticResource SepNumber}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                <ui:Button Grid.Column="3" Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete20}" ToolTip="{loc:Tr Category_Delete}"
-                                           AutomationProperties.Name="{loc:Tr Category_Delete}" Click="OnDelete" Tag="{Binding}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <!-- footer -->
-        <Border Grid.Row="4" Background="{DynamicResource SepSurfaceBrush}" BorderBrush="{DynamicResource SepDividerBrush}" BorderThickness="0,1,0,0" Padding="24,14">
-            <Grid>
+        <!-- add: a one-row group with the name field and the button -->
+        <Border Grid.Row="2" Style="{StaticResource SheetGroup}" Margin="24,0,24,16">
+            <Grid Margin="12,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="Status" Style="{StaticResource SepStatusText}" Margin="0,0,12,0" />
-                <ui:Button Grid.Column="1" Content="{loc:Tr Common_Close}" Appearance="Secondary" Click="OnClose" MinWidth="96" IsCancel="True" />
+                <ui:TextBox x:Name="NewName" PlaceholderText="{loc:Tr Category_NewPlaceholder}" MaxLength="30" KeyDown="OnNewNameKeyDown" Icon="{ui:SymbolIcon Symbol=Tag20}"
+                            VerticalAlignment="Center" />
+                <ui:Button Grid.Column="1" Style="{StaticResource SepCapsuleButton}" Icon="{ui:SymbolIcon Symbol=Add20}" Content="{loc:Tr Category_Add}" Margin="8,0,0,0" Padding="16,7"
+                           MinHeight="32" VerticalAlignment="Center" Click="OnAdd" />
             </Grid>
         </Border>
+
+        <!-- the categories: swatch (click cycles the colour), name (edit in place), usage, delete -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <StackPanel Margin="24,0,24,16">
+                <!-- hidden while empty, or its hairline rim would show as a sliver -->
+                <Border Style="{StaticResource SheetGroup}" Visibility="{Binding Items.Count, ElementName=List, Converter={StaticResource NonZeroToVisibilityConverter}}">
+                    <ItemsControl x:Name="List" Focusable="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <controls:SeparatedStackPanel Style="{StaticResource SepGroupStack}" SeparatorInset="52" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:CategoryRow}">
+                                <Grid Margin="8,6,10,6" MinHeight="36">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:Button Appearance="Transparent" Width="34" Height="34" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="17" Click="OnCycleColor" Tag="{Binding}"
+                                               VerticalAlignment="Center" ToolTip="{loc:Tr Category_ColorTooltip}" AutomationProperties.Name="{loc:Tr Category_ColorTooltip}">
+                                        <Ellipse Width="18" Height="18" Fill="{Binding Color, Converter={StaticResource HexToBrushConverter}}" Stroke="{DynamicResource SepBorderBrush}" StrokeThickness="1" />
+                                    </ui:Button>
+                                    <ui:TextBox Grid.Column="1" Style="{StaticResource InlineNameBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,8,0" MaxLength="30"
+                                                LostFocus="OnNameLostFocus" Tag="{Binding}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding UsageText}" Style="{StaticResource SepNumber}" Foreground="{DynamicResource SepText3Brush}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ui:Button Grid.Column="3" Style="{StaticResource SepDangerIconButton}" Icon="{ui:SymbolIcon Symbol=Delete20}" ToolTip="{loc:Tr Category_Delete}"
+                                               AutomationProperties.Name="{loc:Tr Category_Delete}" Click="OnDelete" Tag="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+                <!-- nothing filed yet -->
+                <TextBlock Text="{loc:Tr Category_Empty}" Style="{StaticResource SepGroupFooter}" HorizontalAlignment="Center" TextAlignment="Center" Margin="14,4,14,0"
+                           Visibility="{Binding Items.Count, ElementName=List, Converter={StaticResource ZeroToVisibilityConverter}}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- status line left, Close right -->
+        <Grid Grid.Row="4" Margin="24,4,24,22">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="Status" Style="{StaticResource SepStatusText}" Margin="2,0,12,0" />
+            <ui:Button Grid.Column="1" Content="{loc:Tr Common_Close}" Style="{StaticResource SepCapsuleSecondaryButton}" Click="OnClose" MinWidth="96" IsCancel="True" />
+        </Grid>
     </Grid>
 </ui:FluentWindow>

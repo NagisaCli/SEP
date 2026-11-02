@@ -2531,4 +2531,31 @@ Save them anyway?</value>
   <data name="Project_CachedShort" xml:space="preserve">
     <value>Cached</value>
   </data>
+  <data name="Lib_ReachableShort" xml:space="preserve">
+    <value>Reachable</value>
+  </data>
+  <data name="Lib_UnreachableShort" xml:space="preserve">
+    <value>Unreachable</value>
+  </data>
+  <data name="Plugins_EnabledShort" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Plugins_DisabledShort" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Plugins_IndexStaleShort" xml:space="preserve">
+    <value>Index needs rebuild</value>
+  </data>
+  <data name="My_OfflineShort" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="Create_TemplateLabel" xml:space="preserve">
+    <value>Template project</value>
+  </data>
+  <data name="Decommission_ArchiveDirRow" xml:space="preserve">
+    <value>Archive folder</value>
+  </data>
+  <data name="Category_Empty" xml:space="preserve">
+    <value>No categories yet. Add the first one above.</value>
+  </data>
 </root>

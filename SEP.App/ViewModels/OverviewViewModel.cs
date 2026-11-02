@@ -22,6 +22,9 @@ public sealed record DistributionBar(string Label, int Count, double Fraction, s
 /// <summary>Dashboard numbers and lists; everything comes from the catalog and refreshes with it.</summary>
 public partial class OverviewViewModel : ObservableObject
 {
+    // systemGray: the bar of "no category" / "no status"
+    private const string NeutralColor = "#8E8E93";
+
     private readonly IProjectCatalog _catalog;
     private readonly SessionService _sessions;
     private readonly E3dToolsService _tools;
@@ -124,11 +127,12 @@ public partial class OverviewViewModel : ObservableObject
             if (n > 0) Categories.Add(new DistributionBar(c.Name, n, (double)n / total, c.Color));
         }
         int uncategorised = projects.Count(p => p.Category == null);
-        if (uncategorised > 0) Categories.Add(new DistributionBar(Strings.Category_None, uncategorised, (double)uncategorised / total, "#6B7280"));
+        if (uncategorised > 0) Categories.Add(new DistributionBar(Strings.Category_None, uncategorised, (double)uncategorised / total, NeutralColor));
 
         Statuses.Clear();
-        // same tones as the status pills (StatusToToneConverter): in progress, completed, on hold, archived
-        string[] colors = { "#34D399", "#60A5FA", "#FBBF24", "#94A3B8" };
+        // same tones as the status dots (StatusToToneConverter): in progress, completed, on hold, archived, as Apple's
+        // system green, cyan, orange and grey (vivid in both themes; the bars carry no text)
+        string[] colors = { "#34C759", "#32ADE6", "#FF9500", NeutralColor };
         int i = 0;
         foreach (var token in IProjectCatalog.StatusOptions)
         {
@@ -137,7 +141,7 @@ public partial class OverviewViewModel : ObservableObject
             i++;
         }
         int noStatus = projects.Count(p => p.Status.Length == 0);
-        if (noStatus > 0) Statuses.Add(new DistributionBar(Strings.Status_None, noStatus, (double)noStatus / total, "#6B7280"));
+        if (noStatus > 0) Statuses.Add(new DistributionBar(Strings.Status_None, noStatus, (double)noStatus / total, NeutralColor));
 
         Notifications.Clear();
         foreach (var n in _catalog.ActiveNotifications.OrderByDescending(n => n.CreatedAt)) Notifications.Add(n);
