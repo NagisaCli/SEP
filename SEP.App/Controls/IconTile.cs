@@ -6,17 +6,18 @@ namespace SEP.App.Controls;
 
 public enum IconTileSize
 {
-    /// <summary>28 px: section headers, compact rows.</summary>
+    /// <summary>26 px: list rows, settings rows, section headers.</summary>
     Small,
-    /// <summary>36 px: card headers, KPI tiles, settings rows, dialog headers.</summary>
+    /// <summary>32 px: card headers, widgets, dialog rows.</summary>
     Medium,
     /// <summary>56 px: empty states.</summary>
     Large,
 }
 
 /// <summary>
-/// Rounded square with a soft tone tint and a Fluent symbol in the tone colour: the icon anchor of section headers,
-/// KPI tiles, empty states, settings rows and dialog headers. Template and tone colours: Themes/Generic.xaml.
+/// Squircle icon tile in the Apple manner: a white glyph on the tone's system colour (the Settings-app row icon). With
+/// <see cref="IsSubtle"/> it is the quiet form instead, a soft tint with the glyph in the tone colour (empty states,
+/// inline hints). Template and tone colours: Themes/Generic.xaml.
 /// </summary>
 public class IconTile : Control
 {
@@ -28,6 +29,9 @@ public class IconTile : Control
 
     public static readonly DependencyProperty SizeProperty =
         DependencyProperty.Register(nameof(Size), typeof(IconTileSize), typeof(IconTile), new PropertyMetadata(IconTileSize.Medium));
+
+    public static readonly DependencyProperty IsSubtleProperty =
+        DependencyProperty.Register(nameof(IsSubtle), typeof(bool), typeof(IconTile), new PropertyMetadata(false));
 
     public static readonly DependencyProperty FilledProperty =
         DependencyProperty.Register(nameof(Filled), typeof(bool), typeof(IconTile), new PropertyMetadata(false));
@@ -55,6 +59,12 @@ public class IconTile : Control
     {
         get => (IconTileSize)GetValue(SizeProperty);
         set => SetValue(SizeProperty, value);
+    }
+
+    public bool IsSubtle
+    {
+        get => (bool)GetValue(IsSubtleProperty);
+        set => SetValue(IsSubtleProperty, value);
     }
 
     public bool Filled

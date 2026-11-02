@@ -7543,5 +7543,41 @@ namespace SEP.App.Resources {
                 return ResourceManager.GetString("Main_E3dIdleShort", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Launch E3D.
+        /// </summary>
+        public static string Main_LaunchShort {
+            get {
+                return ResourceManager.GetString("Main_LaunchShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string Projects_ActiveShort {
+            get {
+                return ResourceManager.GetString("Projects_ActiveShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Locked.
+        /// </summary>
+        public static string Project_Locked {
+            get {
+                return ResourceManager.GetString("Project_Locked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cached.
+        /// </summary>
+        public static string Project_CachedShort {
+            get {
+                return ResourceManager.GetString("Project_CachedShort", resourceCulture);
+            }
+        }
     }
 }

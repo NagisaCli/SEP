@@ -87,11 +87,13 @@ public sealed class ThemeService
         {
             var theme = dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
             ApplicationThemeManager.Apply(theme, Backdrop, updateAccent: false);
-            // WPF-UI's Primary buttons, toggles and selection highlights take the SEP accent, not the Windows one.
-            // (Buttons already on screen keep their old fill until their page is re-created; new pages pick the new accent up.)
-            if (app.TryFindResource("SepAccentStrongColor") is System.Windows.Media.Color accent)
+            // WPF-UI's own accent uses (check boxes, radio buttons, focus underlines, selection pills) take systemBlue,
+            // not the Windows accent. All four slots are passed: the one-colour overload would lighten the colour for the
+            // dark theme (a Fluent habit), and accent text gets the theme's accessible variant.
+            if (app.TryFindResource("SepTintColor") is System.Windows.Media.Color tint)
             {
-                ApplicationAccentColorManager.Apply(accent, theme);
+                var text = app.TryFindResource("SepAccentColor") is System.Windows.Media.Color t ? t : tint;
+                ApplicationAccentColorManager.Apply(tint, tint, tint, text);
             }
         }
         catch (Exception ex)

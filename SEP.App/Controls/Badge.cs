@@ -16,8 +16,9 @@ public enum BadgeTone
 }
 
 /// <summary>
-/// A small rounded status pill ("Free", "In progress", "2 online"). The template in Themes/Generic.xaml picks the
-/// soft background / strong foreground pair for <see cref="Tone"/> from the current theme.
+/// A small status capsule ("Free", "In progress", "2 online"), or with <see cref="IsPlain"/> just a coloured dot and
+/// text. The template in Themes/Generic.xaml picks the soft tint / accessible text pair for <see cref="Tone"/> from
+/// the current theme.
 /// </summary>
 public class Badge : ContentControl
 {
@@ -31,6 +32,13 @@ public class Badge : ContentControl
     /// <summary>Leading status dot: the "dot + pill" form used for states (project status, presence, reachability).</summary>
     public static readonly DependencyProperty HasDotProperty =
         DependencyProperty.Register(nameof(HasDot), typeof(bool), typeof(Badge), new PropertyMetadata(false));
+
+    /// <summary>
+    /// Plain status: no capsule, just the tone-coloured dot and secondary-label text ("● In progress"), the quiet form
+    /// used on cards and rows. Implies the dot.
+    /// </summary>
+    public static readonly DependencyProperty IsPlainProperty =
+        DependencyProperty.Register(nameof(IsPlain), typeof(bool), typeof(Badge), new PropertyMetadata(false));
 
     /// <summary>Colour of the dot when it differs from the text (a category colour on a neutral pill); null = Foreground.</summary>
     public static readonly DependencyProperty DotBrushProperty =
@@ -57,6 +65,12 @@ public class Badge : ContentControl
     {
         get => (bool)GetValue(HasDotProperty);
         set => SetValue(HasDotProperty, value);
+    }
+
+    public bool IsPlain
+    {
+        get => (bool)GetValue(IsPlainProperty);
+        set => SetValue(IsPlainProperty, value);
     }
 
     public Brush? DotBrush

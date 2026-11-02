@@ -395,3 +395,15 @@ public class UpperConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+/// <summary>
+/// True when the bound value's text equals the parameter: checks the segment of a segmented control that matches the
+/// current filter (<c>IsChecked="{Binding FilterTab, Converter={StaticResource EqualsConverter}, ConverterParameter=All, Mode=OneWay}"</c>).
+/// </summary>
+public class EqualsConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.Ordinal);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
+}

@@ -39,6 +39,7 @@
             <converters:StatusToToneConverter x:Key="StatusToToneConverter" />
             <converters:TakeConverter x:Key="TakeConverter" />
             <converters:OverflowCountConverter x:Key="OverflowCountConverter" />
+            <converters:EqualsConverter x:Key="EqualsConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -2519,4 +2519,16 @@ Save them anyway?</value>
   <data name="Main_E3dIdleShort" xml:space="preserve">
     <value>Idle</value>
   </data>
+  <data name="Main_LaunchShort" xml:space="preserve">
+    <value>Launch E3D</value>
+  </data>
+  <data name="Projects_ActiveShort" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Project_Locked" xml:space="preserve">
+    <value>Locked</value>
+  </data>
+  <data name="Project_CachedShort" xml:space="preserve">
+    <value>Cached</value>
+  </data>
 </root>

@@ -4,11 +4,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using SEP.App.Behaviors;
 using SEP.App.Controls;
 using SEP.App.Services;
 using SEP.App.ViewModels;
@@ -21,6 +23,7 @@ public partial class MainWindow : FluentWindow
 {
     private readonly MainWindowViewModel _viewModel;
     private readonly NavItem[] _navItems;
+    private NavItem? _selectedNav;
 
     public MainWindow()
     {
@@ -82,12 +85,49 @@ public partial class MainWindow : FluentWindow
 
         var type = page.GetType();
         foreach (var item in _navItems) item.IsChecked = item.PageType == type;
+        _selectedNav = _navItems.FirstOrDefault(i => i.IsChecked == true);
         CrumbText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding(nameof(Page.Title)) { Source = page });
+        // after layout, so the row's position is final (the first navigation happens before the window is laid out)
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => MoveNavSelection(animate: true));
 
-        // page transition: fade in and settle 10 px upward
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        ContentFrame.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)) { EasingFunction = ease });
-        FrameSlide.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(240)) { EasingFunction = ease });
+        // page transition: fade in and settle 8 px upward on a spring
+        ContentFrame.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+        FrameSlide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = SpringEase.Default });
+    }
+
+    /// <summary>
+    /// Puts the sidebar's one selection highlight under the checked row. A page change slides it there (spring ease);
+    /// the first placement and layout changes (window resize, the session card growing) snap it without motion.
+    /// </summary>
+    private void MoveNavSelection(bool animate)
+    {
+        var item = _selectedNav;
+        if (item == null || !item.IsVisible || !NavHost.IsVisible)
+        {
+            NavSelection.Opacity = 0;
+            return;
+        }
+
+        Point origin = item.TransformToAncestor(NavHost).Transform(new Point(0, 0));
+        NavSelection.Width = item.ActualWidth;
+        NavSelection.Height = item.ActualHeight;
+        NavSelection.Margin = new Thickness(origin.X, 0, 0, 0);
+
+        bool first = NavSelection.Opacity == 0;
+        NavSelection.Opacity = 1;
+        if (!animate || first)
+        {
+            NavSelectionShift.BeginAnimation(TranslateTransform.YProperty, null);
+            NavSelectionShift.Y = origin.Y;
+            return;
+        }
+        NavSelectionShift.BeginAnimation(TranslateTransform.YProperty,
+            new DoubleAnimation(origin.Y, TimeSpan.FromMilliseconds(340)) { EasingFunction = SpringEase.Default });
+    }
+
+    private void OnNavLayoutChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_selectedNav != null) MoveNavSelection(animate: false);
     }
 
     private void OnNavClick(object sender, RoutedEventArgs e)

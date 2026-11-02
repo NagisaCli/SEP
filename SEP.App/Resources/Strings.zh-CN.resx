@@ -2591,4 +2591,16 @@
   <data name="Main_E3dIdleShort" xml:space="preserve">
     <value>空闲</value>
   </data>
+  <data name="Main_LaunchShort" xml:space="preserve">
+    <value>启动 E3D</value>
+  </data>
+  <data name="Projects_ActiveShort" xml:space="preserve">
+    <value>当前</value>
+  </data>
+  <data name="Project_Locked" xml:space="preserve">
+    <value>已锁定</value>
+  </data>
+  <data name="Project_CachedShort" xml:space="preserve">
+    <value>缓存</value>
+  </data>
 </root>
